@@ -1,0 +1,272 @@
+-------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Esti
+> mações/output/logs/02_limpeza_wdi.log
+  log type:  text
+ opened on:   7 Oct 2026, 22:22:01
+
+. 
+. * ---------------------------------------------------------------- universo d
+> e paises
+. import delimited "$RAW/wdi/wdi_paises.csv", clear varnames(1) encoding(utf8) 
+> stringcols(_all)
+(5 vars, 296 obs)
+
+. replace region = strtrim(region)
+(90 real changes made)
+
+. gen byte aggregate = region == "Aggregates"
+
+. count if aggregate
+  79
+
+. di "Agregados regionais e de renda na lista do Banco Mundial: " r(N)
+Agregados regionais e de renda na lista do Banco Mundial: 79
+
+. * territorios dependentes cujas contas fiscais integram as de outro Estado (v
+> er docs/DECISOES.md, D10)
+. gen byte territory = inlist(iso3, "ABW", "ASM", "BMU", "CHI", "CUW", "CYM", "
+> FRO", "GIB", "GRL") | ///
+>                      inlist(iso3, "GUM", "IMN", "MAF", "MNP", "NCL", "PRI", "
+> PYF", "SXM", "TCA") | ///
+>                      inlist(iso3, "VGB", "VIR")
+
+. rename (name income) (country wb_income_current)
+
+. keep iso3 country region wb_income_current aggregate territory
+
+. save "$INTERIM/paises.dta", replace
+file C:\Users\Usuario\Dropbox\Papers\Emprego Público e
+    Crescimento\Estimações/data/interim/paises.dta saved
+
+. 
+. * ---------------------------------------------------------------- WDI
+. import delimited "$RAW/wdi/wdi.csv", clear varnames(1) case(preserve) encodin
+> g(utf8)
+(27 vars, 17,160 obs)
+
+. fixnames
+
+. rename (NY_GDP_PCAP_KD NY_GDP_PCAP_KD_ZG NY_GDP_MKTP_KD NY_GDP_MKTP_CN NY_GDP
+> _DEFL_ZS ///
+>         NE_GDI_FTOT_ZS NE_GDI_FPRV_ZS FP_CPI_TOTL_ZG NY_GDP_DEFL_KD_ZG NE_TRD
+> _GNFS_ZS ///
+>         SP_POP_TOTL SP_POP_GROW NE_CON_GOVT_ZS NY_GDP_TOTL_RT_ZS SP_POP_DPND 
+> TT_PRI_MRCH_XD_WD ///
+>         GC_XPN_COMP_ZS GC_XPN_TOTL_GD_ZS GC_REV_XGRT_GD_ZS SL_TLF_TOTL_IN SL_
+> UEM_TOTL_ZS ///
+>         SL_EMP_WORK_ZS SL_EMP_TOTL_SP_ZS SE_SEC_ENRR) ///
+>        (gdppc gdppc_growth gdp_real gdp_nom_lcu gdp_defl inv_gdp privinv_wdi 
+> infl_cpi infl_defl ///
+>         trade_gdp pop popg govcons_gdp natres_rents dependency tot_wdi ///
+>         cg_comp_share cg_exp_gdp cg_rev_gdp labforce unemp wage_workers emp_p
+> op secenr)
+
+. drop country
+
+. * folha do governo central como na dissertacao (produto de dois indicadores d
+> o WDI)
+. gen wagebill_cg_wdi = cg_comp_share * cg_exp_gdp / 100
+(12,275 missing values generated)
+
+. * inflacao: IPC; deflator do PIB onde o IPC falta (marcado)
+. gen infl = infl_cpi
+(5,871 missing values generated)
+
+. gen byte infl_from_defl = missing(infl_cpi) & !missing(infl_defl)
+
+. replace infl = infl_defl if infl_from_defl
+(2,950 real changes made)
+
+. * emprego total (mil) = forca de trabalho x (1 - desemprego)
+. gen emp_wdi = labforce * (1 - unemp / 100) / 1000
+(9,124 missing values generated)
+
+. label var gdppc "GDP per capita (constant 2015 USD)"
+
+. label var gdppc_growth "GDP per capita growth (%)"
+
+. label var wagebill_cg_wdi "Central government compensation of employees (% of
+>  GDP), WDI"
+
+. compress
+  (0 bytes saved)
+
+. save "$INTERIM/wdi.dta", replace
+file C:\Users\Usuario\Dropbox\Papers\Emprego Público e
+    Crescimento\Estimações/data/interim/wdi.dta saved
+
+. 
+. * ---------------------------------------------------------------- WGI
+. import delimited "$RAW/wgi/wgi.csv", clear varnames(1) case(lower) encoding(u
+> tf8)
+(9 vars, 5,589 obs)
+
+. fixnames, lower
+
+. rename (gov_wgi_ge_est gov_wgi_rq_est gov_wgi_rl_est gov_wgi_cc_est gov_wgi_v
+> a_est gov_wgi_pv_est) ///
+>        (wgi_ge wgi_rq wgi_rl wgi_cc wgi_va wgi_pv)
+
+. drop country
+
+. keep if year >= 1996
+(0 observations deleted)
+
+. * o WGI nao foi publicado para 1997, 1999 e 2001: interpolacao linear, marcad
+> a
+. fillin iso3 year
+
+. drop _fillin
+
+. encode iso3, gen(_id)
+
+. xtset _id year
+
+Panel variable: _id (strongly balanced)
+ Time variable: year, 1996 to 2025, but with gaps
+         Delta: 1 unit
+
+. gen byte wgi_interp = inlist(year, 1997, 1999, 2001)
+
+. foreach v in ge rq rl cc va pv {
+  2.     by _id: ipolate wgi_`v' year, gen(_tmp)
+  3.     replace wgi_`v' = _tmp if wgi_interp & missing(wgi_`v')
+  4.     drop _tmp
+  5. }
+(216 missing values generated)
+(0 real changes made)
+(215 missing values generated)
+(0 real changes made)
+(86 missing values generated)
+(0 real changes made)
+(181 missing values generated)
+(0 real changes made)
+(100 missing values generated)
+(0 real changes made)
+(127 missing values generated)
+(0 real changes made)
+
+. replace wgi_interp = 0 if missing(wgi_ge)
+(0 real changes made)
+
+. drop _id
+
+. save "$INTERIM/wgi.dta", replace
+file C:\Users\Usuario\Dropbox\Papers\Emprego Público e
+    Crescimento\Estimações/data/interim/wgi.dta saved
+
+. 
+. * ---------------------------------------------------------------- grupo de r
+> enda historico
+. import delimited "$RAW/income_hist/OGHIST_country_analytical_history.csv", cl
+> ear varnames(nonames) stringcols(_all) encoding(utf8)
+(37 vars, 240 obs)
+
+. * linha 6 traz o ano dos dados (calendario); paises comecam na linha 12
+. local base = 1996
+
+. local col ""
+
+. local lastv v`c(k)'
+
+. foreach v of varlist v3-`lastv' {
+  2.     if strtrim(`v'[6]) == "`base'" local col `v'
+  3. }
+
+. assert "`col'" != ""
+
+. gen row = _n
+
+. keep if row >= 12 & strlen(strtrim(v1)) == 3
+(17 observations deleted)
+
+. rename v1 iso3
+
+. * ano-base fixo: classificacao com dados de 1996; se ausente, a primeira disp
+> onivel depois
+. gen income0 = strtrim(`col')
+(2 missing values generated)
+
+. local after 0
+
+. foreach v of varlist v3-`lastv' {
+  2.     if "`v'" == "`col'" local after 1
+  3.     if `after' replace income0 = strtrim(`v') if inlist(income0, "", "..")
+  4. }
+(0 real changes made)
+(0 real changes made)
+(0 real changes made)
+(0 real changes made)
+(1 real change made)
+(1 real change made)
+(0 real changes made)
+(0 real changes made)
+(0 real changes made)
+(0 real changes made)
+(2 real changes made)
+(0 real changes made)
+(1 real change made)
+(3 real changes made)
+(3 real changes made)
+(1 real change made)
+(0 real changes made)
+(0 real changes made)
+(0 real changes made)
+(2 real changes made)
+(0 real changes made)
+(0 real changes made)
+(0 real changes made)
+(0 real changes made)
+(0 real changes made)
+(0 real changes made)
+
+. replace income0 = "" if income0 == ".."
+(0 real changes made)
+
+. replace income0 = "LM" if income0 == "LM*"
+(0 real changes made)
+
+. gen byte income_grp = 1 if income0 == "L"
+(159 missing values generated)
+
+. replace income_grp = 2 if income0 == "LM"
+(66 real changes made)
+
+. replace income_grp = 3 if income0 == "UM"
+(33 real changes made)
+
+. replace income_grp = 4 if income0 == "H"
+(58 real changes made)
+
+. label define inc 1 "Low income" 2 "Lower middle income" 3 "Upper middle incom
+> e" 4 "High income"
+
+. label values income_grp inc
+
+. tab income0, missing
+
+    income0 |      Freq.     Percent        Cum.
+------------+-----------------------------------
+            |          2        0.90        0.90
+          H |         58       26.01       26.91
+          L |         64       28.70       55.61
+         LM |         66       29.60       85.20
+         UM |         33       14.80      100.00
+------------+-----------------------------------
+      Total |        223      100.00
+
+. keep iso3 income_grp
+
+. save "$INTERIM/renda_hist.dta", replace
+file C:\Users\Usuario\Dropbox\Papers\Emprego Público e
+    Crescimento\Estimações/data/interim/renda_hist.dta saved
+
+. 
+. log close
+      name:  <unnamed>
+       log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Esti
+> mações/output/logs/02_limpeza_wdi.log
+  log type:  text
+ closed on:   7 Oct 2026, 22:22:01
+-------------------------------------------------------------------------------

@@ -1,0 +1,4 @@
+Data de acesso: 2026-10-07
+URL: https://www.qogdata.pol.gu.se/data/qog_std_ts_jan26.csv
+QoG Standard Dataset, time-series, janeiro 2026. Inclui ICTD/UNU-WIDER GRD (ictd_*) e NELDA.
+URL: https://www.qogdata.pol.gu.se/data/qog_exp_agg_20.csv (QoG Expert Survey 2020, agregado)

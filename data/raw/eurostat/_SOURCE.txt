@@ -1,0 +1,3 @@
+Data de acesso: 2026-10-07
+URL: https://ec.europa.eu/eurostat/api/dissemination/sdmx/2.1/data/gov_10a_main/A.PC_GDP.S13+S1311.D1PAY+TE+TR.?format=SDMX-CSV
+Eurostat gov_10a_main: D1PAY (compensation of employees, payable), TE (total expenditure), TR (total revenue), % PIB, S13 e S1311.

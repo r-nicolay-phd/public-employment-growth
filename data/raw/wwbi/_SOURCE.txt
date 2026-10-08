@@ -1,0 +1,4 @@
+Data de acesso: 2026-10-07
+API: https://api.worldbank.org/v2/country/all/indicator/<codigo>?source=64
+Indicadores: BI.WAG.TOTL.GD.ZS, BI.WAG.TOTL.PB.ZS, BI.EMP.TOTL.PB.ZS, BI.EMP.PWRK.PB.ZS, BI.EMP.FRML.PB.ZS, BI.WAG.PREM.PB, BI.WAG.PREM.PB.GP, BI.WAG.CPRS.PB.ZS, BI.PWK.PUBS.TT.CA.ZS
+Worldwide Bureaucracy Indicators (source 64).

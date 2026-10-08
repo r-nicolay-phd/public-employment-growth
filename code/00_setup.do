@@ -23,3 +23,32 @@ foreach c in reghdfe ftools ivreghdfe ivreg2 ranktest xtabond2 xtdpdgmm xtdpdbc 
         exit 199
     }
 }
+
+* utilitarios de tabelas e figuras, rotulos e estilo grafico
+do "$ROOT/code/00_tabelas.do"
+do "$ROOT/code/00_rotulos.do"
+set scheme s2mono
+graph set window fontface "Arial"
+graph set ps fontface "Arial"
+graph set eps fontface "Arial"
+* paleta Okabe-Ito (segura para daltonismo): preto, azul, laranja, verde-azulado, vermelhao
+global C1 "0 0 0"
+global C2 "0 114 178"
+global C3 "230 159 0"
+global C4 "0 158 115"
+global C5 "213 94 0"
+global GOPT "graphregion(color(white) margin(small)) plotregion(color(white) lcolor(none)) ylabel(, nogrid labsize(8pt) angle(horizontal)) xlabel(, labsize(8pt)) legend(size(8pt) region(lcolor(none)))"
+
+* fixnames: depois de import delimited, recupera nomes de coluna com ponto (guardados no rotulo)
+capture program drop fixnames
+program define fixnames
+    syntax [, lower]
+    foreach v of varlist _all {
+        local l : variable label `v'
+        if strpos("`l'", ".") {
+            local n = subinstr("`l'", ".", "_", .)
+            if "`lower'" != "" local n = lower("`n'")
+            rename `v' `n'
+        }
+    }
+end

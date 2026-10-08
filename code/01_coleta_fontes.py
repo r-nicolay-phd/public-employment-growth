@@ -225,12 +225,13 @@ def download(out, fname, url, note, check=None):
 
 @task("vdem")
 def vdem(out):
-    download(out, "V-Dem-CY-Core-v16_csv.zip", "https://v-dem.net/media/datasets/V-Dem-CY-Core-v16_csv.zip",
-             "V-Dem Country-Year Core v16.", check=b"PK")
-    with zipfile.ZipFile(out / "V-Dem-CY-Core-v16_csv.zip") as z:
+    download(out, "V-Dem-CY-FullOthers-v16_csv.zip", "https://v-dem.net/media/datasets/V-Dem-CY-FullOthers-v16_csv.zip",
+             "V-Dem Country-Year Full+Others v16 (o arquivo Core nao traz v2stcritrecadm).", check=b"PK")
+    with zipfile.ZipFile(out / "V-Dem-CY-FullOthers-v16_csv.zip") as z:
         name = [n for n in z.namelist() if n.endswith(".csv")][0]
         cols = ["country_name", "country_text_id", "year", "v2stcritrecadm", "v2clrspct", "v2excrptps",
-                "v2stcritrecadm_osp", "v2clrspct_osp", "v2x_polyarchy", "v2x_rule"]
+                "v2stcritrecadm_osp", "v2clrspct_osp", "v2x_polyarchy", "v2x_rule", "v2stcritrecadm_codelow",
+                "v2stcritrecadm_codehigh", "v2eltype_0", "v2eltype_1", "v2eltype_6", "v2eltype_7"]
         with z.open(name) as f:
             df = pd.read_csv(f, usecols=lambda c: c in cols, low_memory=False)
     df.to_csv(out / "vdem_subset.csv", index=False)
@@ -249,8 +250,8 @@ def qog(out):
 
 @task("pwt")
 def pwt(out):
-    download(out, "pwt110.dta", "https://dataverse.nl/api/access/datafile/554024",
-             "Penn World Table 11.0 (Groningen Growth and Development Centre), arquivo Stata. "
+    download(out, "pwt110.dta", "https://dataverse.nl/api/access/datafile/554030",
+             "Penn World Table 11.0 (Groningen Growth and Development Centre), arquivo principal em Stata (51 variaveis). "
              "Link 'Stata' da pagina https://www.rug.nl/ggdc/productivity/pwt/", check=b"<stata_dta>")
 
 
@@ -265,14 +266,18 @@ def dpi(out):
 @task("ilostat")
 def ilostat(out):
     out.mkdir(parents=True, exist_ok=True)
-    base = "https://rplumber.ilo.org/data/indicator/?id={}&sex=SEX_T&classif1=AGE_AGGREGATE_TOTAL&timefrom=1990&format=.csv"
-    for ind in ["EMP_PUBL_SEX_AGE_NB_A", "EMP_TEMP_SEX_AGE_NB_A"]:
-        r = get(base.format(ind), timeout=900)
-        (out / f"{ind}.csv").write_bytes(r.content)
-        nlin = r.content.count(b"\n")
-        print(f"   ILO {ind}: {nlin} linhas")
-    source_note(out, ["API: " + base.format("<indicador>"),
-                      "EMP_PUBL = emprego no setor publico (mil); EMP_TEMP = emprego total (mil). Total por sexo e idade."])
+    base = "https://sdmx.ilo.org/rest/data/ILO,DF_{}/all?format=csv&startPeriod=1990"
+    for ind in ["EMP_PUBL_SEX_AGE_NB", "EMP_TEMP_SEX_AGE_NB", "EAR_PMTA_SEX_NB"]:
+        r = get(base.format(ind), timeout=1200)
+        df = pd.read_csv(io.StringIO(r.text), low_memory=False)
+        df = df[df.SEX == "SEX_T"]
+        if "AGE" in df:
+            df = df[df.AGE == "AGE_YTHADULT_YGE15"]
+        df.to_csv(out / f"{ind}.csv", index=False)
+        print(f"   ILO {ind}: {len(df)} linhas, {df.REF_AREA.nunique()} paises")
+    source_note(out, ["API SDMX: " + base.format("<indicador>"),
+                      "EMP_PUBL = emprego no setor publico (mil); EMP_TEMP = emprego total (mil); "
+                      "EAR_PMTA = salario mensal medio dos empregados publicos (moeda local). Total por sexo; idade 15+."])
 
 
 @task("eurostat")
@@ -282,8 +287,17 @@ def eurostat(out):
              "Eurostat gov_10a_main: D1PAY (compensation of employees, payable), TE (total expenditure), TR (total revenue), % PIB, S13 e S1311.")
 
 
+@task("ucdp")
+def ucdp(out):
+    download(out, "ucdp-prio-acd-261-csv.zip", "https://ucdp.uu.se/downloads/ucdpprio/ucdp-prio-acd-261-csv.zip",
+             "UCDP/PRIO Armed Conflict Dataset v26.1. Usado so para marcar anos de guerra (intensidade 2: 1.000+ mortes).",
+             check=b"PK")
+    with zipfile.ZipFile(out / "ucdp-prio-acd-261-csv.zip") as z:
+        z.extractall(out)
+
+
 TASKS = [wdi, wgi, wwbi, income_hist, imf_gfs, imf_icsd, imf_gdd, imf_ctot, imf_fd, imf_world, imf_weo,
-         vdem, qog, pwt, dpi, ilostat, eurostat]
+         vdem, qog, pwt, dpi, ilostat, eurostat, ucdp]
 
 if __name__ == "__main__":
     only = [a for a in sys.argv[1:] if not a.startswith("--")]

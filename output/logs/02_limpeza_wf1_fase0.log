@@ -1,9 +1,9 @@
 -------------------------------------------------------------------------------
       name:  <unnamed>
        log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Esti
-> mações/output/logs/02_replicacao_fase0.log
+> mações/output/logs/02_limpeza_wf1_fase0.log
   log type:  text
- opened on:   7 Oct 2026, 21:43:48
+ opened on:   7 Oct 2026, 22:21:59
 
 . import delimited "$INTERIM/wf1_original.csv", clear varnames(1) case(lower)
 (encoding automatically selected: ISO-8859-1)
@@ -151,7 +151,7 @@ Absorbed degrees of freedom:
 . log close
       name:  <unnamed>
        log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Esti
-> mações/output/logs/02_replicacao_fase0.log
+> mações/output/logs/02_limpeza_wf1_fase0.log
   log type:  text
- closed on:   7 Oct 2026, 21:43:50
+ closed on:   7 Oct 2026, 22:22:00
 -------------------------------------------------------------------------------

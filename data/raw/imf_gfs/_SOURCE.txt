@@ -1,0 +1,5 @@
+Data de acesso: 2026-10-07
+API: https://api.imf.org/external/sdmx/3.0/data/dataflow/IMF.STA/GFS_SOO/+/*.<setor>.*.<indicador>.POGDP_PT+POTO_PT.A
+Indicadores: G21_T, G2_T, G1_T, G11_T, GNLB_T, GPB_T, G31_A_T, NNFAG_A_T, G22_T, G24_T, G25_T, G26_T, G27_T, G28_T
+Setores: S13, S1311, S1321, S1311B, S1311MIXED
+GFS Statement of Operations; G21 = compensation of employees.

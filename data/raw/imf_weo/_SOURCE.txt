@@ -1,0 +1,3 @@
+Data de acesso: 2026-10-07
+API: https://api.imf.org/external/sdmx/3.0/data/dataflow/IMF.RES/WEO/+/*.GGX_NGDP+GGR_NGDP+GGXCNL_NGDP+GGXWDG_NGDP+NGDP_RPCH.A
+World Economic Outlook (ultima edicao na API): despesa, receita, resultado e divida do governo geral.

@@ -1,0 +1,3 @@
+Data de acesso: 2026-10-07
+URL: https://v-dem.net/media/datasets/V-Dem-CY-FullOthers-v16_csv.zip
+V-Dem Country-Year Full+Others v16 (o arquivo Core nao traz v2stcritrecadm).

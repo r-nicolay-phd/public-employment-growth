@@ -1,0 +1,3 @@
+Data de acesso: 2026-10-07
+API: https://api.imf.org/external/sdmx/3.0/data/dataflow/IMF.FAD/ICSD/+/*.P51G_S13_Q_POGDP_PT+P51G_PUPVT_Q_POGDP_PT+P51G_PS_Q_POGDP_PT+CAPSTCK_S13_Q_POGDP_PT+CAPSTCK_PUPVT_Q_POGDP_PT.A
+Investment and Capital Stock Dataset: investimento e estoque publico (S13) e privado (PUPVT), % PIB.

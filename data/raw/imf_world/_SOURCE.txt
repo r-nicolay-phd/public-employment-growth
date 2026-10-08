@@ -1,0 +1,3 @@
+Data de acesso: 2026-10-07
+API: https://api.imf.org/external/sdmx/3.0/data/dataflow/IMF.FAD/WORLD/+/*.*.*.A
+World Revenue Longitudinal Database (WoRLD).

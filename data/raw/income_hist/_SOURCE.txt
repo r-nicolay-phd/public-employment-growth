@@ -1,0 +1,3 @@
+Data de acesso: 2026-10-07
+URL: https://databankfiles.worldbank.org/public/ddpext_download/site-content/OGHIST.xlsx
+Classificacao historica de renda do Banco Mundial (por ano fiscal).

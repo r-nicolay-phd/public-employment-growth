@@ -1,0 +1,663 @@
+-------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Esti
+> mações/output/logs/04_descritivas.log
+  log type:  text
+ opened on:   7 Oct 2026, 22:22:19
+
+. 
+. use "$FINAL/painel_anual.dta", clear
+
+. gen byte main = micro == 0 & inrange(year, 1996, 2023)
+
+. 
+. * ---------------------------------------------------------------- Tabela 1
+. local T1 g wagebill_gdp wagebill_share wagebill_cyc d_wagebill_real pubemp_sh
+> are relwage wwbi_prem_all ///
+>     merit wgi_ge lny hc inv open infl popg ctot_g ipriv tfp_g privemp_g debt 
+> exp_gdp rev_gdp balance_gdp election_fixed
+
+. label var election_fixed "Predetermined election year (0/1)"
+
+. label var lny "Log GDP per capita"
+
+. label var inv "Investment (% of GDP)"
+
+. label var open "Trade openness (% of GDP)"
+
+. label var popg "Population growth (%)"
+
+. label var wwbi_prem_all "Public wage premium (log points)"
+
+. label var merit "Meritocratic recruitment (V-Dem)"
+
+. label var wgi_ge "Government effectiveness (WGI)"
+
+. label var debt "Public debt (% of GDP)"
+
+. label var exp_gdp "Total expenditure (% of GDP)"
+
+. label var rev_gdp "Total revenue (% of GDP)"
+
+. label var balance_gdp "Fiscal balance (% of GDP)"
+
+. label var hc "Human capital index (PWT)"
+
+. tab_new, ncol(7) head1("Mean" "SD overall" "SD between" "SD within" "Min" "Ma
+> x" "N")
+
+. foreach v of local T1 {
+  2.     quietly xtsum `v' if main
+  3.     local lab : variable label `v'
+  4.     local r ""
+  5.     foreach s in mean sd sd_b sd_w min max {
+  6.         local x : display %9.3f r(`s')
+  7.         local r `"`r' "`=strtrim("`x'")'""'
+  8.     }
+  9.     local n : display %9.0fc r(N)
+ 10.     tab_row "`lab'" `r' "`=strtrim("`n'")'"
+ 11. }
+
+. tab_out Table1_descriptives, title("Table 1. Descriptive statistics, annual p
+> anel") ///
+>     notes("Annual country-year observations, 1996-2023, excluding microstates
+>  (population below 500,000). SD between is the standard deviation of country 
+> means; SD within is the standard deviation of deviations from country means. 
+> Growth and inflation winsorized at the 1st and 99th percentiles. Wage bill: c
+> ompensation of employees of the general government (IMF GFS). Public employme
+> nt, relative wage and premium: World Bank Worldwide Bureaucracy Indicators.")
+successfully replaced "C:/Users/Usuario/Dropbox/Papers/Emprego Público e Cresci
+> mento/Estimações/output/tables/Table1_descriptives.docx"
+tabela gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\E
+> stimações/output/tables/Table1_descriptives.{tex,docx}
+
+. 
+. * desvio-padrao dentro do pais da folha (usado no tamanho de efeito)
+. quietly xtsum wagebill_gdp if main
+
+. scalar sdw_wb = r(sd_w)
+
+. use "$FINAL/painel_5anos.dta", clear
+
+. quietly xtsum wagebill_gdp0 if micro == 0
+
+. scalar sdw_wb5 = r(sd_w)
+
+. clear
+
+. set obs 1
+Number of observations (_N) was 0, now 1.
+
+. gen sdw_wb_annual = sdw_wb
+
+. gen sdw_wb_5yr = sdw_wb5
+
+. save "$INTERIM/efeito_sd.dta", replace
+file C:\Users\Usuario\Dropbox\Papers\Emprego Público e
+    Crescimento\Estimações/data/interim/efeito_sd.dta saved
+
+. 
+. * ---------------------------------------------------------------- Apendice: 
+> definicoes e fontes
+. tab_new, ncol(2) head1("Definition" "Source")
+
+. tab_row "GDP per capita growth" "Annual growth of real GDP per capita (%)" "W
+> DI (NY.GDP.PCAP.KD.ZG)"
+
+. tab_row "Wage bill (% of GDP)" "Compensation of employees, general government
+>  (GFSM 2014 code 21)" "IMF GFS, Statement of Operations"
+
+. tab_row "Wage bill (% of total expenditure)" "Compensation of employees / (ex
+> pense + net investment in nonfinancial assets)" "IMF GFS"
+
+. tab_row "Wage bill (% of trend GDP)" "Wage bill x GDP / trend GDP; HP filter 
+> (lambda 6.25) or Hamilton (h=2, p=2) on log real GDP" "IMF GFS; WDI"
+
+. tab_row "Real wage bill change" "Change in real wage bill (GDP deflator) as %
+>  of previous-year real GDP" "IMF GFS; WDI"
+
+. tab_row "Wage bill, central government" "Compensation share of expense x expe
+> nse (% of GDP), central government" "WDI (GC.XPN.COMP.ZS, GC.XPN.TOTL.GD.ZS)"
+
+. tab_row "Public employment" "Public sector employment (% of total employment)
+> " "WWBI (BI.EMP.TOTL.PB.ZS)"
+
+. tab_row "Relative public wage" "Wage bill (% of GDP) / public employment shar
+> e: pay per public worker relative to GDP per worker" "IMF GFS; WWBI"
+
+. tab_row "Public wage premium" "Conditional public-private wage gap vs all pri
+> vate employees (log points)" "WWBI (BI.WAG.PREM.PB.GP)"
+
+. tab_row "Meritocratic recruitment" "Criteria for appointment decisions in the
+>  state administration (v2stcritrecadm)" "V-Dem v16"
+
+. tab_row "Government effectiveness" "WGI estimate (1997, 1999, 2001 linearly i
+> nterpolated)" "WGI"
+
+. tab_row "Log initial GDP per capita" "Log real GDP per capita in the year bef
+> ore the period" "WDI (NY.GDP.PCAP.KD)"
+
+. tab_row "Human capital" "Human capital index (years of schooling and returns)
+> " "PWT 11.0"
+
+. tab_row "Investment" "Gross fixed capital formation (% of GDP)" "WDI (NE.GDI.
+> FTOT.ZS)"
+
+. tab_row "Trade openness" "Exports plus imports (% of GDP)" "WDI (NE.TRD.GNFS.
+> ZS)"
+
+. tab_row "Inflation" "CPI inflation (GDP deflator where CPI missing), winsoriz
+> ed" "WDI"
+
+. tab_row "Population growth" "Annual population growth (%)" "WDI (SP.POP.GROW)
+> "
+
+. tab_row "Commodity terms of trade" "Growth of commodity net export price inde
+> x, GDP-weighted, fixed weights" "IMF CTOT (Gruss and Kebhaj)"
+
+. tab_row "Private investment" "Private gross fixed capital formation (% of GDP
+> )" "IMF ICSD"
+
+. tab_row "TFP growth" "Growth of TFP at constant national prices" "PWT 11.0 (r
+> tfpna)"
+
+. tab_row "Private employment growth" "Growth of total minus public employment,
+>  same survey" "ILOSTAT"
+
+. tab_row "Public debt" "General government gross debt (% of GDP); central wher
+> e general missing" "IMF Global Debt Database"
+
+. tab_row "Election year" "Executive election (presidential systems) or legisla
+> tive election (others)" "DPI 2020"
+
+. tab_row "Predetermined election" "Election held in the year the constitutiona
+> l term expires (years left in term = 0)" "DPI 2020"
+
+. tab_row "Income group" "World Bank analytical classification for 1996 data" "
+> World Bank (OGHIST)"
+
+. tab_row "Federal" "Federal country (28 federations, including Spain and South
+>  Africa)" "Forum of Federations"
+
+. tab_row "Resource rich" "Natural resource rents above 10% of GDP (1996-2023 m
+> ean)" "WDI (NY.GDP.TOTL.RT.ZS)"
+
+. tab_out TableA1_definitions, title("Table A1. Variable definitions and source
+> s") landscape
+successfully replaced "C:/Users/Usuario/Dropbox/Papers/Emprego Público e Cresci
+> mento/Estimações/output/tables/TableA1_definitions.docx"
+tabela gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\E
+> stimações/output/tables/TableA1_definitions.{tex,docx}
+
+. 
+. * ---------------------------------------------------------------- Apendice: 
+> paises por grupo de renda
+. use "$FINAL/painel_5anos.dta", clear
+
+. keep if micro == 0 & !missing(g, wagebill_gdp0)
+(1,352 observations deleted)
+
+. collapse (firstnm) iso3 income_grp, by(id)
+
+. label define inc 1 "Low income" 2 "Lower middle income" 3 "Upper middle incom
+> e" 4 "High income", replace
+
+. label values income_grp inc
+
+. decode income_grp, gen(grp)
+
+. replace grp = "Unclassified" if grp == ""
+(0 real changes made)
+
+. tab_new, ncol(2) head1("Countries (ISO3)" "N")
+
+. levelsof grp, local(G)
+`"High income"' `"Low income"' `"Lower middle income"' `"Upper middle income"'
+
+. foreach gg of local G {
+  2.     quietly levelsof iso3 if grp == "`gg'", local(L) clean
+  3.     local n : word count `L'
+  4.     tab_row "`gg'" "`L'" "`n'"
+  5. }
+
+. tab_out TableA2_countries, title("Table A2. Countries in the main five-year s
+> ample, by 1996 income group") landscape
+successfully replaced "C:/Users/Usuario/Dropbox/Papers/Emprego Público e Cresci
+> mento/Estimações/output/tables/TableA2_countries.docx"
+tabela gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\E
+> stimações/output/tables/TableA2_countries.{tex,docx}
+
+. 
+. * ---------------------------------------------------------------- Apendice: 
+> matriz de correlacao
+. use "$FINAL/painel_5anos.dta", clear
+
+. keep if micro == 0
+(261 observations deleted)
+
+. local C g wagebill_gdp0 merit0 lny0 hc0 inv open infl popg ctot_g
+
+. quietly correlate `C'
+
+. matrix R = r(C)
+
+. local k : word count `C'
+
+. local hd ""
+
+. forvalues j = 1/`k' {
+  2.     local hd `"`hd' "(`j')""'
+  3. }
+
+. tab_new, ncol(`k') head1(`hd')
+
+. forvalues i = 1/`k' {
+  2.     local v : word `i' of `C'
+  3.     local lab "${LBL_`v'}"
+  4.     if "`lab'" == "" local lab : variable label `v'
+  5.     local r ""
+  6.     forvalues j = 1/`k' {
+  7.         if `j' > `i' local r `"`r' """'
+  8.         else {
+  9.             local x : display %6.2f R[`i', `j']
+ 10.             local r `"`r' "`=strtrim("`x'")'""'
+ 11.         }
+ 12.     }
+ 13.     tab_row "(`i') `lab'" `r'
+ 14. }
+
+. tab_out TableA3_correlations, title("Table A3. Correlation matrix, five-year 
+> panel") landscape ///
+>     notes("Pairwise correlations over five-year periods with all variables ob
+> served, excluding microstates.")
+successfully replaced "C:/Users/Usuario/Dropbox/Papers/Emprego Público e Cresci
+> mento/Estimações/output/tables/TableA3_correlations.docx"
+tabela gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\E
+> stimações/output/tables/TableA3_correlations.{tex,docx}
+
+. 
+. * ---------------------------------------------------------------- Figura 1: 
+> folha por grupo de renda
+. use "$FINAL/painel_anual.dta", clear
+
+. keep if micro == 0 & inrange(year, 1996, 2023) & !missing(wagebill_gdp, incom
+> e_grp)
+(8,747 observations deleted)
+
+. collapse (median) wb = wagebill_gdp (count) n = wagebill_gdp, by(income_grp y
+> ear)
+
+. twoway (connected wb year if income_grp == 1, lcolor("$C1") mcolor("$C1") msy
+> mbol(O) msize(small) lpattern(solid)) ///
+>        (connected wb year if income_grp == 2, lcolor("$C2") mcolor("$C2") msy
+> mbol(T) msize(small) lpattern(dash)) ///
+>        (connected wb year if income_grp == 3, lcolor("$C3") mcolor("$C3") msy
+> mbol(S) msize(small) lpattern(shortdash)) ///
+>        (connected wb year if income_grp == 4, lcolor("$C4") mcolor("$C4") msy
+> mbol(D) msize(small) lpattern(longdash_dot)), ///
+>        $GOPT ytitle("Wage bill, general government (% of GDP)", size(8pt)) xt
+> itle("", size(8pt)) ///
+>        xlabel(1996(4)2024) legend(order(1 "Low income" 2 "Lower middle" 3 "Up
+> per middle" 4 "High income") rows(1) pos(6))
+
+. fig_export Figure1_wagebill_income, width(190) height(95)
+file C:\Users\Usuario\Dropbox\Papers\Emprego Público e
+    Crescimento\Estimações/output/figures/Figure1_wagebill_income.pdf saved
+    as PDF format
+file C:\Users\Usuario\Dropbox\Papers\Emprego Público e
+    Crescimento\Estimações/output/figures/Figure1_wagebill_income.png saved
+    as PNG format
+figura gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\E
+> stimações/output/figures/Figure1_wagebill_income.{pdf,png} (190 x 95 mm)
+
+. 
+. * ---------------------------------------------------------------- Figura 2: 
+> emprego publico x salario relativo
+. use "$FINAL/painel_anual.dta", clear
+
+. keep if micro == 0 & inrange(year, 1996, 2023)
+(5,934 observations deleted)
+
+. collapse (mean) pubemp_share relwage wagebill_gdp (firstnm) iso3, by(id)
+
+. keep if !missing(pubemp_share, relwage)
+(94 observations deleted)
+
+. gen lab = iso3 if inlist(iso3, "BRA", "USA", "DEU", "IND", "ARG", "FRA", "GBR
+> ", "MEX", "ZAF") | ///
+>                   inlist(iso3, "EGY", "NOR", "IDN", "CHL", "SWE") | inlist(is
+> o3, "TUR", "NGA", "PAK", "COL", "THA")
+(58 missing values generated)
+
+. gen pos = 3
+
+. replace pos = 12 if inlist(iso3, "SWE", "NOR")
+(2 real changes made)
+
+. replace pos = 6 if inlist(iso3, "FRA", "EGY")
+(2 real changes made)
+
+. replace pos = 9 if inlist(iso3, "MEX")
+(1 real change made)
+
+. twoway (scatter relwage pubemp_share, mcolor("$C2%60") msymbol(Oh) msize(smal
+> l)) ///
+>        (scatter relwage pubemp_share if lab != "", mcolor("$C1") msymbol(O) m
+> size(small) mlabel(lab) mlabsize(6.5pt) mlabcolor("$C1") mlabvposition(pos)),
+>  ///
+>        $GOPT legend(off) xtitle("Public employment (% of total employment)", 
+> size(8pt)) ///
+>        ytitle("Relative public wage (pay per public worker / GDP per worker)"
+> , size(8pt))
+
+. fig_export Figure2_employment_vs_wage, width(190) height(110)
+file C:\Users\Usuario\Dropbox\Papers\Emprego Público e
+    Crescimento\Estimações/output/figures/Figure2_employment_vs_wage.pdf
+    saved as PDF format
+file C:\Users\Usuario\Dropbox\Papers\Emprego Público e
+    Crescimento\Estimações/output/figures/Figure2_employment_vs_wage.png
+    saved as PNG format
+figura gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\E
+> stimações/output/figures/Figure2_employment_vs_wage.{pdf,png} (190 x 110 mm)
+
+. 
+. * ---------------------------------------------------------------- Figura A: 
+> cobertura
+. use "$FINAL/painel_anual.dta", clear
+
+. keep if micro == 0 & inrange(year, 1990, 2023)
+(4,926 observations deleted)
+
+. foreach v in wagebill_gdp wagebill_cg_wdi pubemp_share wwbi_prem_all merit {
+  2.     gen byte h_`v' = !missing(`v')
+  3. }
+
+. collapse (sum) h_*, by(year)
+
+. twoway (line h_wagebill_gdp year, lcolor("$C1") lpattern(solid) lwidth(medthi
+> ck)) ///
+>        (line h_wagebill_cg_wdi year, lcolor("$C2") lpattern(dash)) ///
+>        (line h_pubemp_share year, lcolor("$C3") lpattern(shortdash)) ///
+>        (line h_wwbi_prem_all year, lcolor("$C4") lpattern(longdash_dot)) ///
+>        (line h_merit year, lcolor("$C5") lpattern(dot) lwidth(medthick)), ///
+>        $GOPT ytitle("Countries with data", size(8pt)) xtitle("") xlabel(1990(
+> 5)2025) ///
+>        legend(order(1 "Wage bill, general government (GFS)" 2 "Wage bill, cen
+> tral government (WDI)" ///
+>                     3 "Public employment (WWBI)" 4 "Public wage premium (WWBI
+> )" 5 "Meritocratic recruitment (V-Dem)") cols(2) pos(6))
+
+. fig_export FigureA1_coverage, width(190) height(100)
+file C:\Users\Usuario\Dropbox\Papers\Emprego Público e
+    Crescimento\Estimações/output/figures/FigureA1_coverage.pdf saved as PDF
+    format
+file C:\Users\Usuario\Dropbox\Papers\Emprego Público e
+    Crescimento\Estimações/output/figures/FigureA1_coverage.png saved as PNG
+    format
+figura gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\E
+> stimações/output/figures/FigureA1_coverage.{pdf,png} (190 x 100 mm)
+
+. 
+. * ===========================================================================
+> ==========
+. * docs/AUDITORIA_DADOS.md (todos os numeros sao calculados aqui)
+. * ===========================================================================
+> ==========
+. tempname A
+
+. file open `A' using "$ROOT/docs/AUDITORIA_DADOS.md", write replace text
+
+. file write `A' "# Auditoria dos dados" _n _n
+
+. file write `A' "Gerado por \`code/04_descritivas.do\` em `c(current_date)'. N
+> ão editar à mão: todo número abaixo sai do código." _n _n
+
+. 
+. * --- regras de limpeza
+. file write `A' "## 1. Regras de limpeza (na ordem aplicada)" _n _n
+
+. file write `A' "| Regra | Descrição | Países | Obs. país-ano 1996–2023 (R4: 1
+> 980–2023) | Obs. com folha |" _n "|---|---|---|---|---|" _n
+
+. preserve
+
+. import delimited "$LOG/regras_limpeza.csv", clear varnames(1) stringcols(_all
+> ) delimiters(",")
+(encoding automatically selected: ISO-8859-1)
+(5 vars, 7 obs)
+
+. forvalues i = 1/`=_N' {
+  2.     file write `A' "| " (regra[`i']) " | " (descricao[`i']) " | " (paises[
+> `i']) " | " (obs_pais_ano[`i']) " | " (obs_folha[`i']) " |" _n
+  3. }
+
+. restore
+
+. file write `A' _n "Observações eliminadas pela regra 3 (folha acima de 30% do
+>  PIB ou despesa acima de 100% do PIB, valores do GFS antes da regra): Irã 198
+> 6–1989 (folha de 34% a 41% do PIB no GFS contra 9% a 12% do PIB na série de g
+> overno central do WDI, erro de fonte evidente), Ilhas Marshall 2009, Nauru 20
+> 15–2023 e Timor-Leste 2010–2012, 2016, 2021–2022 (despesa acima de 100% do PI
+> B, financiada por fundos de recursos naturais ou doações). Ilhas Marshall e N
+> auru são microestados e já estavam fora da amostra principal. A lista complet
+> a está em \`output/logs/03_painel.log\`." _n _n
+
+. 
+. * --- amostras
+. use "$FINAL/painel_anual.dta", clear
+
+. gen byte main = micro == 0 & inrange(year, 1996, 2023)
+
+. file write `A' "## 2. Tamanho das amostras" _n _n
+
+. file write `A' "| Amostra | Países | Observações |" _n "|---|---|---|" _n
+
+. local labs `""Anual, folha GG, 1996–2023, sem microestados (principal)" "Anua
+> l, folha GG, com microestados" "Anual, folha GG ou GC (série combinada), sem 
+> microestados" "Anual, folha GC (WDI, como na dissertação), sem microestados""
+> '
+
+. local conds `""main & !missing(wagebill_gdp)" "inrange(year,1996,2023) & !mis
+> sing(wagebill_gdp)" "main & !missing(wagebill_comb)" "main & !missing(wagebil
+> l_cg_wdi)""'
+
+. forvalues j = 1/4 {
+  2.     local c : word `j' of `conds'
+  3.     local l : word `j' of `labs'
+  4.     quietly count if `c'
+  5.     local n = r(N)
+  6.     quietly levelsof id if `c'
+  7.     file write `A' "| `l' | `: word count `r(levels)'' | `n' |" _n
+  8. }
+
+. foreach s in "income_grp == 1" "income_grp == 2" "income_grp == 3" "income_gr
+> p == 4" "oecd == 1" "oecd == 0" "federal == 1" "federal == 0" "resource_rich 
+> == 1" "resource_rich == 0" {
+  2.     quietly count if main & !missing(wagebill_gdp) & `s'
+  3.     local n = r(N)
+  4.     quietly levelsof id if main & !missing(wagebill_gdp) & `s'
+  5.     file write `A' "| Anual, folha GG, subamostra \`" "`s'" "\` | `: word 
+> count `r(levels)'' | `n' |" _n
+  6. }
+
+. foreach L in 5 3 {
+  2.     preserve
+  3.     use "$FINAL/painel_`L'anos.dta", clear
+  4.     quietly count if micro == 0 & !missing(g, wagebill_gdp0)
+  5.     local n = r(N)
+  6.     quietly levelsof id if micro == 0 & !missing(g, wagebill_gdp0)
+  7.     file write `A' "| Médias de `L' anos, folha GG no 1º ano, sem microest
+> ados | `: word count `r(levels)'' | `n' |" _n
+  8.     restore
+  9. }
+
+. file write `A' _n
+
+. 
+. * --- ponto de verificacao
+. quietly count if main & !missing(wagebill_gdp)
+
+. local nobs = r(N)
+
+. quietly levelsof id if main & !missing(wagebill_gdp)
+
+. local nc : word count `r(levels)'
+
+. file write `A' "**Ponto de verificação (seção 6).** A folha do governo geral 
+> cobre `nc' países e `nobs' observações anuais na amostra principal, acima dos
+>  limites de 80 países e 1.200 observações. A variável principal é a de govern
+> o geral pura; a série combinada (governo geral ou, na falta, central, com dum
+> my de cobertura) entra como robustez." _n _n
+
+. 
+. * --- cobertura por variavel e por grupo de renda
+. file write `A' "## 3. Cobertura por variável (amostra principal: 1996–2023, s
+> em microestados)" _n _n
+
+. file write `A' "| Variável | Obs. | Países | Primeiro ano | Último ano | Rend
+> a baixa | Média-baixa | Média-alta | Alta |" _n "|---|---|---|---|---|---|---
+> |---|---|" _n
+
+. foreach v in g wagebill_gdp wagebill_share wagebill_cyc d_wagebill_real wageb
+> ill_comb wagebill_cg_wdi wwbi_wagebill_gdp ///
+>     pubemp_share relwage wwbi_prem_all ilo_pubemp_share merit impartial wgi_g
+> e hc inv open infl popg ctot_g ipriv tfp_g ///
+>     privemp_g debt exp_gdp rev_gdp balance_gdp sh_inv sh_transf election elec
+> tion_fixed grd_tax {
+  2.     quietly count if main & !missing(`v')
+  3.     local n = r(N)
+  4.     quietly levelsof id if main & !missing(`v')
+  5.     local k : word count `r(levels)'
+  6.     quietly summ year if main & !missing(`v')
+  7.     local y0 = r(min)
+  8.     local y1 = r(max)
+  9.     local gr ""
+ 10.     forvalues q = 1/4 {
+ 11.         quietly count if main & !missing(`v') & income_grp == `q'
+ 12.         local gr "`gr' | `r(N)'"
+ 13.     }
+ 14.     file write `A' "| \``v'\` | `n' | `k' | `y0' | `y1'`gr' |" _n
+ 15. }
+
+. file write `A' _n
+
+. 
+. * --- cobertura por ano das variaveis-chave
+. file write `A' "## 4. Países com dado por ano (amostra principal)" _n _n
+
+. file write `A' "| Ano | Folha GG | Folha GC (WDI) | Emprego público (WWBI) | 
+> Prêmio (WWBI) | Mérito (V-Dem) | WGI | Eleição predeterminada |" _n "|---|---
+> |---|---|---|---|---|---|" _n
+
+. forvalues y = 1996/2023 {
+  2.     local r "| `y'"
+  3.     foreach v in wagebill_gdp wagebill_cg_wdi pubemp_share wwbi_prem_all m
+> erit wgi_ge election_fixed {
+  4.         quietly count if main & year == `y' & !missing(`v')
+  5.         local r "`r' | `r(N)'"
+  6.     }
+  7.     file write `A' "`r' |" _n
+  8. }
+
+. file write `A' _n "Os valores do WGI para 1997, 1999 e 2001 são interpolados 
+> linearmente (marcados em \`wgi_interp\`). O DPI termina em 2020: as variáveis
+>  eleitorais não existem para 2021–2023." _n _n
+
+. 
+. * --- governo geral x central
+. file write `A' "## 5. Folha do governo geral contra governo central (% do PIB
+> , média 2010–2019)" _n _n
+
+. file write `A' "| País | Governo geral (GFS) | Governo central (WDI, disserta
+> ção) | Governo central (GFS) | WWBI | Eurostat (S13) | Razão GG/GC (WDI) |" _
+> n "|---|---|---|---|---|---|---|" _n
+
+. foreach c in BRA USA DEU IND ARG MEX CAN FRA ZAF IDN {
+  2.     local r "| `c'"
+  3.     foreach v in wagebill_gdp wagebill_cg_wdi wagebill_cg_gfs wwbi_wagebil
+> l_gdp wagebill_eurostat {
+  4.         quietly summ `v' if iso3 == "`c'" & inrange(year, 2010, 2019)
+  5.         if r(N) == 0 local r "`r' | –"
+  6.         else local r "`r' | `: display %5.1f r(mean)'"
+  7.         if "`v'" == "wagebill_gdp" local gg = r(mean)
+  8.         if "`v'" == "wagebill_cg_wdi" local cg = r(mean)
+  9.     }
+ 10.     if missing(`gg') | missing(`cg') local r "`r' | –"
+ 11.     else local r "`r' | `: display %4.1f `gg' / `cg''"
+ 12.     file write `A' "`r' |" _n
+ 13. }
+
+. file write `A' _n "Nos países federais (Brasil, Estados Unidos, Alemanha, Índ
+> ia, Argentina, México, Canadá), a série de governo central do WDI usada na di
+> ssertação capta só uma fração da folha do governo geral. A diferença é menor 
+> em países unitários." _n _n
+
+. 
+. * --- verificacao da decomposicao
+. file write `A' "## 6. Verificação da decomposição da folha" _n _n
+
+. quietly gen double _chk = abs(pubemp_share * relwage - wagebill_gdp)
+
+. quietly summ _chk if main
+
+. file write `A' "- \`relwage\` = folha (% do PIB, GFS) / emprego público (% do
+>  emprego total, WWBI). O produto \`pubemp_share × relwage\` reproduz \`wagebi
+> ll_gdp\` com discrepância máxima de `: display %9.2e r(max)' pontos percentua
+> is em `r(N)' observações; a identidade é algébrica por construção, pois o mes
+> mo emprego total entra no numerador e no denominador." _n
+
+. quietly summ ratio_ilo_gfs if main, detail
+
+. file write `A' "- Verificação com fonte independente: a folha implícita no IL
+> OSTAT (salário médio mensal dos empregados públicos × 12 × emprego público, %
+>  do PIB) dividida pela folha do GFS tem mediana `: display %4.2f r(p50)' (p25
+>  = `: display %4.2f r(p25)', p75 = `: display %4.2f r(p75)', `r(N)' observaçõ
+> es). Valores abaixo de 1 são esperados: o salário do ILOSTAT exclui contribui
+> ções sociais do empregador, que fazem parte da remuneração de empregados no G
+> FS, e as pesquisas domiciliares cobrem mal os níveis subnacionais." _n
+
+. quietly correlate wwbi_wagebill_gdp wagebill_gdp if main
+
+. file write `A' "- Folha do WWBI contra folha do GFS: correlação `: display %4
+> .2f r(rho)' em `r(N)' observações (o WWBI combina fontes de governo central e
+>  geral conforme o país)." _n _n
+
+. 
+. * --- downloads
+. file write `A' "## 7. Downloads que falharam" _n _n
+
+. file write `A' "Ver \`docs/DOWNLOADS_MANUAIS.md\`. Falha registrada pelo scri
+> pt de coleta (\`data/raw/_falhas.txt\`):" _n _n
+
+. capture confirm file "$RAW/_falhas.txt"
+
+. local nf 0
+
+. if !_rc {
+.     tempname F
+.     file open `F' using "$RAW/_falhas.txt", read text
+.     file read `F' line
+.     while r(eof) == 0 {
+  2.         if "`line'" != "" {
+  3.             file write `A' "- `line'" _n
+  4.             local ++nf
+  5.         }
+  6.         file read `F' line
+  7.     }
+.     file close `F'
+. }
+
+. if `nf' == 0 file write `A' "- Nenhuma falha nas fontes automáticas. Pendente
+>  apenas o FMI Fiscal Rules Dataset (bloqueio do servidor; download manual)." 
+> _n
+
+. file close `A'
+
+. 
+. log close
+      name:  <unnamed>
+       log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Esti
+> mações/output/logs/04_descritivas.log
+  log type:  text
+ closed on:   7 Oct 2026, 22:22:28
+-------------------------------------------------------------------------------

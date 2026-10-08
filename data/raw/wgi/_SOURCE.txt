@@ -1,0 +1,4 @@
+Data de acesso: 2026-10-07
+API: https://api.worldbank.org/v2/country/all/indicator/<codigo>?source=3
+Indicadores: GOV_WGI_GE.EST, GOV_WGI_RQ.EST, GOV_WGI_RL.EST, GOV_WGI_CC.EST, GOV_WGI_VA.EST, GOV_WGI_PV.EST
+Worldwide Governance Indicators (source 3), estimativas pontuais.

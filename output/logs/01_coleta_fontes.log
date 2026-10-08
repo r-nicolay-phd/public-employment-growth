@@ -18,3 +18,63 @@
    GC.XPN.COMP.ZS: 5219 obs
    GC.XPN.TOTL.GD.ZS: 5156 obs
    GC.REV.XGRT.GD.ZS: 5576 obs
+   SL.TLF.TOTL.IN: 8266 obs
+   SL.UEM.TOTL.ZS: 8036 obs
+   SL.EMP.WORK.ZS: 8036 obs
+   SL.EMP.TOTL.SP.ZS: 8036 obs
+   SE.SEC.ENRR: 8120 obs
+[baixando] wgi
+   GOV_WGI_GE.EST: 5373 obs
+   GOV_WGI_RQ.EST: 5374 obs
+   GOV_WGI_RL.EST: 5503 obs
+   GOV_WGI_CC.EST: 5408 obs
+   GOV_WGI_VA.EST: 5488 obs
+   GOV_WGI_PV.EST: 5462 obs
+[baixando] wwbi
+   BI.WAG.TOTL.GD.ZS: 4019 obs
+   BI.WAG.TOTL.PB.ZS: 4011 obs
+   BI.EMP.TOTL.PB.ZS: 1129 obs
+   BI.EMP.PWRK.PB.ZS: 1117 obs
+   BI.EMP.FRML.PB.ZS: 869 obs
+   BI.WAG.PREM.PB: 721 obs
+   BI.WAG.PREM.PB.GP: 837 obs
+   BI.WAG.CPRS.PB.ZS: 833 obs
+   BI.PWK.PUBS.TT.CA.ZS: 188 obs
+[baixando] income_hist
+[baixando] imf_gfs
+   GFS G21_T: 40192 linhas
+   GFS G2_T: 40192 linhas
+   GFS G1_T: 40192 linhas
+   GFS G11_T: 40192 linhas
+   GFS GNLB_T: 40192 linhas
+   GFS GPB_T: 40192 linhas
+   GFS G31_A_T: 40192 linhas
+   GFS NNFAG_A_T: 40192 linhas
+   GFS G22_T: 40192 linhas
+   GFS G24_T: 40192 linhas
+   GFS G25_T: 40192 linhas
+   GFS G26_T: 40192 linhas
+   GFS G27_T: 40192 linhas
+   GFS G28_T: 40192 linhas
+[baixando] imf_icsd
+   ICSD: 37393 linhas, 183 paises
+[baixando] imf_gdd
+   GDD: 42750 linhas, 190 paises
+[baixando] imf_ctot
+   CTOT: 42032 linhas, 182 paises
+[baixando] imf_fd
+   FD: 160957 linhas, 86 paises
+[baixando] imf_world
+   WORLD: 89370 linhas, 195 paises
+[baixando] imf_weo
+   WEO: 41809 linhas, 210 paises
+[baixando] vdem
+[baixando] qog
+[baixando] pwt
+[baixando] dpi
+[baixando] ilostat
+   ILO EMP_PUBL_SEX_AGE_NB_A: 0 linhas
+   ILO EMP_TEMP_SEX_AGE_NB_A: 0 linhas
+[baixando] eurostat
+
+Falhas: nenhuma

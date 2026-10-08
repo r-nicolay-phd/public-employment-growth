@@ -1,0 +1,38 @@
+% gerado por code/00_tabelas.do -- nao editar a mao
+\begin{table}[htbp]\centering\footnotesize
+\providecommand{\sym}[1]{\ensuremath{^{#1}}}
+\caption{Table A1. Variable definitions and sources}\label{tab:TableA1_definitions}
+\begin{tabular}{l*{2}{c}}
+\toprule
+ & Definition & Source \\
+\midrule
+GDP per capita growth & Annual growth of real GDP per capita (\%) & WDI (NY.GDP.PCAP.KD.ZG) \\
+Wage bill (\% of GDP) & Compensation of employees, general government (GFSM 2014 code 21) & IMF GFS, Statement of Operations \\
+Wage bill (\% of total expenditure) & Compensation of employees / (expense + net investment in nonfinancial assets) & IMF GFS \\
+Wage bill (\% of trend GDP) & Wage bill x GDP / trend GDP; HP filter (lambda 6.25) or Hamilton (h=2, p=2) on log real GDP & IMF GFS; WDI \\
+Real wage bill change & Change in real wage bill (GDP deflator) as \% of previous-year real GDP & IMF GFS; WDI \\
+Wage bill, central government & Compensation share of expense x expense (\% of GDP), central government & WDI (GC.XPN.COMP.ZS, GC.XPN.TOTL.GD.ZS) \\
+Public employment & Public sector employment (\% of total employment) & WWBI (BI.EMP.TOTL.PB.ZS) \\
+Relative public wage & Wage bill (\% of GDP) / public employment share: pay per public worker relative to GDP per worker & IMF GFS; WWBI \\
+Public wage premium & Conditional public-private wage gap vs all private employees (log points) & WWBI (BI.WAG.PREM.PB.GP) \\
+Meritocratic recruitment & Criteria for appointment decisions in the state administration (v2stcritrecadm) & V-Dem v16 \\
+Government effectiveness & WGI estimate (1997, 1999, 2001 linearly interpolated) & WGI \\
+Log initial GDP per capita & Log real GDP per capita in the year before the period & WDI (NY.GDP.PCAP.KD) \\
+Human capital & Human capital index (years of schooling and returns) & PWT 11.0 \\
+Investment & Gross fixed capital formation (\% of GDP) & WDI (NE.GDI.FTOT.ZS) \\
+Trade openness & Exports plus imports (\% of GDP) & WDI (NE.TRD.GNFS.ZS) \\
+Inflation & CPI inflation (GDP deflator where CPI missing), winsorized & WDI \\
+Population growth & Annual population growth (\%) & WDI (SP.POP.GROW) \\
+Commodity terms of trade & Growth of commodity net export price index, GDP-weighted, fixed weights & IMF CTOT (Gruss and Kebhaj) \\
+Private investment & Private gross fixed capital formation (\% of GDP) & IMF ICSD \\
+TFP growth & Growth of TFP at constant national prices & PWT 11.0 (rtfpna) \\
+Private employment growth & Growth of total minus public employment, same survey & ILOSTAT \\
+Public debt & General government gross debt (\% of GDP); central where general missing & IMF Global Debt Database \\
+Election year & Executive election (presidential systems) or legislative election (others) & DPI 2020 \\
+Predetermined election & Election held in the year the constitutional term expires (years left in term = 0) & DPI 2020 \\
+Income group & World Bank analytical classification for 1996 data & World Bank (OGHIST) \\
+Federal & Federal country (28 federations, including Spain and South Africa) & Forum of Federations \\
+Resource rich & Natural resource rents above 10\% of GDP (1996-2023 mean) & WDI (NY.GDP.TOTL.RT.ZS) \\
+\bottomrule
+\end{tabular}
+\end{table}

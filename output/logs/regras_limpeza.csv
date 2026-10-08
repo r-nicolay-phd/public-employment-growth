@@ -1,0 +1,8 @@
+regra,descricao,paises,obs_pais_ano,obs_folha
+1a,Agregados regionais e de renda (lista do Banco Mundial),43,1204,0
+1b,Territorios dependentes sem contas fiscais proprias,20,560,0
+2,Microestados (populacao < 500 mil; mantidos so para robustez),29,812,176
+3,Folha > 30% do PIB ou despesa > 100% do PIB tratadas como ausentes,4,18,18
+4_g,Winsorizacao de g em p1 = -17.63 e p99 =  16.33,.,137,.
+4_infl,Winsorizacao de infl em p1 =  -4.29 e p99 = 709.35,.,138,.
+5,Marcados (nao excluidos): anos de guerra (UCDP intensidade 2) = 217; hiperinflacao (>100%) = 48,.,.,.

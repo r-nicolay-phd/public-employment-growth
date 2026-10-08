@@ -1,0 +1,343 @@
+-------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Esti
+> mações/output/logs/02_limpeza_instituicoes.log
+  log type:  text
+ opened on:   7 Oct 2026, 22:22:09
+
+. 
+. * ---------------------------------------------------------------- V-Dem v16
+. import delimited "$RAW/vdem/vdem_subset.csv", clear varnames(1) case(lower) e
+> ncoding(utf8)
+(16 vars, 28,092 obs)
+
+. rename country_text_id iso3
+
+. keep if year >= 1950
+(15,446 observations deleted)
+
+. * codigos V-Dem que diferem do ISO3 do Banco Mundial
+. replace iso3 = "XKX" if iso3 == "XKX" | country_name == "Kosovo"
+(0 real changes made)
+
+. replace iso3 = "PSE" if country_name == "Palestine/West Bank"
+(0 real changes made)
+
+. drop if inlist(country_name, "Palestine/Gaza", "Somaliland", "Zanzibar", "Hon
+> g Kong") & iso3 != "HKG"
+(157 observations deleted)
+
+. duplicates report iso3 year
+
+Duplicates in terms of iso3 year
+
+--------------------------------------
+   Copies | Observations       Surplus
+----------+---------------------------
+        1 |        12489             0
+--------------------------------------
+
+. duplicates drop iso3 year, force
+
+Duplicates in terms of iso3 year
+
+(0 observations are duplicates)
+
+. rename (v2stcritrecadm v2clrspct v2excrptps) (merit impartial pubcorrupt)
+
+. label var merit "Meritocratic recruitment in state administration (V-Dem v2st
+> critrecadm)"
+
+. label var impartial "Rigorous and impartial public administration (V-Dem v2cl
+> rspct)"
+
+. label var pubcorrupt "Public sector corruption (V-Dem v2excrptps; higher = le
+> ss corrupt)"
+
+. keep iso3 year merit impartial pubcorrupt v2x_polyarchy v2x_rule v2stcritreca
+> dm_codelow v2stcritrecadm_codehigh
+
+. save "$INTERIM/vdem.dta", replace
+file C:\Users\Usuario\Dropbox\Papers\Emprego Público e
+    Crescimento\Estimações/data/interim/vdem.dta saved
+
+. 
+. * ---------------------------------------------------------------- QoG Standa
+> rd (receita ICTD/UNU-WIDER GRD)
+. import delimited using "$RAW/qog/qog_std_ts_jan26.csv", clear varnames(1) cas
+> e(lower) encoding(utf8)
+(1,813 vars, 12,585 obs)
+
+. keep ccodealp year ictd_revexsc ictd_taxexsc ictd_nontax ictd_revres ictd_tax
+> nresexsc
+
+. rename ccodealp iso3
+
+. keep if strlen(iso3) == 3 & year >= 1980
+(4,013 observations deleted)
+
+. rename (ictd_revexsc ictd_taxexsc ictd_nontax ictd_revres) (grd_rev grd_tax g
+> rd_nontax grd_resrev)
+
+. label var grd_rev "Total revenue excl. social contributions (% of GDP), ICTD/
+> UNU-WIDER GRD"
+
+. label var grd_tax "Tax revenue excl. social contributions (% of GDP), ICTD/UN
+> U-WIDER GRD"
+
+. duplicates drop iso3 year, force
+
+Duplicates in terms of iso3 year
+
+(0 observations are duplicates)
+
+. save "$INTERIM/qog_grd.dta", replace
+file C:\Users\Usuario\Dropbox\Papers\Emprego Público e
+    Crescimento\Estimações/data/interim/qog_grd.dta saved
+
+. 
+. * ---------------------------------------------------------------- QoG Expert
+>  Survey 2020 (corte transversal)
+. import delimited "$RAW/qog/qog_exp_agg_20.csv", clear varnames(1) case(lower)
+>  encoding(utf8)
+(29 vars, 117 obs)
+
+. rename (ccodealp proff_pca close_pca) (iso3 qog_prof qog_closed)
+
+. keep iso3 qog_prof qog_closed impar1
+
+. rename impar1 qog_impartial
+
+. label var qog_prof "Professionalism index (QoG Expert Survey 2020)"
+
+. label var qog_closed "Closedness index (QoG Expert Survey 2020)"
+
+. save "$INTERIM/qog_expert.dta", replace
+file C:\Users\Usuario\Dropbox\Papers\Emprego Público e
+    Crescimento\Estimações/data/interim/qog_expert.dta saved
+
+. 
+. * ---------------------------------------------------------------- DPI 2020: 
+> eleicoes e federalismo
+. use "$RAW/dpi/DPI2020_stata13.dta", clear
+(Database of Political Institutions 2020. Inter-American Development Bank.)
+
+. rename ifs iso3
+
+. * codigos antigos do DPI
+. replace iso3 = "ROU" if iso3 == "ROM"
+(46 real changes made)
+
+. replace iso3 = "COD" if iso3 == "ZAR"
+(46 real changes made)
+
+. replace iso3 = "TLS" if iso3 == "TMP"
+(46 real changes made)
+
+. replace iso3 = "SRB" if iso3 == "YUG" & year >= 2006
+(0 real changes made)
+
+. foreach v in system yrcurnt exelec legelec author finittrm {
+  2.     replace `v' = . if `v' < 0
+  3. }
+(527 real changes made, 527 to missing)
+(1,881 real changes made, 1,881 to missing)
+(503 real changes made, 503 to missing)
+(506 real changes made, 506 to missing)
+(709 real changes made, 709 to missing)
+(611 real changes made, 611 to missing)
+
+. * eleicao relevante: presidencial em sistemas presidencialistas; legislativa 
+> nos demais
+. gen byte election = cond(system == 0, exelec, legelec) if !missing(system)
+(549 missing values generated)
+
+. replace election = 1 if election == 0 & system == 0 & legelec == 1 & missing(
+> exelec)
+(0 real changes made)
+
+. * calendario predeterminado: eleicao no ano em que o mandato constitucional e
+> xpira (yrcurnt == 0)
+. gen byte election_fixed = election == 1 & yrcurnt == 0 if !missing(election)
+(549 missing values generated)
+
+. replace election_fixed = . if missing(yrcurnt) & election == 1
+(66 real changes made, 66 to missing)
+
+. gen byte election_early = election == 1 & yrcurnt > 0 & !missing(yrcurnt)
+
+. label var election "Election year (executive in presidential, legislative oth
+> erwise), DPI"
+
+. label var election_fixed "Election year with predetermined date (term expires
+>  that year), DPI"
+
+. keep iso3 year system election election_fixed election_early author yrcurnt
+
+. duplicates report iso3 year
+
+Duplicates in terms of iso3 year
+
+--------------------------------------
+   Copies | Observations       Surplus
+----------+---------------------------
+        1 |         8200             0
+--------------------------------------
+
+. duplicates drop iso3 year, force
+
+Duplicates in terms of iso3 year
+
+(0 observations are duplicates)
+
+. save "$INTERIM/dpi.dta", replace
+file C:\Users\Usuario\Dropbox\Papers\Emprego Público e
+    Crescimento\Estimações/data/interim/dpi.dta saved
+
+. 
+. * ---------------------------------------------------------------- UCDP/PRIO:
+>  anos de guerra
+. import delimited "$RAW/ucdp/UcdpPrioConflict_v26_1.csv", clear varnames(1) ca
+> se(lower) encoding(utf8) stringcols(_all)
+Note: Unmatched quote while processing row 2561; this can be due to a
+    formatting problem in the file or because a quoted data element spans
+    multiple lines. You should carefully inspect your data after importing.
+    Consider using option bindquote(strict) if quoted data spans multiple
+    lines or option bindquote(nobind) if quotes are not used for binding
+    data.
+Note: Unmatched quote while processing row 2562; this can be due to a
+    formatting problem in the file or because a quoted data element spans
+    multiple lines. You should carefully inspect your data after importing.
+    Consider using option bindquote(strict) if quoted data spans multiple
+    lines or option bindquote(nobind) if quotes are not used for binding
+    data.
+(28 vars, 2,817 obs)
+
+. destring year intensity_level, replace
+year: all characters numeric; replaced as int
+(2 missing values generated)
+intensity_level: all characters numeric; replaced as byte
+(2 missing values generated)
+
+. keep if intensity_level == 2
+(2,117 observations deleted)
+
+. * gwno_loc pode listar varios paises
+. split gwno_loc, parse(",") gen(gw)
+variables created as string: 
+gw1  gw2  gw3  gw4  gw5  gw6
+
+. gen id = _n
+
+. reshape long gw, i(id) j(k)
+(j = 1 2 3 4 5 6)
+
+Data                               Wide   ->   Long
+-----------------------------------------------------------------------------
+Number of observations              700   ->   4,200       
+Number of variables                  35   ->   31          
+j variable (6 values)                     ->   k
+xij variables:
+                        gw1 gw2 ... gw6   ->   gw
+-----------------------------------------------------------------------------
+
+. drop if missing(gw)
+(3,432 observations deleted)
+
+. destring gw, replace
+gw: all characters numeric; replaced as int
+
+. gen byte war = 1
+
+. collapse (max) war, by(gw year)
+
+. * Gleditsch-Ward para ISO3 (kountry usa codigos COW; diferencas GW/COW tratad
+> as abaixo)
+. kountry gw, from(cown) to(iso3c)
+
+--------------------------------------------
+You are converting from cown to iso3c....
+--------------------------------------------
+
+--------------------------------------
+The command has finished.
+The new variable is named _ISO3C_.
+--------------------------------------
+
+. rename _ISO3C_ iso3
+
+. replace iso3 = "SRB" if gw == 340
+(0 real changes made)
+
+. replace iso3 = "YEM" if inlist(gw, 678, 679, 680)
+(20 real changes made)
+
+. replace iso3 = "DEU" if gw == 260
+(0 real changes made)
+
+. replace iso3 = "RUS" if gw == 365
+(0 real changes made)
+
+. replace iso3 = "SSD" if gw == 626
+(1 real change made)
+
+. replace iso3 = "TLS" if gw == 860
+(0 real changes made)
+
+. replace iso3 = "XKX" if gw == 347
+(0 real changes made)
+
+. count if missing(iso3)
+  23
+
+. list gw year if missing(iso3)
+
+     +------------+
+     |  gw   year |
+     |------------|
+519. | 751   1947 |
+520. | 751   1948 |
+637. | 817   1955 |
+638. | 817   1956 |
+639. | 817   1957 |
+     |------------|
+640. | 817   1958 |
+641. | 817   1959 |
+642. | 817   1960 |
+643. | 817   1961 |
+644. | 817   1962 |
+     |------------|
+645. | 817   1963 |
+646. | 817   1964 |
+647. | 817   1965 |
+648. | 817   1966 |
+649. | 817   1967 |
+     |------------|
+650. | 817   1968 |
+651. | 817   1969 |
+652. | 817   1970 |
+653. | 817   1971 |
+654. | 817   1972 |
+     |------------|
+655. | 817   1973 |
+656. | 817   1974 |
+657. | 817   1975 |
+     +------------+
+
+. drop if missing(iso3)
+(23 observations deleted)
+
+. collapse (max) war, by(iso3 year)
+
+. save "$INTERIM/ucdp.dta", replace
+file C:\Users\Usuario\Dropbox\Papers\Emprego Público e
+    Crescimento\Estimações/data/interim/ucdp.dta saved
+
+. 
+. log close
+      name:  <unnamed>
+       log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Esti
+> mações/output/logs/02_limpeza_instituicoes.log
+  log type:  text
+ closed on:   7 Oct 2026, 22:22:16
+-------------------------------------------------------------------------------

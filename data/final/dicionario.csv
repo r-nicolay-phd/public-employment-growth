@@ -1,0 +1,147 @@
+name,type,varlab
+iso3,str3,
+year,int,
+gdppc,float,GDP per capita (constant 2015 USD)
+gdppc_growth,float,GDP per capita growth (%)
+gdp_real,double,NY.GDP.MKTP.KD
+gdp_nom_lcu,double,NY.GDP.MKTP.CN
+gdp_defl,float,NY.GDP.DEFL.ZS
+inv_gdp,float,NE.GDI.FTOT.ZS
+privinv_wdi,float,NE.GDI.FPRV.ZS
+infl_cpi,float,FP.CPI.TOTL.ZG
+infl_defl,float,NY.GDP.DEFL.KD.ZG
+trade_gdp,float,NE.TRD.GNFS.ZS
+pop,long,SP.POP.TOTL
+popg,float,SP.POP.GROW
+govcons_gdp,float,NE.CON.GOVT.ZS
+natres_rents,float,NY.GDP.TOTL.RT.ZS
+dependency,float,SP.POP.DPND
+tot_wdi,float,TT.PRI.MRCH.XD.WD
+cg_comp_share,float,GC.XPN.COMP.ZS
+cg_exp_gdp,float,GC.XPN.TOTL.GD.ZS
+cg_rev_gdp,float,GC.REV.XGRT.GD.ZS
+labforce,long,SL.TLF.TOTL.IN
+unemp,float,SL.UEM.TOTL.ZS
+wage_workers,float,SL.EMP.WORK.ZS
+emp_pop,float,SL.EMP.TOTL.SP.ZS
+secenr,float,SE.SEC.ENRR
+wagebill_cg_wdi,float,"Central government compensation of employees (% of GDP), WDI"
+infl_raw,float,
+infl_from_defl,byte,
+emp_wdi,float,
+country,str30,
+region,str49,
+wb_income_current,str19,
+income_grp,byte,"World Bank income group, 1996 classification"
+tax_gdp,float,gg_g11_gdp value
+rev_gdp,float,gg_g1_gdp value
+wagebill_gdp,float,"Wage bill, general government (% of GDP)"
+balance_gdp,float,gg_gnlb_gdp value
+exp_gdp,float,
+wagebill_share,float,"Wage bill, general government (% of total expenditure)"
+sh_wage,float,
+sh_goods,float,
+sh_int,float,
+sh_transf,float,
+sh_inv,float,
+sh_other,float,
+wagebill_comb,float,"Wage bill, general government or central where GG unavailable (% of GDP)"
+cov_central,byte,Wage bill coverage is central government only (combined series)
+wagebill_cg_gfs,float,
+igov,float,"Public investment (% of GDP), IMF ICSD"
+ippp,float,ippp value
+ipriv,float,Private investment (% of GDP)
+kgov,float,kgov value
+kppp,float,kppp value
+debt_cg,float,debt_cg value
+debt_gg,float,debt_gg value
+debt_ps,float,debt_ps value
+debt,float,Public debt (% of GDP)
+debt_central,byte,
+ctot,float,"Commodity terms of trade index (net export price, GDP-weighted, fixed weights)"
+ctot_rw,float,rw value
+wagebill_eurostat,float,OBS_VALUE
+wgi_ge,float,GOV_WGI_GE.EST
+wgi_rq,float,GOV_WGI_RQ.EST
+wgi_rl,float,GOV_WGI_RL.EST
+wgi_cc,float,GOV_WGI_CC.EST
+wgi_va,float,GOV_WGI_VA.EST
+wgi_pv,float,GOV_WGI_PV.EST
+wgi_interp,byte,
+wwbi_wagebill_gdp,float,BI.WAG.TOTL.GD.ZS
+wwbi_wagebill_exp,float,BI.WAG.TOTL.PB.ZS
+wwbi_pubemp_total,float,"Public employment (% of total employment), WWBI"
+wwbi_pubemp_paid,float,BI.EMP.PWRK.PB.ZS
+wwbi_pubemp_formal,float,BI.EMP.FRML.PB.ZS
+wwbi_prem_formal,float,"Public sector wage premium vs formal private employees, WWBI"
+wwbi_prem_all,float,"Public sector wage premium vs all private employees, WWBI"
+wwbi_compression,float,BI.WAG.CPRS.PB.ZS
+wwbi_tertiary,float,BI.PWK.PUBS.TT.CA.ZS
+ilo_emp,float,OBS_VALUE
+src_EMP_TEMP_SEX_AGE_NB,str101,
+ilo_pubemp,float,OBS_VALUE
+src_EMP_PUBL_SEX_AGE_NB,str101,
+ilo_pubearn,float,"Average monthly earnings of public employees (local currency), ILOSTAT"
+src_EAR_PMTA_SEX_NB,str101,
+ilo_pubemp_share,float,"Public sector employment (% of total employment), ILOSTAT (same survey)"
+emp,float,"Persons engaged (millions), PWT 11.0"
+avh,double,Average annual hours worked by persons engaged (source: The Conference Board)
+hc,float,"Human capital index, PWT 11.0"
+cgdpo,float,Output-side real GDP at current PPPs (in mil. 2021US$)
+rgdpna,float,Real GDP at constant 2021 national prices (in mil. 2021US$)
+rnna,float,Capital stock at constant 2021 national prices (in mil. 2021US$)
+rtfpna,float,"TFP at constant national prices (2021=1), PWT 11.0"
+labsh,float,Share of labour compensation in GDP at current national prices
+v2x_polyarchy,float,
+pubcorrupt,float,Public sector corruption (V-Dem v2excrptps; higher = less corrupt)
+impartial,float,Rigorous and impartial public administration (V-Dem v2clrspct)
+merit,float,Meritocratic recruitment in state administration (V-Dem v2stcritrecadm)
+v2stcritrecadm_codelow,float,
+v2stcritrecadm_codehigh,float,
+v2x_rule,float,
+grd_nontax,float,
+grd_rev,float,"Total revenue excl. social contributions (% of GDP), ICTD/UNU-WIDER GRD"
+grd_resrev,float,
+grd_tax,float,"Tax revenue excl. social contributions (% of GDP), ICTD/UNU-WIDER GRD"
+ictd_taxnresexsc,float,
+system,byte,Political System
+yrcurnt,byte,Years Left in Current Term
+author,byte,"State Government Authority over Taxing, Spending, or Legislating"
+election,byte,"Election year (executive in presidential, legislative otherwise), DPI"
+election_fixed,byte,"Election year with predetermined date (term expires that year), DPI"
+election_early,byte,
+war,byte,(max) war
+exp_decentr,float,"Subnational share of general government spending (%), 2010-2020 mean"
+qog_prof,float,Professionalism index (QoG Expert Survey 2020)
+qog_closed,float,Closedness index (QoG Expert Survey 2020)
+qog_impartial,float,
+id,int,
+micro,byte,"Microstate (population < 500,000)"
+g_raw,float,
+g,float,"GDP per capita growth (%), winsorized at p1/p99"
+infl,float,"Inflation (%), winsorized at p1/p99"
+hyperinf,byte,
+lny,float,Log GDP per capita
+d_wagebill_real,float,Real change in wage bill (% of previous-year GDP)
+lnY,float,
+lnY_hp,float,
+wagebill_cyc,float,"Wage bill (% of trend GDP, HP filter)"
+wagebill_cyc_ham,float,"Wage bill (% of trend GDP, Hamilton filter)"
+pubemp_share,float,Public employment (% of total employment)
+relwage,float,Relative public wage (wage bill per public employee / GDP per worker)
+wagebill_ilo,float,Implied wage bill from ILOSTAT earnings x public employment (% of GDP)
+ratio_ilo_gfs,float,
+pubemp_n,float,
+d_wb_emp,float,Wage bill change due to public employment (% of previous-year GDP)
+d_wb_wage,float,Wage bill change due to relative pay (% of previous-year GDP)
+merit_l1,float,
+wgi_ge_l1,float,
+ctot_g,float,Commodity terms-of-trade growth (%)
+inv,float,
+open,float,
+tfp_g,float,"TFP growth (%), PWT"
+privemp,float,
+privemp_g,float,"Private employment growth (%), ILOSTAT"
+oecd,byte,"OECD member (38 members, 2023)"
+resource_rich,byte,Natural resource rents > 10% of GDP (1996-2023 mean)
+federal,byte,Federal country (Forum of Federations list)

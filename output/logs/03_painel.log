@@ -1,0 +1,917 @@
+-------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Esti
+> mações/output/logs/03_painel.log
+  log type:  text
+ opened on:   7 Oct 2026, 22:22:17
+
+. 
+. * ===========================================================================
+> ==========
+. * 1. Juncao
+. * ===========================================================================
+> ==========
+. use "$INTERIM/wdi.dta", clear
+
+. keep if inrange(year, 1970, 2023)
+(3,120 observations deleted)
+
+. merge m:1 iso3 using "$INTERIM/paises.dta", keep(master match) nogen
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                             0
+    Matched                            14,040  
+    -----------------------------------------
+
+. merge m:1 iso3 using "$INTERIM/renda_hist.dta", keep(master match) nogen
+(variable iso3 was str3, now str4 to accommodate using data's values)
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                         2,322
+        from master                     2,322  
+        from using                          0  
+
+    Matched                            11,718  
+    -----------------------------------------
+
+. foreach f in gfs icsd gdd ctot eurostat wgi wwbi ilostat pwt vdem qog_grd dpi
+>  ucdp {
+  2.     merge 1:1 iso3 year using "$INTERIM/`f'.dta", keep(master match) nogen
+  3. }
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                         8,557
+        from master                     8,557  
+        from using                          0  
+
+    Matched                             5,483  
+    -----------------------------------------
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                         5,568
+        from master                     5,568  
+        from using                          0  
+
+    Matched                             8,472  
+    -----------------------------------------
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                         5,770
+        from master                     5,770  
+        from using                          0  
+
+    Matched                             8,270  
+    -----------------------------------------
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                         5,100
+        from master                     5,100  
+        from using                          0  
+
+    Matched                             8,940  
+    -----------------------------------------
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                        13,158
+        from master                    13,158  
+        from using                          0  
+
+    Matched                               882  
+    -----------------------------------------
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                         8,865
+        from master                     8,865  
+        from using                          0  
+
+    Matched                             5,175  
+    -----------------------------------------
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                         9,578
+        from master                     9,578  
+        from using                          0  
+
+    Matched                             4,462  
+    -----------------------------------------
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                         9,930
+        from master                     9,930  
+        from using                          0  
+
+    Matched                             4,110  
+    -----------------------------------------
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                         4,212
+        from master                     4,212  
+        from using                          0  
+
+    Matched                             9,828  
+    -----------------------------------------
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                         5,076
+        from master                     5,076  
+        from using                          0  
+
+    Matched                             8,964  
+    -----------------------------------------
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                         5,972
+        from master                     5,972  
+        from using                          0  
+
+    Matched                             8,068  
+    -----------------------------------------
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                         6,105
+        from master                     6,105  
+        from using                          0  
+
+    Matched                             7,935  
+    -----------------------------------------
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                        13,554
+        from master                    13,554  
+        from using                          0  
+
+    Matched                               486  
+    -----------------------------------------
+
+. merge m:1 iso3 using "$INTERIM/fd.dta", keep(master match) nogen
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                        10,314
+        from master                    10,314  
+        from using                          0  
+
+    Matched                             3,726  
+    -----------------------------------------
+
+. merge m:1 iso3 using "$INTERIM/qog_expert.dta", keep(master match) nogen
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                         7,830
+        from master                     7,830  
+        from using                          0  
+
+    Matched                             6,210  
+    -----------------------------------------
+
+. replace war = 0 if missing(war)
+(13,554 real changes made)
+
+. 
+. * regras fiscais (download manual; ver docs/DOWNLOADS_MANUAIS.md)
+. capture confirm file "$MANUAL/IMF_Fiscal_Rules_Dataset_1985_2021.xlsx"
+
+. if !_rc {
+.     preserve
+.     import excel "$MANUAL/IMF_Fiscal_Rules_Dataset_1985_2021.xlsx", firstrow 
+> clear
+.     capture rename (ISO_code Year ER BBR) (iso3 year rule_exp rule_bb)
+.     keep iso3 year rule_exp rule_bb
+.     tempfile fr
+.     save `fr'
+.     restore
+.     merge 1:1 iso3 year using `fr', keep(master match) nogen
+. }
+
+. else di "Fiscal Rules Dataset ausente: rule_exp e rule_bb nao criadas"
+Fiscal Rules Dataset ausente: rule_exp e rule_bb nao criadas
+
+. 
+. * ===========================================================================
+> ==========
+. * 2. Regras de limpeza (na ordem da especificacao); contagens gravadas em reg
+> ras_limpeza.csv
+. * ===========================================================================
+> ==========
+. tempname R
+
+. file open `R' using "$LOG/regras_limpeza.csv", write replace text
+
+. file write `R' "regra,descricao,paises,obs_pais_ano,obs_folha" _n
+
+. local per "inrange(year, 1996, 2023)"
+
+. 
+. * R1. agregados e territorios sem contas fiscais proprias
+. quietly levelsof iso3 if aggregate == 1 | missing(aggregate), local(L)
+
+. local k : word count `L'
+
+. count if (aggregate == 1 | missing(aggregate)) & `per'
+  1,204
+
+. local n = r(N)
+
+. count if (aggregate == 1 | missing(aggregate)) & `per' & !missing(wagebill_gd
+> p)
+  0
+
+. file write `R' "1a,Agregados regionais e de renda (lista do Banco Mundial),`k
+> ',`n',`r(N)'" _n
+
+. drop if aggregate == 1 | missing(aggregate)
+(2,322 observations deleted)
+
+. quietly levelsof iso3 if territory == 1, local(L)
+
+. local k : word count `L'
+
+. count if territory == 1 & `per'
+  560
+
+. local n = r(N)
+
+. count if territory == 1 & `per' & !missing(wagebill_gdp)
+  0
+
+. file write `R' "1b,Territorios dependentes sem contas fiscais proprias,`k',`n
+> ',`r(N)'" _n
+
+. drop if territory == 1
+(1,080 observations deleted)
+
+. drop aggregate territory
+
+. 
+. encode iso3, gen(id)
+
+. xtset id year
+
+Panel variable: id (strongly balanced)
+ Time variable: year, 1970 to 2023
+         Delta: 1 unit
+
+. 
+. * R2. microestados (populacao media 1996-2023 abaixo de 500 mil): fora da amo
+> stra principal
+. bysort id: egen _popm = mean(cond(`per', pop, .))
+
+. gen byte micro = _popm < 500000 if !missing(_popm)
+
+. replace micro = 1 if missing(micro)
+(0 real changes made)
+
+. drop _popm
+
+. quietly levelsof iso3 if micro == 1, local(L)
+
+. local k : word count `L'
+
+. count if micro == 1 & `per'
+  812
+
+. local n = r(N)
+
+. count if micro == 1 & `per' & !missing(wagebill_gdp)
+  176
+
+. file write `R' "2,Microestados (populacao < 500 mil; mantidos so para robuste
+> z),`k',`n',`r(N)'" _n
+
+. 
+. * R3. valores implausiveis de folha (>30% PIB) ou despesa (>100% PIB) viram a
+> usentes
+. di "Folha acima de 30% do PIB ou despesa acima de 100% do PIB (antes da regra
+>  3):"
+Folha acima de 30% do PIB ou despesa acima de 100% do PIB (antes da regra 3):
+
+. list iso3 year wagebill_gdp exp_gdp wagebill_cg_wdi wwbi_wagebill_gdp if wage
+> bill_gdp > 30 & !missing(wagebill_gdp) | exp_gdp > 100 & !missing(exp_gdp), n
+> oobs sepby(iso3)
+
+  +---------------------------------------------------------+
+  | iso3   year   wagebi~p    exp_gdp   wagebi~i   wwbi_~dp |
+  |---------------------------------------------------------|
+  |  IRN   1986   33.61536          .   11.68298          . |
+  |  IRN   1987   36.10834          .    10.8438          . |
+  |  IRN   1988   40.79338          .   10.54674          . |
+  |  IRN   1989   38.08118          .   9.086677          . |
+  |---------------------------------------------------------|
+  |  MHL   2009   30.57255   86.52948   24.46055   24.69602 |
+  |---------------------------------------------------------|
+  |  NRU   2015   24.77246   100.7468   24.77246   23.21587 |
+  |  NRU   2018   33.34477   86.68259   33.34477   35.84242 |
+  |  NRU   2019   37.57666    107.457   37.57666   39.68547 |
+  |  NRU   2020   35.16011   123.3172   35.16011   38.35648 |
+  |  NRU   2021   29.02979   110.4512          .   38.67652 |
+  |  NRU   2022   34.96476   133.2765          .   42.64512 |
+  |  NRU   2023   33.58445   114.8803          .          . |
+  |---------------------------------------------------------|
+  |  TLS   2010    12.3431   115.6931   12.34196          . |
+  |  TLS   2011   12.71539    131.377   12.71389          . |
+  |  TLS   2012   12.80286   125.5123   12.80104          . |
+  |  TLS   2016   11.33516   109.7064   11.40532          . |
+  |  TLS   2021   16.36864   107.1681    7.03891          . |
+  |  TLS   2022    14.2876   105.3623   7.717354          . |
+  +---------------------------------------------------------+
+
+. count if (wagebill_gdp > 30 & !missing(wagebill_gdp)) | (exp_gdp > 100 & !mis
+> sing(exp_gdp))
+  18
+
+. local n = r(N)
+
+. quietly levelsof iso3 if (wagebill_gdp > 30 & !missing(wagebill_gdp)) | (exp_
+> gdp > 100 & !missing(exp_gdp)), local(L)
+
+. local k : word count `L'
+
+. file write `R' "3,Folha > 30% do PIB ou despesa > 100% do PIB tratadas como a
+> usentes,`k',`n',`n'" _n
+
+. foreach v in wagebill_gdp wagebill_share exp_gdp sh_wage sh_goods sh_int sh_t
+> ransf sh_inv sh_other {
+  2.     replace `v' = . if (wagebill_gdp > 30 & !missing(wagebill_gdp)) | (exp
+> _gdp > 100 & !missing(exp_gdp))
+  3. }
+(18 real changes made, 18 to missing)
+(12 real changes made, 12 to missing)
+(12 real changes made, 12 to missing)
+(0 real changes made)
+(0 real changes made)
+(0 real changes made)
+(0 real changes made)
+(0 real changes made)
+(0 real changes made)
+
+. replace wagebill_comb = . if wagebill_comb > 30 & !missing(wagebill_comb)
+(57 real changes made, 57 to missing)
+
+. replace wagebill_cg_wdi = . if wagebill_cg_wdi > 30 & !missing(wagebill_cg_wd
+> i)
+(5 real changes made, 5 to missing)
+
+. replace wwbi_wagebill_gdp = . if wwbi_wagebill_gdp > 30 & !missing(wwbi_wageb
+> ill_gdp)
+(28 real changes made, 28 to missing)
+
+. 
+. * R4. winsorizacao de crescimento e inflacao nos percentis 1 e 99 (amostra se
+> m microestados, 1980-2023)
+. gen g_raw = gdppc_growth
+(1,156 missing values generated)
+
+. rename infl infl_raw
+
+. foreach v in g infl {
+  2.     _pctile `v'_raw if micro == 0 & inrange(year, 1980, 2023), p(1 99)
+  3.     local lo = r(r1)
+  4.     local hi = r(r2)
+  5.     gen `v' = min(max(`v'_raw, `lo'), `hi') if !missing(`v'_raw)
+  6.     count if (`v'_raw < `lo' | `v'_raw > `hi') & !missing(`v'_raw) & micro
+>  == 0 & inrange(year, 1980, 2023)
+  7.     local n = r(N)
+  8.     file write `R' "4_`v',Winsorizacao de `v' em p1 = " %6.2f (`lo') " e p
+> 99 = " %6.2f (`hi') ",.,`n',." _n
+  9. }
+(1,156 missing values generated)
+  137
+(1,057 missing values generated)
+  138
+
+. label var g "GDP per capita growth (%), winsorized at p1/p99"
+
+. label var infl "Inflation (%), winsorized at p1/p99"
+
+. 
+. * R5. marcar (sem excluir) guerra e hiperinflacao
+. gen byte hyperinf = infl_raw > 100 & !missing(infl_raw)
+
+. count if war == 1 & micro == 0 & `per'
+  217
+
+. local n1 = r(N)
+
+. count if hyperinf == 1 & micro == 0 & `per'
+  48
+
+. file write `R' "5,Marcados (nao excluidos): anos de guerra (UCDP intensidade 
+> 2) = `n1'; hiperinflacao (>100%) = `r(N)',.,.,." _n
+
+. file close `R'
+
+. 
+. * ===========================================================================
+> ==========
+. * 3. Variaveis construidas (painel anual)
+. * ===========================================================================
+> ==========
+. gen lny = ln(gdppc)
+(1,114 missing values generated)
+
+. label var lny "Log GDP per capita"
+
+. 
+. * choque: variacao real da folha em % do PIB do ano anterior (deflator do PIB
+> )
+. *   W_t/P_t = (wb_t/100) * Yreal_t  =>  d_wb = wb_t * Yreal_t/Yreal_{t-1} - w
+> b_{t-1}
+. gen d_wagebill_real = wagebill_gdp * gdp_real / L.gdp_real - L.wagebill_gdp
+(8,250 missing values generated)
+
+. label var d_wagebill_real "Real change in wage bill (% of previous-year GDP)"
+
+. 
+. * folha sobre PIB tendencial: HP (lambda = 6,25, Ravn e Uhlig) e Hamilton (h 
+> = 2, p = 2)
+. gen lnY = ln(gdp_real)
+(1,114 missing values generated)
+
+. gen lnY_hp = .
+(10,638 missing values generated)
+
+. mata:
+------------------------------------------------- mata (type end to exit) -----
+: void hp_panel(string scalar yv, string scalar idv, string scalar outv, real s
+> calar lambda)
+> {
+>     real colvector y, id, out, sel, ys
+>     real scalar i, n, T
+>     real matrix D, A
+>     st_view(y = ., ., yv)
+>     st_view(id = ., ., idv)
+>     out = J(rows(y), 1, .)
+>     for (i = min(id); i <= max(id); i++) {
+>         sel = selectindex((id :== i) :& (y :< .))
+>         T = rows(sel)
+>         if (T < 8) continue
+>         ys = y[sel]
+>         D = J(T - 2, T, 0)
+>         for (n = 1; n <= T - 2; n++) D[n, (n, n + 1, n + 2)] = (1, -2, 1)
+>         A = I(T) + lambda * D' * D
+>         out[sel] = lusolve(A, ys)
+>     }
+>     st_store(., outv, out)
+> }
+
+: end
+-------------------------------------------------------------------------------
+
+. sort id year
+
+. mata: hp_panel("lnY", "id", "lnY_hp", 6.25)
+
+. gen lnY_ham = .
+(10,638 missing values generated)
+
+. levelsof id, local(ids)
+1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 3
+> 0 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 
+> 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81
+>  82 83 84 85 86 87 88 89 90 91 92 93 94 95 96 97 98 99 100 101 102 103 104 10
+> 5 106 107 108 109 110 111 112 113 114 115 116 117 118 119 120 121 122 123 124
+>  125 126 127 128 129 130 131 132 133 134 135 136 137 138 139 140 141 142 143 
+> 144 145 146 147 148 149 150 151 152 153 154 155 156 157 158 159 160 161 162 1
+> 63 164 165 166 167 168 169 170 171 172 173 174 175 176 177 178 179 180 181 18
+> 2 183 184 185 186 187 188 189 190 191 192 193 194 195 196 197
+
+. foreach i of local ids {
+  2.     capture quietly regress lnY L2.lnY L3.lnY if id == `i'
+  3.     if !_rc & e(N) >= 10 {
+  4.         quietly predict double _h if id == `i' & e(sample), xb
+  5.         quietly replace lnY_ham = _h if id == `i'
+  6.         drop _h
+  7.     }
+  8. }
+
+. gen wagebill_cyc = wagebill_gdp * exp(lnY - lnY_hp)
+(8,107 missing values generated)
+
+. gen wagebill_cyc_ham = wagebill_gdp * exp(lnY - lnY_ham)
+(8,114 missing values generated)
+
+. label var wagebill_cyc "Wage bill (% of trend GDP, HP filter)"
+
+. label var wagebill_cyc_ham "Wage bill (% of trend GDP, Hamilton filter)"
+
+. drop lnY_ham
+
+. 
+. * decomposicao: emprego publico (% do emprego total) e salario relativo
+. gen pubemp_share = wwbi_pubemp_total
+(9,509 missing values generated)
+
+. gen relwage = wagebill_gdp / pubemp_share
+(9,895 missing values generated)
+
+. label var pubemp_share "Public employment (% of total employment)"
+
+. label var relwage "Relative public wage (wage bill per public employee / GDP 
+> per worker)"
+
+. gen double _chk = abs(pubemp_share * relwage - wagebill_gdp)
+(9,895 missing values generated)
+
+. summ _chk
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+        _chk |        743    2.02e-07    1.41e-07   6.14e-10   7.70e-07
+
+. di "Verificacao algebrica do produto: discrepancia maxima = " r(max)
+Verificacao algebrica do produto: discrepancia maxima = 7.699e-07
+
+. drop _chk
+
+. * verificacao com fonte independente: folha implicita no ILOSTAT (salario med
+> io x emprego publico)
+. gen wagebill_ilo = 100 * 12 * ilo_pubearn * ilo_pubemp * 1000 / gdp_nom_lcu
+(9,675 missing values generated)
+
+. gen ratio_ilo_gfs = wagebill_ilo / wagebill_gdp
+(10,093 missing values generated)
+
+. label var wagebill_ilo "Implied wage bill from ILOSTAT earnings x public empl
+> oyment (% of GDP)"
+
+. 
+. * choques de emprego e de salario relativo (D2): contribuicao da variacao do 
+> emprego publico
+. * (WWBI x emprego total do PWT; so anos consecutivos observados, sem interpol
+> acao) e residuo de salario
+. gen pubemp_n = pubemp_share / 100 * emp
+(9,522 missing values generated)
+
+. gen d_wb_emp = L.wagebill_gdp * (pubemp_n / L.pubemp_n - 1) * gdp_real / L.gd
+> p_real
+(10,027 missing values generated)
+
+. gen d_wb_wage = d_wagebill_real - d_wb_emp
+(10,032 missing values generated)
+
+. label var d_wb_emp "Wage bill change due to public employment (% of previous-
+> year GDP)"
+
+. label var d_wb_wage "Wage bill change due to relative pay (% of previous-year
+>  GDP)"
+
+. 
+. * moderador: merito defasado
+. gen merit_l1 = L.merit
+(2,138 missing values generated)
+
+. gen wgi_ge_l1 = L.wgi_ge
+(6,042 missing values generated)
+
+. 
+. * controles e resultados
+. gen ctot_g = 100 * (ln(ctot) - ln(L.ctot))
+(1,878 missing values generated)
+
+. gen inv = inv_gdp
+(3,404 missing values generated)
+
+. gen open = trade_gdp
+(2,923 missing values generated)
+
+. gen tfp_g = 100 * (ln(rtfpna) - ln(L.rtfpna))
+(4,857 missing values generated)
+
+. gen privemp = ilo_emp - ilo_pubemp if src_EMP_PUBL == src_EMP_TEMP
+(9,320 missing values generated)
+
+. egen _src = group(src_EMP_PUBL)
+(9,221 missing values generated)
+
+. gen privemp_g = 100 * (ln(privemp) - ln(L.privemp)) if _src == L._src
+(9,664 missing values generated)
+
+. drop _src
+
+. label var ctot_g "Commodity terms-of-trade growth (%)"
+
+. label var tfp_g "TFP growth (%), PWT"
+
+. label var privemp_g "Private employment growth (%), ILOSTAT"
+
+. label var ipriv "Private investment (% of GDP)"
+
+. 
+. * ===========================================================================
+> ==========
+. * 4. Classificacoes (fixas no tempo)
+. * ===========================================================================
+> ==========
+. gen byte oecd = inlist(iso3, "AUS", "AUT", "BEL", "CAN", "CHL", "COL", "CRI",
+>  "CZE", "DNK") | ///
+>                 inlist(iso3, "EST", "FIN", "FRA", "DEU", "GRC", "HUN", "ISL",
+>  "IRL", "ISR") | ///
+>                 inlist(iso3, "ITA", "JPN", "KOR", "LVA", "LTU", "LUX", "MEX",
+>  "NLD", "NZL") | ///
+>                 inlist(iso3, "NOR", "POL", "PRT", "SVK", "SVN", "ESP", "SWE",
+>  "CHE", "TUR") | ///
+>                 inlist(iso3, "GBR", "USA")
+
+. bysort id: egen _rents = mean(cond(`per', natres_rents, .))
+(54 missing values generated)
+
+. gen byte resource_rich = _rents > 10 if !missing(_rents)
+(54 missing values generated)
+
+. * federacoes segundo o Forum of Federations (inclui Espanha e Africa do Sul, 
+> federais na pratica);
+. * o indicador "author" do DPI foi descartado: ausente para 108 paises e posit
+> ivo em paises unitarios
+. gen byte federal = inlist(iso3, "ARG", "AUS", "AUT", "BEL", "BIH", "BRA", "CA
+> N", "CHE", "COM") | ///
+>                    inlist(iso3, "DEU", "ESP", "ETH", "IND", "IRQ", "MEX", "MY
+> S", "NGA", "NPL") | ///
+>                    inlist(iso3, "PAK", "RUS", "SDN", "SSD", "USA", "VEN", "AR
+> E", "FSM", "KNA") | ///
+>                    inlist(iso3, "ZAF")
+
+. drop _rents
+
+. label var oecd "OECD member (38 members, 2023)"
+
+. label var resource_rich "Natural resource rents > 10% of GDP (1996-2023 mean)
+> "
+
+. label var federal "Federal country (Forum of Federations list)"
+
+. label var micro "Microstate (population < 500,000)"
+
+. label var income_grp "World Bank income group, 1996 classification"
+
+. 
+. sort id year
+
+. compress
+  variable system was int now byte
+  variable yrcurnt was int now byte
+  variable author was int now byte
+  variable id was long now int
+  variable pop was double now long
+  variable labforce was double now long
+  variable iso3 was str4 now str3
+  variable country was str80 now str30
+  (680,832 bytes saved)
+
+. save "$FINAL/painel_anual.dta", replace
+file C:\Users\Usuario\Dropbox\Papers\Emprego Público e
+    Crescimento\Estimações/data/final/painel_anual.dta saved
+
+. 
+. * ===========================================================================
+> ==========
+. * 5. Paineis de medias nao sobrepostas (3 e 5 anos); folha e moderadores no p
+> rimeiro ano
+. * ===========================================================================
+> ==========
+. local mean_vars g g_raw infl infl_raw inv open popg ctot_g ipriv privinv_wdi 
+> tfp_g privemp_g debt ///
+>     exp_gdp rev_gdp balance_gdp wagebill_gdp wagebill_cyc hc war hyperinf
+
+. local first_vars wagebill_gdp wagebill_share wagebill_cyc wagebill_cyc_ham wa
+> gebill_comb cov_central ///
+>     wagebill_cg_wdi wagebill_cg_gfs exp_gdp rev_gdp balance_gdp sh_wage sh_go
+> ods sh_int sh_transf ///
+>     sh_inv sh_other merit impartial pubcorrupt wgi_ge hc debt grd_rev
+
+. local avail_vars pubemp_share relwage wwbi_prem_all wwbi_prem_formal wwbi_wag
+> ebill_gdp
+
+. local fl ""
+
+. foreach v of local first_vars {
+  2.     local fl `fl' `v'0
+  3. }
+
+. local al ""
+
+. foreach v of local avail_vars {
+  2.     local al `al' `v'0
+  3. }
+
+. foreach L in 5 3 {
+  2.     use "$FINAL/painel_anual.dta", clear
+  3.     local start = cond(`L' == 5, 1979, 1981)
+  4.     keep if year >= `start'
+  5.     gen period = floor((year - `start') / `L')
+  6.     gen year0 = `start' + `L' * period
+  7.     gen g_excr = g if !inlist(year, 2008, 2009, 2020, 2021)
+  8.     foreach v of local first_vars {
+  9.         gen `v'0 = `v' if year == year0
+ 10.     }
+ 11.     * componentes do WWBI (painel irregular): primeiro valor disponivel de
+> ntro do periodo
+.     foreach v of local avail_vars {
+ 12.         gen _t = year if !missing(`v')
+ 13.         bysort id period: egen _tmin = min(_t)
+ 14.         gen `v'0 = `v' if year == _tmin
+ 15.         drop _t _tmin
+ 16.     }
+ 17.     gen ng = !missing(g)
+ 18.     collapse (mean) `mean_vars' g_excr (firstnm) `fl' `al' (sum) ng (max) 
+> war_any = war hyper_any = hyperinf ///
+>         (firstnm) iso3 country region income_grp oecd resource_rich federal m
+> icro exp_decentr qog_prof ///
+>         qog_closed year0, by(id period)
+ 19.     * renda inicial: log do PIB per capita no ano anterior ao periodo (do 
+> painel anual)
+.     tempfile P
+ 20.     save `P'
+ 21.     use "$FINAL/painel_anual.dta", clear
+ 22.     gen year0 = year + 1
+ 23.     keep id year0 lny
+ 24.     rename lny lny0
+ 25.     merge 1:1 id year0 using `P', keep(using match) nogen
+ 26.     * exige ao menos 3 de 5 (ou 2 de 3) anos de crescimento observados
+.     replace g = . if ng < cond(`L' == 5, 3, 2)
+ 27.     gen year1 = year0 + `L' - 1
+ 28.     xtset id period
+ 29.     gen L_g = L.g
+ 30.     label var g "GDP per capita growth (%, period mean)"
+ 31.     label var L_g "Lagged GDP per capita growth (previous period)"
+ 32.     label var lny0 "Log initial GDP per capita"
+ 33.     label var wagebill_gdp0 "Wage bill (% of GDP), first year of period"
+ 34.     label var wagebill_gdp "Wage bill (% of GDP), period mean"
+ 35.     label var merit0 "Meritocratic recruitment (V-Dem), first year of peri
+> od"
+ 36.     label var g_excr "GDP per capita growth excl. 2008-09 and 2020-21 (%, 
+> period mean)"
+ 37.     compress
+ 38.     save "$FINAL/painel_`L'anos.dta", replace
+ 39. }
+(1,773 observations deleted)
+(1,383 missing values generated)
+(8,406 missing values generated)
+(8,423 missing values generated)
+(8,408 missing values generated)
+(8,408 missing values generated)
+(7,955 missing values generated)
+(7,945 missing values generated)
+(8,085 missing values generated)
+(7,955 missing values generated)
+(8,413 missing values generated)
+(8,387 missing values generated)
+(8,416 missing values generated)
+(8,422 missing values generated)
+(8,424 missing values generated)
+(8,415 missing values generated)
+(8,546 missing values generated)
+(8,412 missing values generated)
+(8,546 missing values generated)
+(7,409 missing values generated)
+(7,361 missing values generated)
+(7,366 missing values generated)
+(8,090 missing values generated)
+(7,616 missing values generated)
+(7,448 missing values generated)
+(7,776 missing values generated)
+(7,736 missing values generated)
+(6,660 missing values generated)
+(8,424 missing values generated)
+(8,122 missing values generated)
+(7,675 missing values generated)
+(8,627 missing values generated)
+(8,028 missing values generated)
+(7,320 missing values generated)
+(8,556 missing values generated)
+(8,144 missing values generated)
+(7,625 missing values generated)
+(8,617 missing values generated)
+(4,897 missing values generated)
+(4,435 missing values generated)
+(7,979 missing values generated)
+file C:\Users\Usuario\AppData\Local\Temp\ST_48f0_000001.tmp saved as .dta
+    format
+(label id already defined)
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                             0
+    Matched                             1,773  
+    -----------------------------------------
+(13 real changes made, 13 to missing)
+
+Panel variable: id (strongly balanced)
+ Time variable: period, 0 to 8
+         Delta: 1 unit
+(304 missing values generated)
+  variable year0 was float now int
+  variable period was float now byte
+  variable cov_central0 was float now byte
+  variable year1 was float now int
+  variable ng was double now byte
+  (30,141 bytes saved)
+file C:\Users\Usuario\Dropbox\Papers\Emprego Público e
+    Crescimento\Estimações/data/final/painel_5anos.dta saved
+(2,167 observations deleted)
+(1,282 missing values generated)
+(7,618 missing values generated)
+(7,648 missing values generated)
+(7,621 missing values generated)
+(7,621 missing values generated)
+(6,858 missing values generated)
+(6,842 missing values generated)
+(7,104 missing values generated)
+(6,859 missing values generated)
+(7,633 missing values generated)
+(7,590 missing values generated)
+(7,635 missing values generated)
+(7,645 missing values generated)
+(7,650 missing values generated)
+(7,638 missing values generated)
+(7,850 missing values generated)
+(7,630 missing values generated)
+(7,851 missing values generated)
+(5,993 missing values generated)
+(5,929 missing values generated)
+(5,936 missing values generated)
+(6,748 missing values generated)
+(6,359 missing values generated)
+(6,020 missing values generated)
+(6,456 missing values generated)
+(7,342 missing values generated)
+(6,704 missing values generated)
+(7,882 missing values generated)
+(7,728 missing values generated)
+(7,457 missing values generated)
+(8,133 missing values generated)
+(7,634 missing values generated)
+(7,163 missing values generated)
+(8,035 missing values generated)
+(7,750 missing values generated)
+(7,406 missing values generated)
+(8,116 missing values generated)
+(4,503 missing values generated)
+(4,298 missing values generated)
+(7,080 missing values generated)
+file C:\Users\Usuario\AppData\Local\Temp\ST_48f0_000002.tmp saved as .dta
+    format
+(label id already defined)
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                             0
+    Matched                             2,955  
+    -----------------------------------------
+(200 real changes made, 200 to missing)
+
+Panel variable: id (strongly balanced)
+ Time variable: period, 0 to 14
+         Delta: 1 unit
+(358 missing values generated)
+  variable year0 was float now int
+  variable period was float now byte
+  variable cov_central0 was float now byte
+  variable year1 was float now int
+  variable ng was double now byte
+  (50,235 bytes saved)
+file C:\Users\Usuario\Dropbox\Papers\Emprego Público e
+    Crescimento\Estimações/data/final/painel_3anos.dta saved
+
+. 
+. * ===========================================================================
+> ==========
+. * 6. Dicionario e exportacao em parquet (conversao de formato)
+. * ===========================================================================
+> ==========
+. use "$FINAL/painel_anual.dta", clear
+
+. describe, replace clear
+
+. keep name type varlab
+
+. export delimited "$FINAL/dicionario.csv", replace
+file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/d
+> ata/final/dicionario.csv saved
+
+. shell python "$ROOT/code/03b_exporta_parquet.py"
+request ignored because of batch mode
+
+. 
+. log close
+      name:  <unnamed>
+       log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Esti
+> mações/output/logs/03_painel.log
+  log type:  text
+ closed on:   7 Oct 2026, 22:22:19
+-------------------------------------------------------------------------------

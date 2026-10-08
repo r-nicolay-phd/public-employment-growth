@@ -1,7 +1,7 @@
-* 02_replicacao_fase0.do -- Fase 0: replicacao de controle da base original
+* 02_limpeza_wf1_fase0.do -- Fase 0: replicacao de controle da base original
 if "$ROOT" == "" global ROOT "`c(pwd)'"
 do "$ROOT/code/00_setup.do"
-log using "$LOG/02_replicacao_fase0.log", replace text
+log using "$LOG/02_limpeza_wf1_fase0.log", replace text
 import delimited "$INTERIM/wf1_original.csv", clear varnames(1) case(lower)
 encode country_code, gen(id)
 xtset id year

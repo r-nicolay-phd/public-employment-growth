@@ -1,0 +1,421 @@
+-------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Esti
+> mações/output/logs/02_limpeza_fmi.log
+  log type:  text
+ opened on:   7 Oct 2026, 22:22:01
+
+. 
+. * ---------------------------------------------------------------- GFS, demon
+> strativo de operacoes
+. import delimited "$RAW/imf_gfs/gfs_soo.csv", clear varnames(1) case(lower) en
+> coding(utf8)
+(11 vars, 562,688 obs)
+
+. keep if !missing(obs_value)
+(403,036 observations deleted)
+
+. rename (country time_period obs_value) (iso3 year value)
+
+. * um registro por pais-setor-indicador-unidade-ano (GFS_GRP repete o mesmo va
+> lor em grupos diferentes)
+. duplicates tag iso3 sector indicator type_of_transformation year, gen(dup)
+
+Duplicates in terms of iso3 sector indicator type_of_transformation year
+
+. bysort iso3 sector indicator type_of_transformation year (value): gen double 
+> vdiff = value[_N] - value[1]
+
+. summ vdiff
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+       vdiff |    159,652           0           0          0          0
+
+. assert r(max) < 1e-6
+
+. bysort iso3 sector indicator type_of_transformation year: keep if _n == 1
+(0 observations deleted)
+
+. replace indicator = subinstr(subinstr(indicator, "_T", "", 1), "_A", "", 1)
+(159,652 real changes made)
+
+. gen un = cond(type_of_transformation == "POGDP_PT", "gdp", "out")
+
+. gen sec = ""
+(159,652 missing values generated)
+
+. replace sec = "gg"  if sector == "S13"
+variable sec was str1 now str2
+(34,983 real changes made)
+
+. replace sec = "cgs" if sector == "S1321"
+variable sec was str2 now str3
+(44,658 real changes made)
+
+. replace sec = "cg"  if sector == "S1311"
+(34,849 real changes made)
+
+. replace sec = "bcg" if sector == "S1311B"
+(45,162 real changes made)
+
+. drop if sec == ""
+(0 observations deleted)
+
+. gen vname = sec + "_" + lower(indicator) + "_" + un
+
+. keep iso3 year vname value
+
+. reshape wide value, i(iso3 year) j(vname) string
+(j = bcg_g11_gdp bcg_g1_gdp bcg_g21_gdp bcg_g22_gdp bcg_g24_gdp bcg_g25_gdp bcg
+> _g26_gdp bcg_g27_gdp bcg_g28_gdp bcg_g2_gdp bcg_g31_gdp bcg_gnlb_gdp bcg_gpb_
+> gdp bcg_nnfag_gdp cg_g11_gdp cg_g1_gdp cg_g21_gdp cg_g22_gdp cg_g24_gdp cg_g2
+> 5_gdp cg_g26_gdp cg_g27_gdp cg_g28_gdp cg_g2_gdp cg_g31_gdp cg_gnlb_gdp cg_gp
+> b_gdp cg_nnfag_gdp cgs_g11_gdp cgs_g1_gdp cgs_g21_gdp cgs_g22_gdp cgs_g24_gdp
+>  cgs_g25_gdp cgs_g26_gdp cgs_g27_gdp cgs_g28_gdp cgs_g2_gdp cgs_g31_gdp cgs_g
+> nlb_gdp cgs_gpb_gdp cgs_nnfag_gdp gg_g11_gdp gg_g1_gdp gg_g21_gdp gg_g22_gdp 
+> gg_g24_gdp gg_g25_gdp gg_g26_gdp gg_g27_gdp gg_g28_gdp gg_g2_gdp gg_g31_gdp g
+> g_gnlb_gdp gg_gpb_gdp gg_nnfag_gdp)
+
+Data                               Long   ->   Wide
+-----------------------------------------------------------------------------
+Number of observations          159,652   ->   5,650       
+Number of variables                   4   ->   58          
+j variable (56 values)            vname   ->   (dropped)
+xij variables:
+                                  value   ->   valuebcg_g11_gdp valuebcg_g1_gdp
+>  ... valuegg_nnfag_gdp
+-----------------------------------------------------------------------------
+
+. rename value* *
+
+. * governo geral: folha, despesa total, receita, resultado e categorias (todos
+>  em % do PIB no GFS)
+. rename gg_g21_gdp wagebill_gdp
+
+. * despesa total (outlays) = despesa + investimento liquido em ativos nao fina
+> nceiros (GFSM 2014)
+. gen exp_gdp = gg_g2_gdp + gg_g31_gdp
+(3,056 missing values generated)
+
+. rename (gg_g1_gdp gg_gnlb_gdp gg_g11_gdp) (rev_gdp balance_gdp tax_gdp)
+
+. * participacoes na despesa total; o GFS_SOO publica so % do PIB, entao a raza
+> o e calculada aqui
+. gen wagebill_share = 100 * wagebill_gdp / exp_gdp
+(3,116 missing values generated)
+
+. gen sh_wage   = wagebill_share
+(3,116 missing values generated)
+
+. gen sh_goods  = 100 * gg_g22_gdp / exp_gdp
+(3,129 missing values generated)
+
+. gen sh_int    = 100 * gg_g24_gdp / exp_gdp
+(3,080 missing values generated)
+
+. gen sh_transf = 100 * (gg_g25_gdp + gg_g26_gdp + gg_g27_gdp) / exp_gdp
+(3,791 missing values generated)
+
+. gen sh_inv    = 100 * gg_g31_gdp / exp_gdp
+(3,056 missing values generated)
+
+. * residual: outras despesas (G28) e consumo de capital fixo (G23)
+. gen sh_other  = 100 - sh_wage - sh_goods - sh_int - sh_transf - sh_inv
+(3,793 missing values generated)
+
+. * serie combinada: governo geral; onde nao houver, governo central (com dummy
+>  de cobertura)
+. gen wagebill_comb = wagebill_gdp
+(3,002 missing values generated)
+
+. gen byte cov_central = 0 if !missing(wagebill_gdp)
+(3,002 missing values generated)
+
+. foreach s in cgs cg bcg {
+  2.     replace cov_central = 1 if missing(wagebill_comb) & !missing(`s'_g21_g
+> dp)
+  3.     replace wagebill_comb = `s'_g21_gdp if missing(wagebill_comb)
+  4. }
+(968 real changes made)
+(968 real changes made)
+(98 real changes made)
+(98 real changes made)
+(1,540 real changes made)
+(1,540 real changes made)
+
+. gen wagebill_cg_gfs = cgs_g21_gdp
+(2,178 missing values generated)
+
+. replace wagebill_cg_gfs = cg_g21_gdp if missing(wagebill_cg_gfs)
+(177 real changes made)
+
+. replace wagebill_cg_gfs = bcg_g21_gdp if missing(wagebill_cg_gfs)
+(1,540 real changes made)
+
+. keep iso3 year wagebill_gdp wagebill_share exp_gdp rev_gdp balance_gdp tax_gd
+> p sh_* wagebill_comb cov_central wagebill_cg_gfs
+
+. label var wagebill_gdp "Wage bill, general government (% of GDP)"
+
+. label var wagebill_share "Wage bill, general government (% of total expenditu
+> re)"
+
+. label var wagebill_comb "Wage bill, general government or central where GG un
+> available (% of GDP)"
+
+. label var cov_central "Wage bill coverage is central government only (combine
+> d series)"
+
+. compress
+  (0 bytes saved)
+
+. save "$INTERIM/gfs.dta", replace
+file C:\Users\Usuario\Dropbox\Papers\Emprego Público e
+    Crescimento\Estimações/data/interim/gfs.dta saved
+
+. 
+. * ---------------------------------------------------------------- ICSD
+. import delimited "$RAW/imf_icsd/icsd.csv", clear varnames(1) case(lower)
+(encoding automatically selected: ISO-8859-1)
+(8 vars, 37,393 obs)
+
+. keep if !missing(obs_value)
+(0 observations deleted)
+
+. rename (country time_period obs_value) (iso3 year value)
+
+. keep iso3 year indicator value
+
+. replace indicator = "igov"   if indicator == "P51G_S13_Q_POGDP_PT"
+(9,224 real changes made)
+
+. replace indicator = "ipriv"  if indicator == "P51G_PS_Q_POGDP_PT"
+(9,224 real changes made)
+
+. replace indicator = "ippp"   if indicator == "P51G_PUPVT_Q_POGDP_PT"
+(4,785 real changes made)
+
+. replace indicator = "kgov"   if indicator == "CAPSTCK_S13_Q_POGDP_PT"
+(9,445 real changes made)
+
+. replace indicator = "kppp"   if indicator == "CAPSTCK_PUPVT_Q_POGDP_PT"
+(4,715 real changes made)
+
+. reshape wide value, i(iso3 year) j(indicator) string
+(j = igov ippp ipriv kgov kppp)
+
+Data                               Long   ->   Wide
+-----------------------------------------------------------------------------
+Number of observations           37,393   ->   9,705       
+Number of variables                   4   ->   7           
+j variable (5 values)         indicator   ->   (dropped)
+xij variables:
+                                  value   ->   valueigov valueippp ... valuekpp
+> p
+-----------------------------------------------------------------------------
+
+. rename value* *
+
+. label var ipriv "Private investment (% of GDP), IMF ICSD"
+
+. label var igov "Public investment (% of GDP), IMF ICSD"
+
+. save "$INTERIM/icsd.dta", replace
+file C:\Users\Usuario\Dropbox\Papers\Emprego Público e
+    Crescimento\Estimações/data/interim/icsd.dta saved
+
+. 
+. * ---------------------------------------------------------------- Global Deb
+> t Database
+. import delimited "$RAW/imf_gdd/gdd.csv", clear varnames(1) case(lower)
+(encoding automatically selected: ISO-8859-1)
+(8 vars, 42,750 obs)
+
+. keep if !missing(obs_value)
+(29,638 observations deleted)
+
+. rename (country time_period obs_value) (iso3 year value)
+
+. keep iso3 year indicator value
+
+. replace indicator = "debt_gg" if indicator == "FL_S13_POGDP_PT"
+(3,478 real changes made)
+
+. replace indicator = "debt_cg" if indicator == "FL_S1311MIXED_POGDP_PT"
+(8,437 real changes made)
+
+. replace indicator = "debt_ps" if indicator == "FL_PS_POGDP_PT"
+(1,197 real changes made)
+
+. reshape wide value, i(iso3 year) j(indicator) string
+(j = debt_cg debt_gg debt_ps)
+
+Data                               Long   ->   Wide
+-----------------------------------------------------------------------------
+Number of observations           13,112   ->   9,415       
+Number of variables                   4   ->   5           
+j variable (3 values)         indicator   ->   (dropped)
+xij variables:
+                                  value   ->   valuedebt_cg valuedebt_gg valued
+> ebt_ps
+-----------------------------------------------------------------------------
+
+. rename value* *
+
+. * divida publica: governo geral; governo central onde o geral falta (marcado)
+. gen debt = debt_gg
+(5,937 missing values generated)
+
+. gen byte debt_central = missing(debt_gg) & !missing(debt_cg)
+
+. replace debt = debt_cg if debt_central
+(5,937 real changes made)
+
+. label var debt "Public debt (% of GDP)"
+
+. save "$INTERIM/gdd.dta", replace
+file C:\Users\Usuario\Dropbox\Papers\Emprego Público e
+    Crescimento\Estimações/data/interim/gdd.dta saved
+
+. 
+. * ---------------------------------------------------------------- termos de 
+> troca de commodities
+. import delimited "$RAW/imf_ctot/ctot.csv", clear varnames(1) case(lower)
+(encoding automatically selected: ISO-8859-2)
+(8 vars, 42,032 obs)
+
+. keep if frequency == "A" & !missing(obs_value)
+(384 observations deleted)
+
+. keep if indicator == "CEMPI_CTOTXM_GDP"
+(20,824 observations deleted)
+
+. rename (country time_period obs_value) (iso3 year value)
+
+. destring year, replace
+year already numeric; no replace
+
+. gen w = cond(wgt_type == "H_FW_IX", "fw", "rw")
+
+. keep iso3 year w value
+
+. reshape wide value, i(iso3 year) j(w) string
+(j = fw rw)
+
+Data                               Long   ->   Wide
+-----------------------------------------------------------------------------
+Number of observations           20,824   ->   10,412      
+Number of variables                   4   ->   4           
+j variable (2 values)                 w   ->   (dropped)
+xij variables:
+                                  value   ->   valuefw valuerw
+-----------------------------------------------------------------------------
+
+. rename (valuefw valuerw) (ctot ctot_rw)
+
+. label var ctot "Commodity terms of trade index (net export price, GDP-weighte
+> d, fixed weights)"
+
+. save "$INTERIM/ctot.dta", replace
+file C:\Users\Usuario\Dropbox\Papers\Emprego Público e
+    Crescimento\Estimações/data/interim/ctot.dta saved
+
+. 
+. * ---------------------------------------------------------------- descentral
+> izacao fiscal
+. import delimited "$RAW/imf_fd/fd.csv", clear varnames(1) case(lower)
+(encoding automatically selected: ISO-8859-1)
+(8 vars, 160,957 obs)
+
+. keep if indicator == "G2MD_PT" & sector == "SNG" & !missing(obs_value)
+(159,869 observations deleted)
+
+. rename (country time_period obs_value) (iso3 year exp_decentr)
+
+. collapse (mean) exp_decentr, by(iso3)
+
+. label var exp_decentr "Subnational share of general government spending (%), 
+> 2010-2020 mean"
+
+. save "$INTERIM/fd.dta", replace
+file C:\Users\Usuario\Dropbox\Papers\Emprego Público e
+    Crescimento\Estimações/data/interim/fd.dta saved
+
+. 
+. * ---------------------------------------------------------------- Eurostat (
+> checagem cruzada)
+. import delimited "$RAW/eurostat/gov_10a_main.csv", clear varnames(1) case(low
+> er)
+(encoding automatically selected: ISO-8859-1)
+(11 vars, 6,390 obs)
+
+. keep if sector == "S13" & na_item == "D1PAY" & unit == "PC_GDP"
+(5,325 observations deleted)
+
+. rename (geo time_period obs_value) (iso2 year wagebill_eurostat)
+
+. gen iso3 = ""
+(1,065 missing values generated)
+
+. local pares AT AUT BE BEL BG BGR CY CYP CZ CZE DE DEU DK DNK EE EST EL GRC ES
+>  ESP FI FIN FR FRA HR HRV ///
+>     HU HUN IE IRL IT ITA LT LTU LU LUX LV LVA MT MLT NL NLD PL POL PT PRT RO 
+> ROU SE SWE SI SVN SK SVK ///
+>     IS ISL NO NOR CH CHE UK GBR
+
+. while "`pares'" != "" {
+  2.     gettoken a pares : pares
+  3.     gettoken b pares : pares
+  4.     replace iso3 = "`b'" if iso2 == "`a'"
+  5. }
+variable iso3 was str1 now str3
+(31 real changes made)
+(31 real changes made)
+(31 real changes made)
+(31 real changes made)
+(31 real changes made)
+(31 real changes made)
+(31 real changes made)
+(31 real changes made)
+(31 real changes made)
+(31 real changes made)
+(46 real changes made)
+(31 real changes made)
+(31 real changes made)
+(31 real changes made)
+(31 real changes made)
+(31 real changes made)
+(31 real changes made)
+(31 real changes made)
+(31 real changes made)
+(31 real changes made)
+(31 real changes made)
+(31 real changes made)
+(31 real changes made)
+(31 real changes made)
+(31 real changes made)
+(31 real changes made)
+(31 real changes made)
+(28 real changes made)
+(31 real changes made)
+(30 real changes made)
+(0 real changes made)
+
+. keep if iso3 != ""
+(124 observations deleted)
+
+. keep iso3 year wagebill_eurostat
+
+. save "$INTERIM/eurostat.dta", replace
+file C:\Users\Usuario\Dropbox\Papers\Emprego Público e
+    Crescimento\Estimações/data/interim/eurostat.dta saved
+
+. 
+. log close
+      name:  <unnamed>
+       log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Esti
+> mações/output/logs/02_limpeza_fmi.log
+  log type:  text
+ closed on:   7 Oct 2026, 22:22:08
+-------------------------------------------------------------------------------
