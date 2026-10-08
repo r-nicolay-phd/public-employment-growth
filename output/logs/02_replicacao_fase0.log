@@ -1,0 +1,157 @@
+-------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Esti
+> mações/output/logs/02_replicacao_fase0.log
+  log type:  text
+ opened on:   7 Oct 2026, 21:43:48
+
+. import delimited "$INTERIM/wf1_original.csv", clear varnames(1) case(lower)
+(encoding automatically selected: ISO-8859-1)
+(21 vars, 7,392 obs)
+
+. encode country_code, gen(id)
+
+. xtset id year
+
+Panel variable: id (strongly balanced)
+ Time variable: year, 1996 to 2023
+         Delta: 1 unit
+
+. * casos completos nas 8 variaveis
+. egen nmiss = rowmiss(gdp_pc_growth exp_pub_gdp gov_eff fbkf_gdp inflation tra
+> de_gdp pop_growth terms_of_trade)
+
+. gen cc = nmiss == 0
+
+. count if cc
+  2,042
+
+. local N = r(N)
+
+. 
+. quietly levelsof country_code if cc
+
+. local K : word count `r(levels)'
+
+. summ year if cc
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+        year |      2,042     2014.24    5.219176       2005       2023
+
+. di "Casos completos: `N' obs, `K' paises, " r(min) "-" r(max)
+Casos completos: 2042 obs, 133 paises, 2005-2023
+
+. assert `N' == 2042 & `K' == 133 & r(min) == 2005 & r(max) == 2023
+
+. * especificacao de controle: EF pais e ano, cluster pais
+. gen L_g = L.gdp_pc_growth
+(567 missing values generated)
+
+. gen inter = exp_pub_gdp * gov_eff
+(4,511 missing values generated)
+
+. * areg conta os efeitos fixos de pais nos graus de liberdade (como na referen
+> cia: -0,865; EP 0,269)
+. areg gdp_pc_growth L_g exp_pub_gdp gov_eff inter fbkf_gdp inflation trade_gdp
+>  pop_growth i.year if cc, absorb(id) vce(cluster id)
+
+Linear regression, absorbing indicators             Number of obs     =  2,042
+Absorbed variable: id                               No. of categories =    133
+                                                    F(26, 132)        =  39.23
+                                                    Prob > F          = 0.0000
+                                                    R-squared         = 0.4234
+                                                    Adj R-squared     = 0.3750
+                                                    Root MSE          = 3.9709
+
+                                   (Std. err. adjusted for 133 clusters in id)
+------------------------------------------------------------------------------
+             |               Robust
+gdp_pc_gro~h | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+         L_g |   .0279566   .0893378     0.31   0.755    -.1487624    .2046756
+ exp_pub_gdp |  -.8653379   .2696242    -3.21   0.002    -1.398681   -.3319947
+     gov_eff |   1.487363   1.529805     0.97   0.333    -1.538742    4.513469
+       inter |  -.2959837    .209802    -1.41   0.161    -.7109927    .1190253
+    fbkf_gdp |   .0658428   .0402041     1.64   0.104    -.0136848    .1453704
+   inflation |  -.1139457   .0220579    -5.17   0.000    -.1575785   -.0703129
+   trade_gdp |   .0463815   .0096797     4.79   0.000     .0272342    .0655289
+  pop_growth |  -1.035236   .2415729    -4.29   0.000    -1.513091   -.5573814
+             |
+        year |
+       2006  |   .6071923   .2089407     2.91   0.004     .1938869    1.020498
+       2007  |   .3248865   .3246975     1.00   0.319    -.3173973    .9671703
+       2008  |  -1.617099   .4398342    -3.68   0.000    -2.487135   -.7470636
+       2009  |  -5.781932   .6434856    -8.99   0.000     -7.05481   -4.509054
+       2010  |  -.2908044   .6083861    -0.48   0.633    -1.494252    .9126433
+       2011  |  -1.184543   .4025642    -2.94   0.004    -1.980855   -.3882313
+       2012  |  -2.185429    .443908    -4.92   0.000    -3.063523   -1.307335
+       2013  |  -1.988247    .483949    -4.11   0.000    -2.945546   -1.030948
+       2014  |  -2.008113   .5257537    -3.82   0.000    -3.048106     -.96812
+       2015  |  -2.362325   .6317615    -3.74   0.000    -3.612011   -1.112638
+       2016  |  -2.162325   .5145388    -4.20   0.000    -3.180134   -1.144517
+       2017  |  -1.776423   .4822067    -3.68   0.000    -2.730276   -.8225704
+       2018  |  -2.189596   .4832848    -4.53   0.000    -3.145581   -1.233611
+       2019  |  -2.363301   .5534877    -4.27   0.000    -3.458155   -1.268448
+       2020  |  -8.971193   .7926728   -11.32   0.000    -10.53918   -7.403208
+       2021  |   1.967784   .8605402     2.29   0.024     .2655504    3.670018
+       2022  |  -1.518092   .6996414    -2.17   0.032    -2.902052   -.1341322
+       2023  |  -.8565936   .8809237    -0.97   0.333    -2.599148    .8859605
+             |
+       _cons |   5.293065   2.440067     2.17   0.032     .4663707    10.11976
+------------------------------------------------------------------------------
+
+. di "coef = " %6.3f _b[exp_pub_gdp] "  ep = " %6.3f _se[exp_pub_gdp]
+coef = -0.865  ep =  0.270
+
+. assert abs(_b[exp_pub_gdp] + 0.865) < 0.001 & abs(_se[exp_pub_gdp] - 0.269) <
+>  0.001
+
+. * reghdfe/xtreg tratam o EF como aninhado no cluster: mesmo coeficiente, EP 0
+> ,261
+. reghdfe gdp_pc_growth L_g exp_pub_gdp gov_eff inter fbkf_gdp inflation trade_
+> gdp pop_growth if cc, absorb(id year) vce(cluster id)
+(MWFE estimator converged in 6 iterations)
+
+HDFE Linear regression                            Number of obs   =      2,042
+Absorbing 2 HDFE groups                           F(   8,    132) =      20.73
+Statistics robust to heteroskedasticity           Prob > F        =     0.0000
+                                                  R-squared       =     0.4234
+                                                  Adj R-squared   =     0.3750
+                                                  Within R-sq.    =     0.1118
+Number of clusters (id)      =        133         Root MSE        =     3.9709
+
+                                   (Std. err. adjusted for 133 clusters in id)
+------------------------------------------------------------------------------
+             |               Robust
+gdp_pc_gro~h | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+         L_g |   .0279566    .086362     0.32   0.747     -.142876    .1987893
+ exp_pub_gdp |  -.8653379   .2606432    -3.32   0.001    -1.380916   -.3497599
+     gov_eff |   1.487363   1.478849     1.01   0.316    -1.437945    4.412672
+       inter |  -.2959837   .2028136    -1.46   0.147    -.6971691    .1052017
+    fbkf_gdp |   .0658428   .0388649     1.69   0.093    -.0110358    .1427214
+   inflation |  -.1139457   .0213232    -5.34   0.000    -.1561252   -.0717663
+   trade_gdp |   .0463815   .0093572     4.96   0.000      .027872    .0648911
+  pop_growth |  -1.035236   .2335263    -4.43   0.000    -1.497175   -.5732983
+       _cons |   3.384181    2.15545     1.57   0.119    -.8795125    7.647875
+------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+          id |       133         133           0    *|
+        year |        19           1          18     |
+-----------------------------------------------------+
+* = FE nested within cluster; treated as redundant for DoF computation
+
+. * agregados: nenhum entra na amostra (lista do WDI aplicada na Fase 1); aqui,
+>  checa que todos tem GOV_EFF ausente
+. log close
+      name:  <unnamed>
+       log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Esti
+> mações/output/logs/02_replicacao_fase0.log
+  log type:  text
+ closed on:   7 Oct 2026, 21:43:50
+-------------------------------------------------------------------------------

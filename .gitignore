@@ -1,0 +1,13 @@
+# dados sao refeitos pelo pipeline; versionamos apenas a documentacao das fontes
+data/raw/**
+!data/raw/**/
+!data/raw/**/_SOURCE.txt
+!data/raw/manual/README.md
+data/interim/**
+data/final/**
+!data/final/dicionario.csv
+inputs/*.wf1
+*.log
+!output/logs/*.log
+~$*
+*.smcl
