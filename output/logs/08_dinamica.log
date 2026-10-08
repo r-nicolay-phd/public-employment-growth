@@ -3,7 +3,7 @@
        log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Esti
 > mações/output/logs/08_dinamica.log
   log type:  text
- opened on:   7 Oct 2026, 23:27:21
+ opened on:   7 Oct 2026, 23:34:05
 
 . 
 . use "$FINAL/painel_anual.dta", clear
@@ -27,7 +27,7 @@ Panel variable: id (strongly balanced)
 > ta do PIB per capita ao choque de folha
 . lpirf, y(y100) shocks(d_wagebill_real) saving("$INTERIM/lp_D1.dta") h(6) cond
 > (inrange(year, 1996, 2023))
-(file C:\Users\Usuario\AppData\Local\Temp\ST_77f4_000001.tmp not found)
+(file C:\Users\Usuario\AppData\Local\Temp\ST_7b5c_000001.tmp not found)
 file C:\Users\Usuario\Dropbox\Papers\Emprego Público e
     Crescimento\Estimações/data/interim/lp_D1.dta saved
 
@@ -92,7 +92,7 @@ file C:\Users\Usuario\Dropbox\Papers\Emprego Público e
 > o x salario relativo
 . lpirf, y(y100) shocks(d_wb_emp d_wb_wage) saving("$INTERIM/lp_D2.dta") h(6) c
 > ond(inrange(year, 1996, 2023))
-(file C:\Users\Usuario\AppData\Local\Temp\ST_77f4_000001.tmp not found)
+(file C:\Users\Usuario\AppData\Local\Temp\ST_7b5c_000001.tmp not found)
 file C:\Users\Usuario\Dropbox\Papers\Emprego Público e
     Crescimento\Estimações/data/interim/lp_D2.dta saved
 
@@ -228,7 +228,7 @@ D3: mediana de merit_l1 na amostra = 1.2795
 
 . lpirf, y(y100) shocks(d_wagebill_real) state(merit_hi) saving("$INTERIM/lp_D3
 > .dta") h(6) cond(inrange(year, 1996, 2023))
-(file C:\Users\Usuario\AppData\Local\Temp\ST_77f4_000001.tmp not found)
+(file C:\Users\Usuario\AppData\Local\Temp\ST_7b5c_000001.tmp not found)
 file C:\Users\Usuario\Dropbox\Papers\Emprego Público e
     Crescimento\Estimações/data/interim/lp_D3.dta saved
 
@@ -992,5 +992,5 @@ figura gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\E
        log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Esti
 > mações/output/logs/08_dinamica.log
   log type:  text
- closed on:   7 Oct 2026, 23:27:36
+ closed on:   7 Oct 2026, 23:34:16
 -------------------------------------------------------------------------------

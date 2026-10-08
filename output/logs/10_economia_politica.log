@@ -3,7 +3,7 @@
        log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Esti
 > mações/output/logs/10_economia_politica.log
   log type:  text
- opened on:   7 Oct 2026, 23:27:49
+ opened on:   7 Oct 2026, 23:34:27
 
 . 
 . use "$FINAL/painel_anual.dta", clear
@@ -257,7 +257,7 @@ F2: IC de Anderson-Rubin (95%): [-1.60158,   ...  ]
 
 . lpirf, y(y100) shocks(d_wagebill_real) state(elec) saving("$INTERIM/lp_F3.dta
 > ") h(6) cond(`per')
-(file C:\Users\Usuario\AppData\Local\Temp\ST_77f4_000001.tmp not found)
+(file C:\Users\Usuario\AppData\Local\Temp\ST_7b5c_000001.tmp not found)
 file C:\Users\Usuario\Dropbox\Papers\Emprego Público e
     Crescimento\Estimações/data/interim/lp_F3.dta saved
 
@@ -381,7 +381,7 @@ file C:\Users\Usuario\Dropbox\Papers\Emprego Público e
 
 . lpirf, y(y100) shocks(d_wagebill_real) state(elec) saving("$INTERIM/lp_F3_hi.
 > dta") h(6) cond(`per' & merit_l1 > `med' & !missing(merit_l1))
-(file C:\Users\Usuario\AppData\Local\Temp\ST_77f4_000001.tmp not found)
+(file C:\Users\Usuario\AppData\Local\Temp\ST_7b5c_000001.tmp not found)
 file C:\Users\Usuario\Dropbox\Papers\Emprego Público e
     Crescimento\Estimações/data/interim/lp_F3_hi.dta saved
 
@@ -499,7 +499,7 @@ file C:\Users\Usuario\Dropbox\Papers\Emprego Público e
 
 . lpirf, y(y100) shocks(d_wagebill_real) state(elec) saving("$INTERIM/lp_F3_lo.
 > dta") h(6) cond(`per' & merit_l1 <= `med')
-(file C:\Users\Usuario\AppData\Local\Temp\ST_77f4_000001.tmp not found)
+(file C:\Users\Usuario\AppData\Local\Temp\ST_7b5c_000001.tmp not found)
 file C:\Users\Usuario\Dropbox\Papers\Emprego Público e
     Crescimento\Estimações/data/interim/lp_F3_lo.dta saved
 
@@ -744,5 +744,5 @@ file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações
        log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Esti
 > mações/output/logs/10_economia_politica.log
   log type:  text
- closed on:   7 Oct 2026, 23:28:01
+ closed on:   7 Oct 2026, 23:34:37
 -------------------------------------------------------------------------------

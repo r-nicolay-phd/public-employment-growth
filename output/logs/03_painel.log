@@ -3,7 +3,7 @@
        log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Esti
 > mações/output/logs/03_painel.log
   log type:  text
- opened on:   7 Oct 2026, 23:21:37
+ opened on:   7 Oct 2026, 23:28:53
 
 . 
 . * ===========================================================================
@@ -800,7 +800,7 @@ file C:\Users\Usuario\Dropbox\Papers\Emprego Público e
 (4,897 missing values generated)
 (4,435 missing values generated)
 (7,979 missing values generated)
-file C:\Users\Usuario\AppData\Local\Temp\ST_77f4_000001.tmp saved as .dta
+file C:\Users\Usuario\AppData\Local\Temp\ST_7b5c_000001.tmp saved as .dta
     format
 (label id already defined)
 
@@ -864,7 +864,7 @@ file C:\Users\Usuario\Dropbox\Papers\Emprego Público e
 (4,503 missing values generated)
 (4,298 missing values generated)
 (7,080 missing values generated)
-file C:\Users\Usuario\AppData\Local\Temp\ST_77f4_000002.tmp saved as .dta
+file C:\Users\Usuario\AppData\Local\Temp\ST_7b5c_000002.tmp saved as .dta
     format
 (label id already defined)
 
@@ -913,5 +913,5 @@ request ignored because of batch mode
        log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Esti
 > mações/output/logs/03_painel.log
   log type:  text
- closed on:   7 Oct 2026, 23:21:41
+ closed on:   7 Oct 2026, 23:28:57
 -------------------------------------------------------------------------------
