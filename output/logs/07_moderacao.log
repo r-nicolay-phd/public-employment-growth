@@ -1,0 +1,1255 @@
+-------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Esti
+> mações/output/logs/07_moderacao.log
+  log type:  text
+ opened on:   7 Oct 2026, 23:22:01
+
+. 
+. global X5 "lny0 hc0 inv open infl popg ctot_g"
+
+. use "$FINAL/painel_5anos.dta", clear
+
+. keep if micro == 0
+(261 observations deleted)
+
+. xtset id period
+
+Panel variable: id (strongly balanced)
+ Time variable: period, 0 to 8
+         Delta: 1 unit
+
+. 
+. * ---------------------------------------------------------------- C1. intera
+> cao linear com merit0
+. gen wb_x_merit0 = wagebill_gdp0 * merit0
+(1,100 missing values generated)
+
+. reghdfe g wagebill_gdp0 merit0 wb_x_merit0 $X5, absorb(id period) vce(cluster
+>  id)
+(dropped 15 singleton observations)
+(MWFE estimator converged in 7 iterations)
+
+HDFE Linear regression                            Number of obs   =        359
+Absorbing 2 HDFE groups                           F(  10,     71) =      15.13
+Statistics robust to heteroskedasticity           Prob > F        =     0.0000
+                                                  R-squared       =     0.7273
+                                                  Adj R-squared   =     0.6370
+                                                  Within R-sq.    =     0.4085
+Number of clusters (id)      =         72         Root MSE        =     1.3094
+
+                                    (Std. err. adjusted for 72 clusters in id)
+------------------------------------------------------------------------------
+             |               Robust
+           g | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+wagebill_g~0 |  -.2240556   .0823773    -2.72   0.008    -.3883112   -.0597999
+      merit0 |  -.5647165   .6427905    -0.88   0.383    -1.846404    .7169713
+ wb_x_merit0 |   .0408266   .0506497     0.81   0.423    -.0601661    .1418192
+        lny0 |  -5.259891   .9595119    -5.48   0.000    -7.173104   -3.346679
+         hc0 |   2.524577   1.177096     2.14   0.035     .1775152    4.871639
+         inv |   .1457749    .050831     2.87   0.005     .0444207    .2471291
+        open |    .031336    .010924     2.87   0.005     .0095541    .0531178
+        infl |  -.0188864   .0068856    -2.74   0.008    -.0326158    -.005157
+        popg |  -.5896125   .2429291    -2.43   0.018    -1.073999   -.1052256
+      ctot_g |   .1855092   .0922726     2.01   0.048     .0015229    .3694954
+       _cons |   41.74209   8.958393     4.66   0.000     23.87956    59.60462
+------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+          id |        72          72           0    *|
+      period |         9           1           8     |
+-----------------------------------------------------+
+* = FE nested within cluster; treated as redundant for DoF computation
+
+. estadd scalar nc = e(N_clust)
+
+added scalar:
+                 e(nc) =  72
+
+. estadd scalar r2w = e(r2_within)
+
+added scalar:
+                e(r2w) =  .40851698
+
+. estimates store C1
+
+. gen byte sC1 = e(sample)
+
+. * efeito marginal da folha ao longo de toda a faixa de merit0 (IC 95%)
+. quietly summ merit0 if sC1
+
+. local mlo = r(min)
+
+. local mhi = r(max)
+
+. preserve
+
+. clear
+
+. set obs 61
+Number of observations (_N) was 0, now 61.
+
+. gen m = `mlo' + (_n - 1) * (`mhi' - `mlo') / 60
+
+. gen me = .
+(61 missing values generated)
+
+. gen lo = .
+(61 missing values generated)
+
+. gen hi = .
+(61 missing values generated)
+
+. estimates restore C1
+(results C1 are active now)
+
+. matrix V = e(V)
+
+. local df = e(df_r)
+
+. forvalues i = 1/61 {
+  2.     local mm = m[`i']
+  3.     quietly lincom wagebill_gdp0 + `mm' * wb_x_merit0
+  4.     quietly replace me = r(estimate) in `i'
+  5.     quietly replace lo = r(estimate) - invttail(`df', 0.025) * r(se) in `i
+> '
+  6.     quietly replace hi = r(estimate) + invttail(`df', 0.025) * r(se) in `i
+> '
+  7. }
+
+. save "$INTERIM/me_C1.dta", replace
+file C:\Users\Usuario\Dropbox\Papers\Emprego Público e
+    Crescimento\Estimações/data/interim/me_C1.dta saved
+
+. restore
+
+. * efeito marginal nos percentis 10, 50 e 90 do moderador (para o texto)
+. foreach p in 10 50 90 {
+  2.     quietly _pctile merit0 if sC1, p(`p')
+  3.     local q = r(r1)
+  4.     quietly lincom wagebill_gdp0 + `q' * wb_x_merit0
+  5.     di "C1: efeito marginal no p`p' de merit0 (" %5.2f `q' "): " %6.3f r(e
+> stimate) " (EP " %5.3f r(se) ", p = " %5.3f r(p) ")"
+  6. }
+C1: efeito marginal no p10 de merit0 (-0.16): -0.231 (EP 0.088, p = 0.010)
+C1: efeito marginal no p50 de merit0 ( 1.40): -0.167 (EP 0.068, p = 0.017)
+C1: efeito marginal no p90 de merit0 ( 2.34): -0.129 (EP 0.094, p = 0.176)
+
+. 
+. * ---------------------------------------------------------------- C2. Hainmu
+> eller, Mummolo e Xu (2019): interflex
+. * binning (tercis) com teste de Wald da linearidade; kernel com bootstrap por
+>  pais
+. interflex g wagebill_gdp0 merit0 $X5 if sC1, fe(id period) type(binning) nbin
+> s(3) vce(cluster) cluster(id)
+p value of Wald test: 0.1202
+
+. matrix BIN = e(estBin)
+
+. scalar pwald = e(pwald)
+
+. matrix list BIN
+
+BIN[3,5]
+            x0    bin_marg      bin_se    bin_CI_l    bin_CI_u
+r1        .227  -.28468821      .17927  -.63605096   .06667455
+r2       1.399  -.14290938   .09074534  -.32076699   .03494822
+r3      2.1615  -.13841909   .08407641  -.30320582   .02636764
+
+. di "C2: teste de Wald (binning x linear), p = " pwald
+C2: teste de Wald (binning x linear), p = .12023741
+
+. preserve
+
+. clear
+
+. svmat BIN, names(col)
+number of observations will be reset to 3
+Press any key to continue, or Break to abort
+Number of observations (_N) was 0, now 3.
+
+. save "$INTERIM/me_bins.dta", replace
+file C:\Users\Usuario\Dropbox\Papers\Emprego Público e
+    Crescimento\Estimações/data/interim/me_bins.dta saved
+
+. restore
+
+. * estimador por kernel (HMX 2019) implementado aqui: o modo kernel do interfl
+> ex com efeitos fixos e
+. * bootstrap termina com erro de sintaxe interno (ver docs/DECISOES.md, D28). 
+> Banda escolhida pela validacao
+. * cruzada do proprio interflex (0,4701); regressao local ponderada (kernel ga
+> ussiano) de g em folha,
+. * (merit0 - x0), folha x (merit0 - x0) e controles, com EF de pais e periodo;
+>  IC por bootstrap por pais.
+. local bw = 0.4701
+
+. quietly summ merit0 if sC1
+
+. local kmin = r(min)
+
+. local kmax = r(max)
+
+. local neval = 30
+
+. tempname K
+
+. postfile `K' double(km_x km_me km_se km_lo km_hi) using "$INTERIM/me_kernel.d
+> ta", replace
+
+. forvalues v = 1/`neval' {
+  2.     local x0 = `kmin' + (`v' - 1) * (`kmax' - `kmin') / (`neval' - 1)
+  3.     capture drop _xx _dx _w
+  4.     quietly gen double _xx = merit0 - `x0'
+  5.     quietly gen double _dx = _xx * wagebill_gdp0
+  6.     quietly gen double _w = normalden(_xx / `bw')
+  7.     quietly reghdfe g wagebill_gdp0 _xx _dx $X5 [aw = _w] if sC1, absorb(i
+> d period)
+  8.     local me = _b[wagebill_gdp0]
+  9.     * bootstrap por pais (200 replicacoes)
+.     tempname B
+ 10.     postfile `B' double bb using "$INTERIM/_kb.dta", replace
+ 11.     forvalues r = 1/200 {
+ 12.         preserve
+ 13.         quietly keep if sC1
+ 14.         bsample, cluster(id) idcluster(bid)
+ 15.         capture quietly reghdfe g wagebill_gdp0 _xx _dx $X5 [aw = _w], abs
+> orb(bid period)
+ 16.         if !_rc post `B' (_b[wagebill_gdp0])
+ 17.         restore
+ 18.     }
+ 19.     postclose `B'
+ 20.     preserve
+ 21.     use "$INTERIM/_kb.dta", clear
+ 22.     quietly summ bb
+ 23.     local kse = r(sd)
+ 24.     restore
+ 25.     post `K' (`x0') (`me') (`kse') (`me' - 1.96 * `kse') (`me' + 1.96 * `k
+> se')
+ 26. }
+
+. postclose `K'
+
+. capture drop _xx _dx _w
+
+. * suporte comum: distribuicao do moderador na amostra de estimacao
+. preserve
+
+. keep if sC1
+(1,153 observations deleted)
+
+. keep merit0
+
+. save "$INTERIM/merit0_sample.dta", replace
+file C:\Users\Usuario\Dropbox\Papers\Emprego Público e
+    Crescimento\Estimações/data/interim/merit0_sample.dta saved
+
+. restore
+
+. 
+. * ---------------------------------------------------------------- C3. divisa
+> o da amostra (mediana e tercis de merit0)
+. quietly summ merit0 if sC1, detail
+
+. local med = r(p50)
+
+. _pctile merit0 if sC1, p(33.333 66.667)
+
+. local t1 = r(r1)
+
+. local t2 = r(r2)
+
+. gen byte grp2 = 1 + (merit0 > `med') if sC1
+(1,153 missing values generated)
+
+. gen byte grp3 = 1 + (merit0 > `t1') + (merit0 > `t2') if sC1
+(1,153 missing values generated)
+
+. reghdfe g wagebill_gdp0 $X5 if grp2 == 1, absorb(id period) vce(cluster id)
+(dropped 7 singleton observations)
+(MWFE estimator converged in 8 iterations)
+
+HDFE Linear regression                            Number of obs   =        170
+Absorbing 2 HDFE groups                           F(   8,     43) =      16.41
+Statistics robust to heteroskedasticity           Prob > F        =     0.0000
+                                                  R-squared       =     0.7559
+                                                  Adj R-squared   =     0.6249
+                                                  Within R-sq.    =     0.4423
+Number of clusters (id)      =         44         Root MSE        =     1.5438
+
+                                    (Std. err. adjusted for 44 clusters in id)
+------------------------------------------------------------------------------
+             |               Robust
+           g | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+wagebill_g~0 |  -.3139904   .1277014    -2.46   0.018    -.5715249   -.0564559
+        lny0 |  -6.004263   1.268514    -4.73   0.000    -8.562466    -3.44606
+         hc0 |   2.352645   2.279529     1.03   0.308    -2.244463    6.949753
+         inv |    .158165   .0826447     1.91   0.062    -.0085039    .3248338
+        open |   .0423877   .0157343     2.69   0.010     .0106564    .0741189
+        infl |  -.0251956   .0091748    -2.75   0.009    -.0436983   -.0066928
+        popg |  -.1412446   .4490649    -0.31   0.755     -1.04687     .764381
+      ctot_g |   .1908082      .1566     1.22   0.230    -.1250058    .5066222
+       _cons |   45.21221   12.68816     3.56   0.001     19.62409    70.80033
+------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+          id |        44          44           0    *|
+      period |         9           1           8     |
+-----------------------------------------------------+
+* = FE nested within cluster; treated as redundant for DoF computation
+
+. estadd scalar nc = e(N_clust)
+
+added scalar:
+                 e(nc) =  44
+
+. estadd scalar r2w = e(r2_within)
+
+added scalar:
+                e(r2w) =  .44228204
+
+. estimates store C3_lo
+
+. reghdfe g wagebill_gdp0 $X5 if grp2 == 2, absorb(id period) vce(cluster id)
+(dropped 4 singleton observations)
+(MWFE estimator converged in 7 iterations)
+
+HDFE Linear regression                            Number of obs   =        178
+Absorbing 2 HDFE groups                           F(   8,     29) =       4.73
+Statistics robust to heteroskedasticity           Prob > F        =     0.0009
+                                                  R-squared       =     0.7140
+                                                  Adj R-squared   =     0.6165
+                                                  Within R-sq.    =     0.2916
+Number of clusters (id)      =         30         Root MSE        =     1.0759
+
+                                    (Std. err. adjusted for 30 clusters in id)
+------------------------------------------------------------------------------
+             |               Robust
+           g | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+wagebill_g~0 |  -.1717099   .0917733    -1.87   0.071    -.3594074    .0159877
+        lny0 |  -3.714442   1.485155    -2.50   0.018    -6.751926   -.6769581
+         hc0 |  -.0365131   1.750973    -0.02   0.984    -3.617655    3.544629
+         inv |   .1107581   .0580482     1.91   0.066    -.0079638      .22948
+        open |   .0200309   .0137176     1.46   0.155    -.0080247    .0480865
+        infl |  -.0073505   .0045725    -1.61   0.119    -.0167023    .0020014
+        popg |  -.6891046   .3265852    -2.11   0.044    -1.357046   -.0211629
+      ctot_g |  -.0641311   .1325812    -0.48   0.632    -.3352901    .2070278
+       _cons |    37.9302   11.86021     3.20   0.003     13.67335    62.18705
+------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+          id |        30          30           0    *|
+      period |         9           1           8     |
+-----------------------------------------------------+
+* = FE nested within cluster; treated as redundant for DoF computation
+
+. estadd scalar nc = e(N_clust)
+
+added scalar:
+                 e(nc) =  30
+
+. estadd scalar r2w = e(r2_within)
+
+added scalar:
+                e(r2w) =  .29156506
+
+. estimates store C3_hi
+
+. forvalues k = 1/3 {
+  2.     reghdfe g wagebill_gdp0 $X5 if grp3 == `k', absorb(id period) vce(clus
+> ter id)
+  3.     estadd scalar nc = e(N_clust)
+  4.     estadd scalar r2w = e(r2_within)
+  5.     estimates store C3_t`k'
+  6. }
+(dropped 4 singleton observations)
+(MWFE estimator converged in 9 iterations)
+
+HDFE Linear regression                            Number of obs   =        116
+Absorbing 2 HDFE groups                           F(   8,     34) =      14.43
+Statistics robust to heteroskedasticity           Prob > F        =     0.0000
+                                                  R-squared       =     0.7492
+                                                  Adj R-squared   =     0.5630
+                                                  Within R-sq.    =     0.3594
+Number of clusters (id)      =         35         Root MSE        =     1.7445
+
+                                    (Std. err. adjusted for 35 clusters in id)
+------------------------------------------------------------------------------
+             |               Robust
+           g | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+wagebill_g~0 |   -.369312   .1697279    -2.18   0.037    -.7142406   -.0243834
+        lny0 |  -7.397484   1.665556    -4.44   0.000     -10.7823   -4.012668
+         hc0 |  -2.070956    3.79896    -0.55   0.589    -9.791372    5.649461
+         inv |   .1571597   .0800103     1.96   0.058    -.0054407    .3197602
+        open |   .0357412   .0246723     1.45   0.157     -.014399    .0858814
+        infl |  -.0161003   .0102893    -1.56   0.127    -.0370108    .0048102
+        popg |   .3781557   .6466453     0.58   0.563    -.9359856    1.692297
+      ctot_g |   .2071909   .1874091     1.11   0.277    -.1736703    .5880521
+       _cons |   67.51228   19.69249     3.43   0.002     27.49232    107.5322
+------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+          id |        35          35           0    *|
+      period |         8           1           7     |
+-----------------------------------------------------+
+* = FE nested within cluster; treated as redundant for DoF computation
+
+added scalar:
+                 e(nc) =  35
+
+added scalar:
+                e(r2w) =  .3594308
+(dropped 7 singleton observations)
+(MWFE estimator converged in 8 iterations)
+
+HDFE Linear regression                            Number of obs   =        112
+Absorbing 2 HDFE groups                           F(   8,     24) =      37.65
+Statistics robust to heteroskedasticity           Prob > F        =     0.0000
+                                                  R-squared       =     0.8496
+                                                  Adj R-squared   =     0.7648
+                                                  Within R-sq.    =     0.6139
+Number of clusters (id)      =         25         Root MSE        =     0.9179
+
+                                    (Std. err. adjusted for 25 clusters in id)
+------------------------------------------------------------------------------
+             |               Robust
+           g | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+wagebill_g~0 |  -.2460851   .1061249    -2.32   0.029    -.4651162    -.027054
+        lny0 |  -6.726584   1.318959    -5.10   0.000    -9.448782   -4.004386
+         hc0 |   .7802963   2.458469     0.32   0.754    -4.293734    5.854326
+         inv |   .1401556   .0817096     1.72   0.099    -.0284847    .3087959
+        open |    .046965   .0089102     5.27   0.000     .0285753    .0653546
+        infl |  -.1739235   .0477565    -3.64   0.001     -.272488    -.075359
+        popg |  -.9946569   .4598858    -2.16   0.041    -1.943814   -.0454993
+      ctot_g |  -.3940733   .3083776    -1.28   0.214    -1.030533    .2423868
+       _cons |   62.71002    14.4885     4.33   0.000     32.80722    92.61282
+------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+          id |        25          25           0    *|
+      period |         9           1           8     |
+-----------------------------------------------------+
+* = FE nested within cluster; treated as redundant for DoF computation
+
+added scalar:
+                 e(nc) =  25
+
+added scalar:
+                e(r2w) =  .61389783
+(MWFE estimator converged in 6 iterations)
+
+HDFE Linear regression                            Number of obs   =        120
+Absorbing 2 HDFE groups                           F(   8,     18) =       5.99
+Statistics robust to heteroskedasticity           Prob > F        =     0.0008
+                                                  R-squared       =     0.7586
+                                                  Adj R-squared   =     0.6621
+                                                  Within R-sq.    =     0.3686
+Number of clusters (id)      =         19         Root MSE        =     1.0428
+
+                                    (Std. err. adjusted for 19 clusters in id)
+------------------------------------------------------------------------------
+             |               Robust
+           g | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+wagebill_g~0 |  -.1748558   .1027745    -1.70   0.106    -.3907769    .0410654
+        lny0 |  -6.257498   1.683537    -3.72   0.002    -9.794479   -2.720518
+         hc0 |   2.320513   2.092916     1.11   0.282    -2.076541    6.717567
+         inv |   .1013877   .0861357     1.18   0.254    -.0795767    .2823521
+        open |   .0066203   .0136025     0.49   0.632    -.0219575    .0351981
+        infl |  -.0044229   .0037877    -1.17   0.258    -.0123806    .0035348
+        popg |  -.5344358   .4105258    -1.30   0.209    -1.396918    .3280468
+      ctot_g |   -.019424   .1897251    -0.10   0.920    -.4180217    .3791737
+       _cons |   58.99567   13.08274     4.51   0.000     31.50985    86.48149
+------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+          id |        19          19           0    *|
+      period |         9           1           8     |
+-----------------------------------------------------+
+* = FE nested within cluster; treated as redundant for DoF computation
+
+added scalar:
+                 e(nc) =  19
+
+added scalar:
+                e(r2w) =  .36857988
+
+. * teste de igualdade: modelo agrupado com folha e controles interagidos com o
+>  grupo
+. reghdfe g c.(wagebill_gdp0 $X5)#i.grp2 if sC1, absorb(id period#grp2) vce(clu
+> ster id)
+(MWFE estimator converged in 10 iterations)
+
+HDFE Linear regression                            Number of obs   =        359
+Absorbing 2 HDFE groups                           F(  16,     71) =      10.43
+Statistics robust to heteroskedasticity           Prob > F        =     0.0000
+                                                  R-squared       =     0.7440
+                                                  Adj R-squared   =     0.6392
+                                                  Within R-sq.    =     0.3995
+Number of clusters (id)      =         72         Root MSE        =     1.3055
+
+                                    (Std. err. adjusted for 72 clusters in id)
+------------------------------------------------------------------------------
+             |               Robust
+           g | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+        grp2#|
+          c. |
+wagebill_g~0 |
+          1  |  -.2458917    .122646    -2.00   0.049    -.4904408   -.0013425
+          2  |  -.1943251   .1021477    -1.90   0.061    -.3980019    .0093516
+             |
+ grp2#c.lny0 |
+          1  |  -5.814852   .9712481    -5.99   0.000    -7.751466   -3.878238
+          2  |   -5.50461   1.203478    -4.57   0.000    -7.904277   -3.104943
+             |
+  grp2#c.hc0 |
+          1  |   1.754887   1.732481     1.01   0.315    -1.699581    5.209355
+          2  |   1.990569   1.490834     1.34   0.186    -.9820689    4.963207
+             |
+  grp2#c.inv |
+          1  |   .1541089    .080483     1.91   0.060    -.0063697    .3145875
+          2  |   .1323536   .0475131     2.79   0.007     .0376152     .227092
+             |
+ grp2#c.open |
+          1  |   .0397847   .0123939     3.21   0.002     .0150719    .0644974
+          2  |   .0229341   .0130934     1.75   0.084    -.0031735    .0490416
+             |
+ grp2#c.infl |
+          1  |  -.0236348   .0091481    -2.58   0.012    -.0418755    -.005394
+          2  |  -.0049096   .0042344    -1.16   0.250    -.0133527    .0035335
+             |
+ grp2#c.popg |
+          1  |  -.2982022   .3755809    -0.79   0.430    -1.047089    .4506847
+          2  |  -.6242771   .2655655    -2.35   0.022      -1.1538   -.0947546
+             |
+        grp2#|
+    c.ctot_g |
+          1  |   .1923144    .147412     1.30   0.196    -.1016169    .4862456
+          2  |   .0293241   .1171849     0.25   0.803     -.204336    .2629842
+             |
+       _cons |   47.18174   9.142479     5.16   0.000     28.95216    65.41132
+------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-------------------------------------------------------+
+   Absorbed FE | Categories  - Redundant  = Num. Coefs |
+---------------+---------------------------------------|
+            id |        72          72           0    *|
+   period#grp2 |        18           1          17     |
+-------------------------------------------------------+
+* = FE nested within cluster; treated as redundant for DoF computation
+
+. test 1.grp2#c.wagebill_gdp0 = 2.grp2#c.wagebill_gdp0
+
+ ( 1)  1b.grp2#c.wagebill_gdp0 - 2.grp2#c.wagebill_gdp0 = 0
+
+       F(  1,    71) =    0.12
+            Prob > F =    0.7341
+
+. scalar p_med = r(p)
+
+. reghdfe g c.(wagebill_gdp0 $X5)#i.grp3 if sC1, absorb(id period#grp3) vce(clu
+> ster id)
+(dropped 1 singleton observations)
+(MWFE estimator converged in 12 iterations)
+
+HDFE Linear regression                            Number of obs   =        358
+Absorbing 2 HDFE groups                           F(  24,     71) =      22.05
+Statistics robust to heteroskedasticity           Prob > F        =     0.0000
+                                                  R-squared       =     0.7744
+                                                  Adj R-squared   =     0.6601
+                                                  Within R-sq.    =     0.4283
+Number of clusters (id)      =         72         Root MSE        =     1.2688
+
+                                    (Std. err. adjusted for 72 clusters in id)
+------------------------------------------------------------------------------
+             |               Robust
+           g | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+        grp3#|
+          c. |
+wagebill_g~0 |
+          1  |  -.3565009   .1694421    -2.10   0.039    -.6943588   -.0186429
+          2  |  -.2559642   .1073334    -2.38   0.020    -.4699809   -.0419475
+          3  |  -.1667989    .102267    -1.63   0.107    -.3707134    .0371157
+             |
+ grp3#c.lny0 |
+          1  |  -5.953575   1.037989    -5.74   0.000    -8.023266   -3.883884
+          2  |   -7.30335   .8854309    -8.25   0.000    -9.068849   -5.537851
+          3  |  -4.634055   .9163228    -5.06   0.000     -6.46115   -2.806959
+             |
+  grp3#c.hc0 |
+          1  |   .9365452   2.284914     0.41   0.683    -3.619443    5.492533
+          2  |   2.478513   1.720699     1.44   0.154    -.9524635    5.909489
+          3  |   .3044692   1.581001     0.19   0.848    -2.847958    3.456896
+             |
+  grp3#c.inv |
+          1  |    .144025   .0795237     1.81   0.074    -.0145408    .3025908
+          2  |    .135709   .0764636     1.77   0.080    -.0167552    .2881732
+          3  |   .1043455   .0653317     1.60   0.115    -.0259223    .2346133
+             |
+ grp3#c.open |
+          1  |   .0253248   .0167985     1.51   0.136    -.0081704      .05882
+          2  |   .0232666   .0090894     2.56   0.013     .0051428    .0413904
+          3  |   .0205977   .0110312     1.87   0.066    -.0013978    .0425933
+             |
+ grp3#c.infl |
+          1  |    -.02153   .0109268    -1.97   0.053    -.0433174    .0002574
+          2  |  -.2033612   .0404477    -5.03   0.000    -.2840117   -.1227107
+          3  |  -.0070366   .0044046    -1.60   0.115    -.0158191    .0017459
+             |
+ grp3#c.popg |
+          1  |   .0987953    .503679     0.20   0.845     -.905512    1.103103
+          2  |  -.2068548   .3089423    -0.67   0.505    -.8228682    .4091587
+          3  |   -.745454   .2838454    -2.63   0.011    -1.311426   -.1794823
+             |
+        grp3#|
+    c.ctot_g |
+          1  |   .2043841   .1504284     1.36   0.179    -.0955616    .5043298
+          2  |   -.121517   .3017034    -0.40   0.688    -.7230966    .4800625
+          3  |  -.0395823   .1462682    -0.27   0.787    -.3312328    .2520683
+             |
+       _cons |   53.41044   7.485868     7.13   0.000     38.48404    68.33684
+------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-------------------------------------------------------+
+   Absorbed FE | Categories  - Redundant  = Num. Coefs |
+---------------+---------------------------------------|
+            id |        72          72           0    *|
+   period#grp3 |        26           1          25     |
+-------------------------------------------------------+
+* = FE nested within cluster; treated as redundant for DoF computation
+
+. test (1.grp3#c.wagebill_gdp0 = 2.grp3#c.wagebill_gdp0) (2.grp3#c.wagebill_gdp
+> 0 = 3.grp3#c.wagebill_gdp0)
+
+ ( 1)  1b.grp3#c.wagebill_gdp0 - 2.grp3#c.wagebill_gdp0 = 0
+ ( 2)  2.grp3#c.wagebill_gdp0 - 3.grp3#c.wagebill_gdp0 = 0
+
+       F(  2,    71) =    0.54
+            Prob > F =    0.5869
+
+. scalar p_ter = r(p)
+
+. di "C3: mediana = " `med' "; tercis = " `t1' ", " `t2' "; p igualdade (median
+> a) = " p_med "; p igualdade (tercis) = " p_ter
+C3: mediana = 1.399; tercis = .87, 1.959; p igualdade (mediana) = .73413858; p 
+> igualdade (tercis) = .58692502
+
+. 
+. * ---------------------------------------------------------------- C5. intera
+> cao com o WGI (comparacao com a dissertacao)
+. gen wb_x_wgi0 = wagebill_gdp0 * wgi_ge0
+(1,213 missing values generated)
+
+. reghdfe g wagebill_gdp0 wgi_ge0 wb_x_wgi0 $X5, absorb(id period) vce(cluster 
+> id)
+(dropped 16 singleton observations)
+(MWFE estimator converged in 5 iterations)
+
+HDFE Linear regression                            Number of obs   =        251
+Absorbing 2 HDFE groups                           F(  10,     70) =      23.94
+Statistics robust to heteroskedasticity           Prob > F        =     0.0000
+                                                  R-squared       =     0.8039
+                                                  Adj R-squared   =     0.7065
+                                                  Within R-sq.    =     0.5108
+Number of clusters (id)      =         71         Root MSE        =     1.2376
+
+                                    (Std. err. adjusted for 71 clusters in id)
+------------------------------------------------------------------------------
+             |               Robust
+           g | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+wagebill_g~0 |  -.4121877   .1395591    -2.95   0.004    -.6905295   -.1338459
+     wgi_ge0 |   .9378441   1.364356     0.69   0.494    -1.783278    3.658966
+   wb_x_wgi0 |  -.0616481   .1066441    -0.58   0.565    -.2743432    .1510469
+        lny0 |  -8.706782   .8967245    -9.71   0.000    -10.49524   -6.918321
+         hc0 |   3.315912    1.78358     1.86   0.067    -.2413255     6.87315
+         inv |   .1142812   .0435096     2.63   0.011     .0275041    .2010583
+        open |    .018002   .0119301     1.51   0.136    -.0057918    .0417958
+        infl |  -.0155966   .0499704    -0.31   0.756    -.1152595    .0840663
+        popg |  -.3756485   .3424338    -1.10   0.276    -1.058611    .3073143
+      ctot_g |   .1976081   .0953053     2.07   0.042     .0075276    .3876886
+       _cons |   74.33035   9.719247     7.65   0.000     54.94592    93.71478
+------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+          id |        71          71           0    *|
+      period |         4           1           3     |
+-----------------------------------------------------+
+* = FE nested within cluster; treated as redundant for DoF computation
+
+. estadd scalar nc = e(N_clust)
+
+added scalar:
+                 e(nc) =  71
+
+. estadd scalar r2w = e(r2_within)
+
+added scalar:
+                e(r2w) =  .51075955
+
+. estimates store C5
+
+. gen byte sC5 = e(sample)
+
+. foreach p in 10 50 90 {
+  2.     quietly _pctile wgi_ge0 if sC5, p(`p')
+  3.     local q = r(r1)
+  4.     quietly lincom wagebill_gdp0 + `q' * wb_x_wgi0
+  5.     di "C5: efeito marginal no p`p' do WGI (" %5.2f `q' "): " %6.3f r(esti
+> mate) " (EP " %5.3f r(se) ", p = " %5.3f r(p) ")"
+  6. }
+C5: efeito marginal no p10 do WGI (-0.46): -0.384 (EP 0.174, p = 0.030)
+C5: efeito marginal no p50 do WGI ( 0.68): -0.454 (EP 0.111, p = 0.000)
+C5: efeito marginal no p90 do WGI ( 1.89): -0.529 (EP 0.161, p = 0.002)
+
+. * efeito marginal ao longo do WGI (apendice)
+. quietly summ wgi_ge0 if sC5
+
+. local wlo = r(min)
+
+. local whi = r(max)
+
+. preserve
+
+. clear
+
+. set obs 61
+Number of observations (_N) was 0, now 61.
+
+. gen m = `wlo' + (_n - 1) * (`whi' - `wlo') / 60
+
+. gen me = .
+(61 missing values generated)
+
+. gen lo = .
+(61 missing values generated)
+
+. gen hi = .
+(61 missing values generated)
+
+. estimates restore C5
+(results C5 are active now)
+
+. local df = e(df_r)
+
+. forvalues i = 1/61 {
+  2.     local mm = m[`i']
+  3.     quietly lincom wagebill_gdp0 + `mm' * wb_x_wgi0
+  4.     quietly replace me = r(estimate) in `i'
+  5.     quietly replace lo = r(estimate) - invttail(`df', 0.025) * r(se) in `i
+> '
+  6.     quietly replace hi = r(estimate) + invttail(`df', 0.025) * r(se) in `i
+> '
+  7. }
+
+. save "$INTERIM/me_C5.dta", replace
+file C:\Users\Usuario\Dropbox\Papers\Emprego Público e
+    Crescimento\Estimações/data/interim/me_C5.dta saved
+
+. restore
+
+. 
+. capture program drop setcmd
+
+. program define setcmd, eclass
+  1.     * alguns comandos (xthenreg) nao definem e(cmd), o que impede estimate
+> s store
+.     ereturn local cmd "`1'"
+  2. end
+
+. 
+. * ---------------------------------------------------------------- C4. limiar
+> : Seo e Shin (2016), xthenreg
+. * Painel anual estritamente balanceado (exigencia do estimador). Limiar em me
+> rit defasado; regressor
+. * sujeito a regime: folha defasada; modelo dinamico (FD-GMM) com crescimento 
+> defasado. Linearidade por
+. * bootstrap (500 replicacoes). Nao se estima limiar dentro de System GMM com 
+> muitos instrumentos.
+. * Condicoes de momento do FD-GMM de Seo e Shin no xthenreg: para cada t = 3..
+> T, constante, todas as
+. * defasagens disponiveis de y (t-2) e os regressores; com T grande o numero d
+> e momentos passa de N
+. * (proliferacao de instrumentos). Duas janelas: 2000-2019 (T = 20) e 2015-201
+> 9 (T = 5). A regra da
+. * especificacao (instrumentos < N/2) e verificada e gravada; a janela que a v
+> iola nao e interpretada.
+. local w = 0
+
+. foreach win in "2000 2019" "2015 2019" {
+  2.     local ++w
+  3.     use "$FINAL/painel_anual.dta", clear
+  4.     keep if micro == 0
+  5.     xtset id year
+  6.     gen wb_l1 = L.wagebill_gdp
+  7.     local y0 : word 1 of `win'
+  8.     local y1 : word 2 of `win'
+  9.     keep if inrange(year, `y0', `y1')
+ 10.     gen byte ok = !missing(g, wb_l1, merit_l1)
+ 11.     bysort id: egen nok = total(ok)
+ 12.     keep if nok == `y1' - `y0' + 1
+ 13.     quietly levelsof id
+ 14.     local Nbal : word count `r(levels)'
+ 15.     local T = `y1' - `y0' + 1
+ 16.     * momentos: soma em t = 3..T de [1 + (t - 2) + 1]
+.     local L = 0
+ 17.     forvalues t = 3/`T' {
+ 18.         local L = `L' + 1 + (`t' - 2) + 1
+ 19.     }
+ 20.     di "C4 janela `y0'-`y1': `Nbal' paises, T = `T', condicoes de momento 
+> = `L', N/2 = " `Nbal' / 2
+ 21.     xtset id year
+ 22.     set seed 20261007
+ 23.     xthenreg g merit_l1 wb_l1, boost(500) grid_num(100) trim_rate(0.4)
+ 24.     setcmd xthenreg
+ 25.     estadd scalar nmom = `L'
+ 26.     estadd scalar valid = `L' < `Nbal' / 2
+ 27.     estadd scalar y0 = `y0'
+ 28.     estimates store C4_w`w'
+ 29.     if `w' == 1 {
+ 30.         * Hansen (1999), efeitos fixos estaticos, sem instrumentos, mesmo 
+> painel, 500 replicacoes
+.         * dummies de ano como regressores independentes de regime (xthreg nao
+>  aceita variaveis de fator)
+.         quietly tab year, gen(yd)
+ 31.         drop yd1
+ 32.         xthreg g yd*, rx(wb_l1) qx(merit_l1) thnum(1) trim(0.10) grid(300)
+>  bs(500)
+ 33.         estadd scalar Nb = `Nbal'
+ 34.         estadd scalar Tb = `T'
+ 35.         estimates store C4h
+ 36.     }
+ 37. }
+(1,566 observations deleted)
+
+Panel variable: id (strongly balanced)
+ Time variable: year, 1970 to 2023
+         Delta: 1 unit
+(6,808 missing values generated)
+(5,712 observations deleted)
+(2,660 observations deleted)
+C4 janela 2000-2019: 35 paises, T = 20, condicoes de momento = 207, N/2 = 17.5
+
+Panel variable: id (strongly balanced)
+ Time variable: year, 2000 to 2019
+         Delta: 1 unit
+ 
+N = 35, T = 20
+Panel Var. = id
+Time Var. = year
+Number of moment conditions = 207
+Bootstrap p-value for linearity test = 0
+------------------------------------------------------------------------------
+           g | Coefficient  Std. err.      z    P>|z|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+     Lag_y_b |   .1255396   .0419822     2.99   0.003     .0432561    .2078232
+     wb_l1_b |  -2.877404   .3794586    -7.58   0.000    -3.621129   -2.133679
+      cons_d |  -79.65677   6.106002   -13.05   0.000    -91.62431   -67.68923
+     Lag_y_d |   .3089934   .0788979     3.92   0.000     .1543563    .4636305
+     wb_l1_d |   5.479403    .520527    10.53   0.000     4.459189    6.499617
+           r |   1.657677   .1090056    15.21   0.000      1.44403    1.871324
+------------------------------------------------------------------------------
+
+added scalar:
+               e(nmom) =  207
+
+added scalar:
+              e(valid) =  0
+
+added scalar:
+                 e(y0) =  2000
+Estimating  the  threshold  parameters:   1st ......  Done
+Boostrap for single threshold
+.................................................. +   50
+.................................................. +  100
+.................................................. +  150
+.................................................. +  200
+.................................................. +  250
+.................................................. +  300
+.................................................. +  350
+.................................................. +  400
+.................................................. +  450
+.................................................. +  500
+
+Threshold estimator (level = 95):
+-----------------------------------------------------
+     model |    Threshold         Lower         Upper
+-----------+-----------------------------------------
+      Th-1 |       0.7330        0.5515        0.7760
+-----------------------------------------------------
+
+Threshold effect test (bootstrap = 500):
+-------------------------------------------------------------------------------
+ Threshold |       RSS        MSE      Fstat    Prob   Crit10    Crit5    Crit1
+-----------+-------------------------------------------------------------------
+    Single | 3084.3277     4.5358       9.04  0.3040  14.2434  16.9336  28.5267
+-------------------------------------------------------------------------------
+
+Fixed-effects (within) regression               Number of obs      =       700
+Group variable: id                              Number of groups   =        35
+
+R-sq:  Within  = 0.5173                         Obs per group: min =        20
+       Between = 0.2343                                        avg =      20.0
+       Overall = 0.4062                                        max =        20
+
+                                                F(21,644)          =     32.87
+corr(u_i, Xb)  = -0.3599                        Prob > F           =    0.0000
+
+------------------------------------------------------------------------------
+           g | Coefficient  Std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+         yd2 |  -1.747445   .5247307    -3.33   0.001    -2.777835   -.7170553
+         yd3 |  -1.499638   .5245644    -2.86   0.004    -2.529701   -.4695745
+         yd4 |  -1.317694    .523653    -2.52   0.012    -2.345968    -.289421
+         yd5 |   .0510586   .5235822     0.10   0.922     -.977076    1.079193
+         yd6 |  -.3767451   .5252869    -0.72   0.473    -1.408227    .6547368
+         yd7 |   .4516608   .5255525     0.86   0.390    -.5803427    1.483664
+         yd8 |   .1067572   .5265421     0.20   0.839    -.9271894    1.140704
+         yd9 |  -3.772918    .529189    -7.13   0.000    -4.812062   -2.733773
+        yd10 |  -9.442427   .5249274   -17.99   0.000     -10.4732   -8.411651
+        yd11 |  -1.883664    .529481    -3.56   0.000    -2.923382   -.8439464
+        yd12 |  -2.091813   .5256552    -3.98   0.000    -3.124018   -1.059608
+        yd13 |  -3.952284   .5245856    -7.53   0.000    -4.982389   -2.922179
+        yd14 |  -3.606458   .5246185    -6.87   0.000    -4.636628   -2.576289
+        yd15 |  -2.269987   .5235599    -4.34   0.000    -3.298078   -1.241896
+        yd16 |  -1.767757   .5238592    -3.37   0.001    -2.796435   -.7390785
+        yd17 |  -2.257371   .5247765    -4.30   0.000     -3.28785   -1.226891
+        yd18 |  -1.160537   .5240183    -2.21   0.027    -2.189528   -.1315466
+        yd19 |   -1.62761   .5246717    -3.10   0.002    -2.657884   -.5973359
+        yd20 |  -2.261588   .5247626    -4.31   0.000     -3.29204   -1.231135
+             |
+_cat#c.wb_l1 |
+          0  |  -.6275171   .1227246    -5.11   0.000    -.8685058   -.3865283
+          1  |  -.7500354   .1186341    -6.32   0.000    -.9829917   -.5170791
+             |
+       _cons |   11.75327    1.28709     9.13   0.000     9.225865    14.28067
+-------------+----------------------------------------------------------------
+     sigma_u |   1.724907
+     sigma_e |  2.1884535
+         rho |  .38318672   (fraction of variance due to u_i)
+------------------------------------------------------------------------------
+F test that all u_i=0: F(34, 644) = 8.36                     Prob > F = 0.0000
+
+added scalar:
+                 e(Nb) =  35
+
+added scalar:
+                 e(Tb) =  20
+(1,566 observations deleted)
+
+Panel variable: id (strongly balanced)
+ Time variable: year, 1970 to 2023
+         Delta: 1 unit
+(6,808 missing values generated)
+(8,232 observations deleted)
+(480 observations deleted)
+C4 janela 2015-2019: 72 paises, T = 5, condicoes de momento = 12, N/2 = 36
+
+Panel variable: id (strongly balanced)
+ Time variable: year, 2015 to 2019
+         Delta: 1 unit
+ 
+N = 72, T = 5
+Panel Var. = id
+Time Var. = year
+Number of moment conditions = 12
+Bootstrap p-value for linearity test = .92
+------------------------------------------------------------------------------
+           g | Coefficient  Std. err.      z    P>|z|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+     Lag_y_b |    .221703   .2305575     0.96   0.336    -.2301815    .6735874
+     wb_l1_b |   .1024964   1.332465     0.08   0.939    -2.509087     2.71408
+      cons_d |   46.05202   36.87771     1.25   0.212    -26.22697     118.331
+     Lag_y_d |  -.1782052   .4507944    -0.40   0.693    -1.061746    .7053356
+     wb_l1_d |  -1.255047   2.268954    -0.55   0.580    -5.702115    3.192022
+           r |   .7007576   .6596837     1.06   0.288    -.5921988    1.993714
+------------------------------------------------------------------------------
+
+added scalar:
+               e(nmom) =  12
+
+added scalar:
+              e(valid) =  1
+
+added scalar:
+                 e(y0) =  2015
+
+. estimates restore C4_w1
+(results C4_w1 are active now)
+
+. estimates store C4
+
+. 
+. * ===========================================================================
+> ==========
+. * Tabela 4
+. * ===========================================================================
+> ==========
+. local stars "* p<0.10, ** p<0.05, *** p<0.01."
+
+. tab_new, ncol(7) head1("(1)" "(2)" "(3)" "(4)" "(5)" "(6)" "(7)") ///
+>     head2("Merit, linear" "WGI, linear" "Merit < median" "Merit > median" "Me
+> rit, tercile 1" "Merit, tercile 2" "Merit, tercile 3")
+
+. tab_est C1 C5 C3_lo C3_hi C3_t1 C3_t2 C3_t3, keep(wagebill_gdp0 merit0 wb_x_m
+> erit0 wgi_ge0 wb_x_wgi0)
+
+. tab_mid
+
+. local pm : display %5.3f p_med
+
+. local pt : display %5.3f p_ter
+
+. tab_row "Equality of wage bill coefficients (p)" "" "" "`=strtrim("`pm'")'" "
+> " "`=strtrim("`pt'")'" "" ""
+
+. tab_row "Controls" "Yes" "Yes" "Yes" "Yes" "Yes" "Yes" "Yes"
+
+. tab_row "Country and period fixed effects" "Yes" "Yes" "Yes" "Yes" "Yes" "Yes
+> " "Yes"
+
+. tab_stat N "Observations"
+
+. tab_stat nc "Countries"
+
+. tab_stat r2w "R2 (within)" %5.3f
+
+. tab_out Table4_moderation, title("Table 4. Does bureaucratic recruitment mode
+> rate the growth cost of the wage bill?") landscape ///
+>     notes("Dependent variable: growth of real GDP per capita (%, five-year av
+> erage). Wage bill: general government compensation of employees (% of GDP) in
+>  the first year of the period. Meritocratic recruitment: V-Dem v2stcritrecadm
+>  (criteria for appointment decisions in the state administration; higher valu
+> es = more merit-based), measured in the first year of the period. WGI: govern
+> ment effectiveness, first year of the period (from 1996). Columns 3-7 split t
+> he sample at the median and terciles of merit in the estimation sample of col
+> umn 1; the equality test comes from a pooled model with all coefficients and 
+> the period effects interacted with the group. Controls as in Table 2. Country
+>  and period fixed effects; standard errors clustered by country. The threshol
+> d estimates (Seo and Shin, 2016) are in Table A6. `stars'")
+successfully replaced "C:/Users/Usuario/Dropbox/Papers/Emprego Público e Cresci
+> mento/Estimações/output/tables/Table4_moderation.docx"
+tabela gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\E
+> stimações/output/tables/Table4_moderation.{tex,docx}
+
+. 
+. * ---------------------------------------------------------------- Tabela A6:
+>  modelos de limiar
+. tab_new, ncol(3) head1("(1)" "(2)" "(3)") head2("Seo-Shin, 2000-2019" "Seo-Sh
+> in, 2015-2019" "Hansen, 2000-2019")
+
+. foreach nm in Lag_y_b wb_l1_b cons_d Lag_y_d wb_l1_d {
+  2.     local rb ""
+  3.     local rs ""
+  4.     foreach w in 1 2 {
+  5.         estimates restore C4_w`w'
+  6.         local k = colnumb(e(b), "`nm'")
+  7.         local bb : display %9.3f el(e(b), 1, `k')
+  8.         local ss : display %9.3f sqrt(el(e(V), `k', `k'))
+  9.         local pv = 2 * normal(-abs(el(e(b), 1, `k') / sqrt(el(e(V), `k', `
+> k'))))
+ 10.         local st = cond(`pv' < 0.01, "***", cond(`pv' < 0.05, "**", cond(`
+> pv' < 0.10, "*", "")))
+ 11.         local rb `"`rb' "`=strtrim("`bb'")'`st'""'
+ 12.         local rs `"`rs' "(`=strtrim("`ss'")')""'
+ 13.     }
+ 14.     local lab = cond("`nm'" == "Lag_y_b", "Lagged growth, lower regime", c
+> ond("`nm'" == "wb_l1_b", "Wage bill, lower regime", ///
+>         cond("`nm'" == "cons_d", "Intercept shift above threshold", cond("`nm
+> '" == "Lag_y_d", "Lagged growth, change above threshold", ///
+>         "Wage bill, change above threshold"))))
+ 15.     tab_row "`lab'" `rb' ""
+ 16.     tab_row "" `rs' ""
+ 17. }
+(results C4_w1 are active now)
+(results C4_w2 are active now)
+(results C4_w1 are active now)
+(results C4_w2 are active now)
+(results C4_w1 are active now)
+(results C4_w2 are active now)
+(results C4_w1 are active now)
+(results C4_w2 are active now)
+(results C4_w1 are active now)
+(results C4_w2 are active now)
+
+. estimates restore C4h
+(results C4h are active now)
+
+. local hn : colnames e(b)
+
+. local k = 0
+
+. foreach nm of local hn {
+  2.     local ++k
+  3.     if strpos("`nm'", "wb_l1") == 0 continue
+  4.     local bb : display %9.3f el(e(b), 1, `k')
+  5.     local ss : display %9.3f sqrt(el(e(V), `k', `k'))
+  6.     local pv = 2 * ttail(e(df_r), abs(el(e(b), 1, `k') / sqrt(el(e(V), `k'
+> , `k'))))
+  7.     local st = cond(`pv' < 0.01, "***", cond(`pv' < 0.05, "**", cond(`pv' 
+> < 0.10, "*", "")))
+  8.     local reg = cond(strpos("`nm'", "0b.") | strpos("`nm'", "0.") == 1, "r
+> egime 1 (merit below threshold)", "regime 2 (merit above threshold)")
+  9.     tab_row "Wage bill, `reg'" "" "" "`=strtrim("`bb'")'`st'"
+ 10.     tab_row "" "" "" "(`=strtrim("`ss'")')"
+ 11. }
+
+. tab_mid
+
+. local r1 ""
+
+. foreach w in 1 2 {
+  2.     estimates restore C4_w`w'
+  3.     local t : display %6.3f el(e(b), 1, colnumb(e(b), "r"))
+  4.     local r1 `"`r1' "`=strtrim("`t'")'""'
+  5. }
+(results C4_w1 are active now)
+(results C4_w2 are active now)
+
+. estimates restore C4h
+(results C4h are active now)
+
+. matrix TH = e(Thrss)
+
+. matrix FH = e(Fstat)
+
+. local thh : display %6.3f TH[1, 1]
+
+. local thhlo : display %6.3f TH[1, 4]
+
+. local thhhi : display %6.3f TH[1, 5]
+
+. tab_row "Threshold in lagged merit" `r1' "`=strtrim("`thh'")'"
+
+. tab_row "95% CI of threshold" "" "" "[`=strtrim("`thhlo'")', `=strtrim("`thhh
+> i'")']"
+
+. local r2 ""
+
+. local r3 ""
+
+. local r4 ""
+
+. local r5 ""
+
+. foreach w in 1 2 {
+  2.     estimates restore C4_w`w'
+  3.     local bp : display %5.3f e(boots_p)
+  4.     local r2 `"`r2' "`=strtrim("`bp'")'""'
+  5.     local r3 `"`r3' "`=e(N)' x `=e(T)'""'
+  6.     local r4 `"`r4' "`=e(nmom)'""'
+  7.     local r5 `"`r5' "`=cond(e(valid), "Yes", "No")'""'
+  8. }
+(results C4_w1 are active now)
+(results C4_w2 are active now)
+
+. local hp : display %5.3f FH[1, 4]
+
+. estimates restore C4h
+(results C4h are active now)
+
+. tab_row "Linearity test, bootstrap p (500 reps)" `r2' "`=strtrim("`hp'")'"
+
+. tab_row "Countries x years" `r3' "`=e(Nb)' x `=e(Tb)'"
+
+. tab_row "Moment conditions (GMM)" `r4' "none"
+
+. tab_row "Moment conditions below N/2" `r5' "n.a."
+
+. tab_out TableA6_threshold, title("Table A6. Threshold models with meritocrati
+> c recruitment as the regime variable") landscape ///
+>     notes("Dependent variable: annual growth of real GDP per capita (%). Stro
+> ngly balanced annual panels (required by both estimators), microstates exclud
+> ed. Regime-dependent regressor: general government wage bill (% of GDP), lagg
+> ed one year; threshold variable: V-Dem meritocratic recruitment, lagged one y
+> ear. Columns 1-2: dynamic panel threshold model of Seo and Shin (2016), first
+> -difference GMM (xthenreg), asymptotic standard errors; the lower-regime slop
+> e and the change in the slope above the threshold are shown. In column 1 the 
+> number of moment conditions (all available lags of growth for each year) exce
+> eds the number of countries, which is the instrument proliferation that the p
+> re-specified rule excludes; its estimates are reported for transparency and a
+> re not interpreted. Column 3: fixed-effects threshold model of Hansen (1999),
+>  xthreg, with year dummies as regime-independent regressors and no instrument
+> s; slopes by regime. Linearity tests by bootstrap with 500 replications. * p<
+> 0.10, ** p<0.05, *** p<0.01.")
+successfully replaced "C:/Users/Usuario/Dropbox/Papers/Emprego Público e Cresci
+> mento/Estimações/output/tables/TableA6_threshold.docx"
+tabela gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\E
+> stimações/output/tables/TableA6_threshold.{tex,docx}
+
+. 
+. foreach m in C1 C3_lo C3_hi C3_t1 C3_t2 C3_t3 C5 C4 C4_w1 C4_w2 C4h {
+  2.     estimates restore `m'
+  3.     estimates save "$LOG/est_`m'", replace
+  4. }
+(results C1 are active now)
+file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/o
+> utput/logs/est_C1.ster saved
+(results C3_lo are active now)
+file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/o
+> utput/logs/est_C3_lo.ster saved
+(results C3_hi are active now)
+file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/o
+> utput/logs/est_C3_hi.ster saved
+(results C3_t1 are active now)
+file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/o
+> utput/logs/est_C3_t1.ster saved
+(results C3_t2 are active now)
+file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/o
+> utput/logs/est_C3_t2.ster saved
+(results C3_t3 are active now)
+file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/o
+> utput/logs/est_C3_t3.ster saved
+(results C5 are active now)
+file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/o
+> utput/logs/est_C5.ster saved
+(results C4 are active now)
+file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/o
+> utput/logs/est_C4.ster saved
+(results C4_w1 are active now)
+file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/o
+> utput/logs/est_C4_w1.ster saved
+(results C4_w2 are active now)
+file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/o
+> utput/logs/est_C4_w2.ster saved
+(results C4h are active now)
+file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/o
+> utput/logs/est_C4h.ster saved
+
+. log close
+      name:  <unnamed>
+       log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Esti
+> mações/output/logs/07_moderacao.log
+  log type:  text
+ closed on:   7 Oct 2026, 23:27:17
+-------------------------------------------------------------------------------

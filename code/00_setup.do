@@ -4,7 +4,7 @@ clear all
 set more off
 set seed 20261007
 set sortseed 20261007
-set maxvar 10000
+set maxvar 60000
 * raiz do projeto: definida pelo master (run_all.do) ou pelo diretorio corrente
 if "$ROOT" == "" global ROOT "`c(pwd)'"
 global RAW     "$ROOT/data/raw"
@@ -14,9 +14,12 @@ global FINAL   "$ROOT/data/final"
 global TAB     "$ROOT/output/tables"
 global FIG     "$ROOT/output/figures"
 global LOG     "$ROOT/output/logs"
+* pacotes de usuario com versoes travadas: copia em code/ado/plus (ver docs/README.md)
+sysdir set PLUS "$ROOT/code/ado/plus"
+adopath ++ "$ROOT/code/ado/plus"
 * pacotes de usuario exigidos (versoes registradas em docs/README.md)
 foreach c in reghdfe ftools ivreghdfe ivreg2 ranktest xtabond2 xtdpdgmm xtdpdbc ///
-    xtscc locproj xthenreg xthreg interflex weakiv boottest xtdcce2 bma estout coefplot {
+    xtscc locproj xthenreg xthreg interflex weakiv avar boottest xtdcce2 bma estout coefplot {
     capture which `c'
     if _rc {
         di as error "pacote ausente: `c' (ver docs/README.md)"

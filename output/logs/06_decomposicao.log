@@ -1,0 +1,345 @@
+-------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Esti
+> mações/output/logs/06_decomposicao.log
+  log type:  text
+ opened on:   7 Oct 2026, 23:21:59
+
+. 
+. global X5 "lny0 hc0 inv open infl popg ctot_g"
+
+. use "$FINAL/painel_5anos.dta", clear
+
+. keep if micro == 0
+(261 observations deleted)
+
+. xtset id period
+
+Panel variable: id (strongly balanced)
+ Time variable: period, 0 to 8
+         Delta: 1 unit
+
+. gen pubemp_sq0 = pubemp_share0^2
+(1,087 missing values generated)
+
+. 
+. * B1. emprego publico e salario relativo juntos
+. reghdfe g pubemp_share0 relwage0 $X5, absorb(id period) vce(cluster id)
+(dropped 12 singleton observations)
+(MWFE estimator converged in 6 iterations)
+
+HDFE Linear regression                            Number of obs   =        205
+Absorbing 2 HDFE groups                           F(   9,     56) =      14.03
+Statistics robust to heteroskedasticity           Prob > F        =     0.0000
+                                                  R-squared       =     0.7889
+                                                  Adj R-squared   =     0.6811
+                                                  Within R-sq.    =     0.5093
+Number of clusters (id)      =         57         Root MSE        =     1.3844
+
+                                    (Std. err. adjusted for 57 clusters in id)
+------------------------------------------------------------------------------
+             |               Robust
+           g | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+pubemp_sha~0 |  -.0062911   .0413241    -0.15   0.880    -.0890731     .076491
+    relwage0 |  -.9402309   .5512585    -1.71   0.094    -2.044534    .1640725
+        lny0 |  -8.057597   1.289786    -6.25   0.000    -10.64135   -5.473845
+         hc0 |  -.5310579   2.511632    -0.21   0.833     -5.56246    4.500345
+         inv |   .1980688   .0740128     2.68   0.010     .0498033    .3463342
+        open |   .0275543   .0188777     1.46   0.150    -.0102623    .0653708
+        infl |   .0488493   .0353061     1.38   0.172    -.0218773    .1195758
+        popg |  -.8937024   .3813096    -2.34   0.023    -1.657557   -.1298474
+      ctot_g |   -.066194   .2344503    -0.28   0.779    -.5358544    .4034664
+       _cons |   72.72679   16.30917     4.46   0.000     40.05559     105.398
+------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+          id |        57          57           0    *|
+      period |         5           1           4     |
+-----------------------------------------------------+
+* = FE nested within cluster; treated as redundant for DoF computation
+
+. estadd scalar nc = e(N_clust)
+
+added scalar:
+                 e(nc) =  57
+
+. estadd scalar r2w = e(r2_within)
+
+added scalar:
+                e(r2w) =  .5093348
+
+. estimates store B1
+
+. 
+. * B2. termo quadratico do emprego publico (U invertido de Baerlocher, 2021)
+. reghdfe g pubemp_share0 pubemp_sq0 relwage0 $X5, absorb(id period) vce(cluste
+> r id)
+(dropped 12 singleton observations)
+(MWFE estimator converged in 6 iterations)
+
+HDFE Linear regression                            Number of obs   =        205
+Absorbing 2 HDFE groups                           F(  10,     56) =      13.13
+Statistics robust to heteroskedasticity           Prob > F        =     0.0000
+                                                  R-squared       =     0.7913
+                                                  Adj R-squared   =     0.6823
+                                                  Within R-sq.    =     0.5148
+Number of clusters (id)      =         57         Root MSE        =     1.3817
+
+                                    (Std. err. adjusted for 57 clusters in id)
+------------------------------------------------------------------------------
+             |               Robust
+           g | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+pubemp_sha~0 |  -.2050244   .1472005    -1.39   0.169    -.4999023    .0898536
+  pubemp_sq0 |    .003473   .0022269     1.56   0.124     -.000988     .007934
+    relwage0 |  -1.595211   .7717954    -2.07   0.043    -3.141303   -.0491188
+        lny0 |  -8.130077   1.278169    -6.36   0.000    -10.69056   -5.569597
+         hc0 |  -.5381496    2.47394    -0.22   0.829    -5.494046    4.417747
+         inv |   .1979245   .0726889     2.72   0.009     .0523111    .3435378
+        open |   .0263527   .0187625     1.40   0.166    -.0112331    .0639386
+        infl |   .0487653   .0350088     1.39   0.169    -.0213658    .1188963
+        popg |  -.8694946   .3718899    -2.34   0.023    -1.614479   -.1245096
+      ctot_g |  -.0529305   .2397472    -0.22   0.826    -.5332018    .4273407
+       _cons |   76.19778   16.41644     4.64   0.000     43.31169    109.0839
+------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+          id |        57          57           0    *|
+      period |         5           1           4     |
+-----------------------------------------------------+
+* = FE nested within cluster; treated as redundant for DoF computation
+
+. estadd scalar nc = e(N_clust)
+
+added scalar:
+                 e(nc) =  57
+
+. estadd scalar r2w = e(r2_within)
+
+added scalar:
+                e(r2w) =  .51483828
+
+. local b1 = _b[pubemp_share0]
+
+. local b2 = _b[pubemp_sq0]
+
+. test pubemp_share0 pubemp_sq0
+
+ ( 1)  pubemp_share0 = 0
+ ( 2)  pubemp_sq0 = 0
+
+       F(  2,    56) =    1.33
+            Prob > F =    0.2736
+
+. estadd scalar p_joint = r(p)
+
+added scalar:
+            e(p_joint) =  .27362591
+
+. estimates store B2
+
+. * ponto de maximo (ou minimo) e IC pelo metodo delta
+. nlcom (peak: -_b[pubemp_share0] / (2 * _b[pubemp_sq0])), post
+
+        peak: -_b[pubemp_share0] / (2 * _b[pubemp_sq0])
+
+------------------------------------------------------------------------------
+           g | Coefficient  Std. err.      z    P>|z|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+        peak |   29.51699   5.528219     5.34   0.000     18.68188     40.3521
+------------------------------------------------------------------------------
+
+. local pk = _b[peak]
+
+. local pkse = _se[peak]
+
+. estimates store B2_peak
+
+. estimates restore B2
+(results B2 are active now)
+
+. quietly count if e(sample)
+
+. local nB2 = r(N)
+
+. quietly count if e(sample) & pubemp_share0 < `pk'
+
+. local left = r(N)
+
+. local invU = (`b1' > 0 & `b2' < 0)
+
+. estadd scalar peak = `pk'
+
+added scalar:
+               e(peak) =  29.516993
+
+. estadd scalar peak_lo = `pk' - invnormal(0.975) * `pkse'
+
+added scalar:
+            e(peak_lo) =  18.681883
+
+. estadd scalar peak_hi = `pk' + invnormal(0.975) * `pkse'
+
+added scalar:
+            e(peak_hi) =  40.352103
+
+. estadd scalar share_left = 100 * `left' / `nB2'
+
+added scalar:
+         e(share_left) =  85.853659
+
+. estadd local shape = cond(`invU', "Inverted U", "U")
+
+added macro:
+              e(shape) : "U"
+
+. estimates store B2
+
+. di "B2: b1 = " `b1' ", b2 = " `b2' ", extremo = " `pk' " (EP " `pkse' "), " %
+> 4.1f 100 * `left' / `nB2' "% da amostra a esquerda; forma: " cond(`invU', "U 
+> invertido", "U")
+B2: b1 = -.20502439, b2 = .00347299, extremo = 29.516993 (EP 5.5282189), 85.9% 
+> da amostra a esquerda; forma: U
+
+. 
+. * B3. premio salarial do WWBI no lugar do salario relativo
+. reghdfe g pubemp_share0 wwbi_prem_all0 $X5, absorb(id period) vce(cluster id)
+(dropped 17 singleton observations)
+(MWFE estimator converged in 6 iterations)
+
+HDFE Linear regression                            Number of obs   =        252
+Absorbing 2 HDFE groups                           F(   9,     76) =       9.43
+Statistics robust to heteroskedasticity           Prob > F        =     0.0000
+                                                  R-squared       =     0.7706
+                                                  Adj R-squared   =     0.6446
+                                                  Within R-sq.    =     0.4017
+Number of clusters (id)      =         77         Root MSE        =     1.6356
+
+                                    (Std. err. adjusted for 77 clusters in id)
+------------------------------------------------------------------------------
+             |               Robust
+           g | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+pubemp_sha~0 |   .0362263   .0469026     0.77   0.442    -.0571884     .129641
+wwbi_pre~ll0 |   1.643816   1.205501     1.36   0.177    -.7571487     4.04478
+        lny0 |  -8.638322   1.297075    -6.66   0.000    -11.22167   -6.054973
+         hc0 |  -1.081703   2.035863    -0.53   0.597    -5.136475     2.97307
+         inv |   .1764806   .0466416     3.78   0.000     .0835858    .2693754
+        open |   .0117697   .0128358     0.92   0.362    -.0137949    .0373343
+        infl |   -.015266   .0163314    -0.93   0.353    -.0477928    .0172608
+        popg |  -.6444393   .5152952    -1.25   0.215    -1.670739      .38186
+      ctot_g |   .2585161   .2803127     0.92   0.359    -.2997751    .8168073
+       _cons |   74.10259   13.97178     5.30   0.000     46.27538    101.9298
+------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+          id |        77          77           0    *|
+      period |         5           1           4     |
+-----------------------------------------------------+
+* = FE nested within cluster; treated as redundant for DoF computation
+
+. estadd scalar nc = e(N_clust)
+
+added scalar:
+                 e(nc) =  77
+
+. estadd scalar r2w = e(r2_within)
+
+added scalar:
+                e(r2w) =  .40165823
+
+. estimates store B3
+
+. 
+. * ---------------------------------------------------------------- Tabela 3
+. local stars "* p<0.10, ** p<0.05, *** p<0.01."
+
+. tab_new, ncol(3) head1("(1)" "(2)" "(3)") head2("B1" "B2" "B3")
+
+. tab_est B1 B2 B3, keep(pubemp_share0 pubemp_sq0 relwage0 wwbi_prem_all0 lny0 
+> hc0 inv open infl popg ctot_g)
+
+. tab_mid
+
+. foreach m in B2 {
+  2.     estimates restore B2
+  3.     local pk : display %5.1f e(peak)
+  4.     local lo : display %5.1f e(peak_lo)
+  5.     local hi : display %5.1f e(peak_hi)
+  6.     local sl : display %4.1f e(share_left)
+  7.     local pj : display %5.3f e(p_joint)
+  8.     local shp = cond("`e(shape)'" == "U", "U-shaped (minimum)", "Inverted 
+> U (maximum)")
+  9. }
+(results B2 are active now)
+
+. tab_row "Shape of the quadratic in public employment" "" "`shp'" ""
+
+. tab_row "Turning point of public employment (%)" "" "`=strtrim("`pk'")'" ""
+
+. tab_row "95% CI of turning point (delta method)" "" "[`=strtrim("`lo'")', `=s
+> trtrim("`hi'")']" ""
+
+. tab_row "Share of sample left of turning point (%)" "" "`=strtrim("`sl'")'" "
+> "
+
+. tab_row "Joint test, linear and squared terms (p)" "" "`=strtrim("`pj'")'" ""
+
+. tab_row "Country and period fixed effects" "Yes" "Yes" "Yes"
+
+. tab_stat N "Observations"
+
+. tab_stat nc "Countries"
+
+. tab_stat r2w "R2 (within)" %5.3f
+
+. tab_out Table3_decomposition, title("Table 3. Employment or pay? Decomposing 
+> the public wage bill") ///
+>     notes("Dependent variable: growth of real GDP per capita (%, five-year av
+> erage). Public employment is public sector employment as a share of total emp
+> loyment (World Bank WWBI); the relative public wage is the general government
+>  wage bill (% of GDP, IMF GFS) divided by the public employment share, i.e. p
+> ay per public employee relative to GDP per worker; the public wage premium is
+>  the WWBI conditional public-private wage gap with respect to all private emp
+> loyees (log points). WWBI variables are survey-based: the first observation a
+> vailable within each period is used. Country and period fixed effects; standa
+> rd errors clustered by country. Turning point = -b1/(2 b2), with a 95% confid
+> ence interval from the delta method. Five-year periods, 1999-2023 (WWBI start
+> s in 2000); microstates excluded. `stars'")
+successfully replaced "C:/Users/Usuario/Dropbox/Papers/Emprego Público e Cresci
+> mento/Estimações/output/tables/Table3_decomposition.docx"
+tabela gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\E
+> stimações/output/tables/Table3_decomposition.{tex,docx}
+
+. 
+. foreach m in B1 B2 B3 {
+  2.     estimates restore `m'
+  3.     estimates save "$LOG/est_`m'", replace
+  4. }
+(results B1 are active now)
+file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/o
+> utput/logs/est_B1.ster saved
+(results B2 are active now)
+file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/o
+> utput/logs/est_B2.ster saved
+(results B3 are active now)
+file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/o
+> utput/logs/est_B3.ster saved
+
+. log close
+      name:  <unnamed>
+       log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Esti
+> mações/output/logs/06_decomposicao.log
+  log type:  text
+ closed on:   7 Oct 2026, 23:22:01
+-------------------------------------------------------------------------------

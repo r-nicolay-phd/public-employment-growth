@@ -3,7 +3,7 @@
        log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Esti
 > mações/output/logs/04_descritivas.log
   log type:  text
- opened on:   7 Oct 2026, 22:22:19
+ opened on:   7 Oct 2026, 23:21:41
 
 . 
 . use "$FINAL/painel_anual.dta", clear
@@ -659,5 +659,5 @@ figura gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\E
        log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Esti
 > mações/output/logs/04_descritivas.log
   log type:  text
- closed on:   7 Oct 2026, 22:22:28
+ closed on:   7 Oct 2026, 23:21:50
 -------------------------------------------------------------------------------

@@ -19,13 +19,12 @@ end
 
 capture program drop tab_row
 program define tab_row
-    * tab_row "rotulo" "c1" "c2" ...
-    local lab `"`1'"'
-    macro shift
+    * tab_row "rotulo" "c1" "c2" ...  (celulas vazias "" sao preservadas)
+    gettoken lab rest : 0
     local cells ""
-    while `"`1'"' != "" {
-        local cells `"`cells' `"`1'"'"'
-        macro shift
+    while `"`rest'"' != "" {
+        gettoken c rest : rest
+        local cells `"`cells' `"`c'"'"'
     }
     mata: _tab_addrow(`"`lab'"', `"`cells'"')
 end
@@ -47,15 +46,24 @@ program define tab_est
         local srow ""
         foreach m of local namelist {
             quietly estimates restore `m'
-            capture local b = _b[`v']
-            local miss = _rc != 0
-            if !`miss' local miss = missing(`b') | (`b' == 0 & _se[`v'] == 0)
+            local vv `v'
+            * xtdpdbc nomeia a defasada como L.g; demais estimadores usam a variavel L_g
+            if "`v'" == "L_g" {
+                capture local b = _b[L_g]
+                if _rc local vv L.g
+            }
+            * exige nome exato (o _b[] do Stata aceita abreviacoes)
+            local cnames : colnames e(b)
+            local found : list vv in cnames
+            capture local b = _b[`vv']
+            local miss = (_rc != 0) | !`found'
+            if !`miss' local miss = missing(`b') | (`b' == 0 & _se[`vv'] == 0)
             if `miss' {
                 local brow `"`brow' """'
                 local srow `"`srow' """'
                 continue
             }
-            local sev = _se[`v']
+            local sev = _se[`vv']
             local df = e(df_r)
             if missing(`df') local p = 2 * normal(-abs(`b' / `sev'))
             else local p = 2 * ttail(`df', abs(`b' / `sev'))
@@ -114,6 +122,11 @@ program define tab_out
         putdocx text (`"Notes: `notes'"'), font("Times New Roman", 9)
     }
     putdocx save "$TAB/`fname'.docx", replace
+    * registro de legenda e nota (compilado em output/captions.md por 12_relatorio.do)
+    tempname C
+    file open `C' using "$LOG/captions/`fname'.txt", write replace text
+    file write `C' `"`title'"' _n `"`notes'"' _n
+    file close `C'
     di as text "tabela gravada: $TAB/`fname'.{tex,docx}"
 end
 
@@ -211,6 +224,7 @@ void _tab_docx()
             txt = (i <= h ? TABH[i, j] : TAB[i - h, j])
             if (txt == "") continue
             txt = subinstr(txt, `"""', "'")
+            txt = subinstr(txt, "R2", "R" + uchar(178))
             cmd = "putdocx table T(" + strofreal(i) + "," + strofreal(j) + ") = (" + char(96) + char(34) + txt + char(34) + char(39) + ")"
             if (j > 1) cmd = cmd + ", halign(center)"
             stata(cmd)

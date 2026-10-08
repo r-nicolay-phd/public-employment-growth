@@ -1,0 +1,852 @@
+-------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Esti
+> mações/output/logs/12_relatorio.log
+  log type:  text
+ opened on:   7 Oct 2026, 23:28:13
+
+. 
+. * ---------------------------------------------------------------- utilitario
+> s
+. capture program drop pt
+
+. program define pt, rclass
+  1.     * pt valor [formato] -> r(s): numero com virgula decimal
+.     args x f
+  2.     if "`f'" == "" local f %6.3f
+  3.     if missing(`x') {
+  4.         return local s "–"
+  5.         exit
+  6.     }
+  7.     local s : display `f' `x'
+  8.     local s = strtrim("`s'")
+  9.     local s = subinstr("`s'", ".", ",", .)
+ 10.     return local s "`s'"
+ 11. end
+
+. 
+. capture program drop cf
+
+. program define cf
+  1.     * cf estimativa variavel prefixo -> globals prefixo_b, _se, _lo, _hi, 
+> _p (texto) e prefixo_bn, _pn (numeros)
+.     args est v px
+  2.     quietly estimates use "$LOG/est_`est'"
+  3.     local b = _b[`v']
+  4.     local se = _se[`v']
+  5.     local df = e(df_r)
+  6.     if missing(`df') local q = invnormal(0.975)
+  7.     else local q = invttail(`df', 0.025)
+  8.     if missing(`df') local p = 2 * normal(-abs(`b' / `se'))
+  9.     else local p = 2 * ttail(`df', abs(`b' / `se'))
+ 10.     global `px'_bn = `b'
+ 11.     global `px'_pn = `p'
+ 12.     pt `b'
+ 13.     global `px'_b "`r(s)'"
+ 14.     pt `se'
+ 15.     global `px'_se "`r(s)'"
+ 16.     pt `=`b' - `q' * `se''
+ 17.     global `px'_lo "`r(s)'"
+ 18.     pt `=`b' + `q' * `se''
+ 19.     global `px'_hi "`r(s)'"
+ 20.     pt `p' %5.3f
+ 21.     global `px'_p "`r(s)'"
+ 22.     global `px'_N = e(N)
+ 23.     global `px'_ci "[${`px'_lo}; ${`px'_hi}]"
+ 24. end
+
+. 
+. capture program drop verd
+
+. program define verd
+  1.     * verd prefixo sinal(-1/+1) -> global prefixo_v
+.     args px sg
+  2.     local b = ${`px'_bn}
+  3.     local p = ${`px'_pn}
+  4.     if `p' < 0.05 & sign(`b') == `sg' global `px'_v "sustentada"
+  5.     else if `p' < 0.05 & sign(`b') == -`sg' global `px'_v "rejeitada"
+  6.     else if `p' < 0.10 & sign(`b') == `sg' global `px'_v "inconclusiva (ev
+> idência fraca, p < 0,10)"
+  7.     else global `px'_v "inconclusiva"
+  8. end
+
+. 
+. * ---------------------------------------------------------------- numeros
+. cf A1 wagebill_gdp0 a1
+
+. cf A2 wagebill_gdp0 a2
+
+. cf A3 wagebill_gdp0 a3
+
+. cf A5 wagebill_gdp0 a5
+
+. cf A7 wagebill_gdp0 a7
+
+. cf A4a wagebill_share0 a4a
+
+. cf A4b wagebill_share0 a4b
+
+. cf A4s wagebill_share0 a4s
+
+. quietly estimates use "$LOG/est_A5"
+
+. local a5_nins = e(j)
+
+. local a5_ng = e(N_g)
+
+. pt e(ar2p) %5.3f
+
+. local a5_ar2 "`r(s)'"
+
+. pt e(hansenp) %5.3f
+
+. local a5_hansen "`r(s)'"
+
+. verd a1 -1
+
+. verd a4a -1
+
+. verd a4b -1
+
+. verd a4s -1
+
+. 
+. cf B1 relwage0 b1r
+
+. cf B1 pubemp_share0 b1e
+
+. cf B2 relwage0 b2r
+
+. cf B2 pubemp_share0 b2e1
+
+. cf B2 pubemp_sq0 b2e2
+
+. cf B3 wwbi_prem_all0 b3p
+
+. quietly estimates use "$LOG/est_B2"
+
+. pt e(peak) %5.1f
+
+. local b2peak "`r(s)'"
+
+. pt e(peak_lo) %5.1f
+
+. local b2plo "`r(s)'"
+
+. pt e(peak_hi) %5.1f
+
+. local b2phi "`r(s)'"
+
+. pt e(p_joint) %5.3f
+
+. local b2pj "`r(s)'"
+
+. local b2shape "`e(shape)'"
+
+. verd b1r -1
+
+. verd b3p -1
+
+. local b2inv = ($b2e1_bn > 0 & $b2e2_bn < 0 & $b2e2_pn < 0.05)
+
+. local b2invs = cond(`b2inv', "sustentada", "não encontrada")
+
+. 
+. cf C1 wb_x_merit0 c1i
+
+. cf C1 wagebill_gdp0 c1w
+
+. cf C5 wb_x_wgi0 c5i
+
+. cf C3_lo wagebill_gdp0 c3l
+
+. cf C3_hi wagebill_gdp0 c3h
+
+. cf C3_t1 wagebill_gdp0 c3t1
+
+. cf C3_t2 wagebill_gdp0 c3t2
+
+. cf C3_t3 wagebill_gdp0 c3t3
+
+. 
+. cf E1 wagebill_gdp0 e1
+
+. cf E2 wagebill_gdp0 e2
+
+. cf E3 wagebill_gdp0 e3
+
+. verd e1 -1
+
+. verd e2 -1
+
+. verd e3 -1
+
+. 
+. quietly estimates use "$LOG/est_F1"
+
+. pt e(F1) %5.2f
+
+. local f1F "`r(s)'"
+
+. local f1Fn = e(F1)
+
+. cf F1 election_fixed f1
+
+. 
+. * efeito marginal de C1 nos percentis 10 e 90 do merito (amostra de C1)
+. use "$FINAL/painel_5anos.dta", clear
+
+. keep if micro == 0
+(261 observations deleted)
+
+. gen wb_x_merit0 = wagebill_gdp0 * merit0
+(1,100 missing values generated)
+
+. quietly estimates use "$LOG/est_C1"
+
+. quietly reghdfe g wagebill_gdp0 merit0 wb_x_merit0 lny0 hc0 inv open infl pop
+> g ctot_g, absorb(id period) vce(cluster id)
+
+. foreach p in 10 90 {
+  2.     quietly _pctile merit0 if e(sample), p(`p')
+  3.     local q = r(r1)
+  4.     quietly lincom wagebill_gdp0 + `q' * wb_x_merit0
+  5.     local est = r(estimate)
+  6.     local sel = r(se)
+  7.     local dfl = r(df)
+  8.     pt `est'
+  9.     local me`p' "`r(s)'"
+ 10.     pt `=`est' - invttail(`dfl', 0.025) * `sel''
+ 11.     local me`p'lo "`r(s)'"
+ 12.     pt `=`est' + invttail(`dfl', 0.025) * `sel''
+ 13.     local me`p'hi "`r(s)'"
+ 14.     pt `q' %4.2f
+ 15.     local q`p' "`r(s)'"
+ 16. }
+
+. 
+. * tamanho de efeito: 1 DP da folha dentro do pais
+. use "$INTERIM/efeito_sd.dta", clear
+
+. local sdw5 = sdw_wb_5yr[1]
+
+. local sdwa = sdw_wb_annual[1]
+
+. pt `sdw5' %4.2f
+
+. local sdw5s "`r(s)'"
+
+. pt `sdwa' %4.2f
+
+. local sdwas "`r(s)'"
+
+. pt `=$a1_bn * `sdw5''
+
+. local eff5 "`r(s)'"
+
+. pt `=5 * $a1_bn * `sdw5'' %5.2f
+
+. local eff5cum "`r(s)'"
+
+. pt `=$a1_bn * `sdw5' * 28' %5.1f
+
+. local eff28 "`r(s)'"
+
+. 
+. * vies do denominador (D4)
+. use "$INTERIM/d4.dta", clear
+
+. forvalues i = 1/6 {
+  2.     pt b[`i']
+  3.     local d4b`i' "`r(s)'"
+  4.     pt lo[`i']
+  5.     local d4lo`i' "`r(s)'"
+  6.     pt hi[`i']
+  7.     local d4hi`i' "`r(s)'"
+  8. }
+
+. 
+. * projecoes locais
+. foreach f in D1 D3 E1 F3 F3_hi {
+  2.     use "$INTERIM/lp_`f'.dta", clear
+  3.     forvalues h = 0/6 {
+  4.         foreach r in all hi lo {
+  5.             quietly summ b if h == `h' & regime == "`r'"
+  6.             if r(N) {
+  7.                 pt r(mean)
+  8.                 local `f'_`r'_`h' "`r(s)'"
+  9.                 quietly summ lo if h == `h' & regime == "`r'"
+ 10.                 pt r(mean)
+ 11.                 local `f'_`r'_lo`h' "`r(s)'"
+ 12.                 quietly summ hi if h == `h' & regime == "`r'"
+ 13.                 pt r(mean)
+ 14.                 local `f'_`r'_hi`h' "`r(s)'"
+ 15.                 quietly summ pdiff if h == `h' & regime == "`r'"
+ 16.                 pt r(mean) %5.3f
+ 17.                 local `f'_p`h' "`r(s)'"
+ 18.             }
+ 19.         }
+ 20.     }
+ 21. }
+
+. 
+. * amostras citadas no texto
+. quietly estimates use "$LOG/est_A1"
+
+. local a1nc = e(nc)
+
+. quietly estimates use "$LOG/est_G_inc1"
+
+. local inc1nc = e(nc)
+
+. use "$FINAL/painel_anual.dta", clear
+
+. quietly levelsof id if micro == 0 & inrange(year, 1996, 2023) & !missing(wage
+> bill_gdp)
+
+. local ncann : word count `r(levels)'
+
+. local f1txt = cond(`f1Fn' <= 10, "`f1txt'", "Com F acima de 10, o segundo est
+> ágio de VI está na Tabela 6.")
+
+. 
+. * vereditos de H3 (teste bilateral entre (a) interacao positiva e (b) negativ
+> a) e H5
+. if $c1i_pn < 0.05 local h3v = cond($c1i_bn > 0, "favorece a previsão (a)", "f
+> avorece a previsão (b)")
+
+. else local h3v "inconclusiva"
+
+. use "$INTERIM/lp_F3.dta", clear
+
+. quietly summ b if h == 4 & regime == "hi"
+
+. local f3hi = r(mean)
+
+. quietly summ b if h == 4 & regime == "lo"
+
+. local f3lo = r(mean)
+
+. quietly summ pdiff if h == 4
+
+. local f3p = r(mean)
+
+. if `f3p' < 0.05 local h5v = cond(`f3hi' < `f3lo', "sustentada", "rejeitada")
+
+. else local h5v = cond(`f3hi' < `f3lo', "inconclusiva", "inconclusiva, com sin
+> al oposto ao previsto")
+
+. if `f1Fn' <= 10 local h5iv "o instrumento é fraco"
+
+. else local h5iv "o instrumento passa o limiar de F = 10"
+
+. 
+. * limiar (C4): janela valida (2015-2019) e janela com proliferacao de momento
+> s (2000-2019)
+. quietly estimates use "$LOG/est_C4_w2"
+
+. pt `=el(e(b), 1, colnumb(e(b), "r"))'
+
+. local thr "`r(s)'"
+
+. pt e(boots_p) %5.3f
+
+. local thrp "`r(s)'"
+
+. local thrN = e(N)
+
+. local thrval = e(valid)
+
+. quietly estimates use "$LOG/est_C4_w1"
+
+. local nmom1 = e(nmom)
+
+. local N1 = e(N)
+
+. quietly estimates use "$LOG/est_C4h"
+
+. matrix F = e(Fstat)
+
+. pt `=F[1,4]' %5.3f
+
+. local hanp "`r(s)'"
+
+. 
+. * ===========================================================================
+> ==========
+. * RESULTADOS.md
+. * ===========================================================================
+> ==========
+. tempname R
+
+. file open `R' using "$ROOT/docs/RESULTADOS.md", write replace text
+
+. file write `R' "# Resultados: folha de pagamento do setor público, burocracia
+>  e crescimento" _n _n
+
+. file write `R' "Relatório para o orientador. Gerado por \`code/12_relatorio.d
+> o\` em `c(current_date)'; todos os números vêm das estimativas gravadas pelo 
+> pipeline. Coeficientes em pontos percentuais de crescimento anual do PIB per 
+> capita por ponto percentual do PIB na folha, salvo indicação. IC = intervalo 
+> de confiança de 95%." _n _n
+
+. file write `R' "Regra dos vereditos, fixada antes da leitura dos números: *su
+> stentada* = especificação preferida com o sinal previsto e p < 0,05; *rejeita
+> da* = sinal oposto e p < 0,05; *inconclusiva* nos demais casos." _n _n
+
+. 
+. file write `R' "## 1. Conclusão por hipótese" _n _n
+
+. file write `R' "**Resultado de base (folha em % do PIB).** Com médias de cinc
+> o anos, efeitos fixos de país e período e a folha do governo geral medida no 
+> primeiro ano do período (A1, Tabela 2, coluna 1), o coeficiente de um ponto p
+> ercentual do PIB a mais de folha sobre o crescimento anual é $a1_b p.p. (IC $
+> a1_ci; p = $a1_p). O sinal se repete com médias de três anos ($a2_b; IC $a2_c
+> i) e no estimador com correção de viés para painel dinâmico ($a7_b; IC $a7_ci
+> ), mas não no System GMM ($a5_b; IC $a5_ci; `a5_nins' instrumentos para `a5_n
+> g' países; AR(2) p = `a5_ar2'; Hansen p = `a5_hansen'), cujo intervalo é larg
+> o, nem no painel anual com a folha defasada um ano ($a3_b; IC $a3_ci). O coef
+> iciente do crescimento defasado no GMM fica entre os limites de MQO agrupado 
+> e de efeitos fixos (verificação de Bond, Tabela A5)." _n _n
+
+. file write `R' "**H1 (composição) — $a4a_v quando a categoria omitida é inves
+> timento; $a4b_v quando é transferências.** Mantida a despesa total, a partici
+> pação da folha na despesa tem coeficiente $a4s_b (IC $a4s_ci; p = $a4s_p). Na
+>  restrição orçamentária completa, realocar 1 p.p. da despesa do investimento 
+> público para a folha tem coeficiente $a4a_b (IC $a4a_ci); realocar das transf
+> erências para a folha, $a4b_b (IC $a4b_ci; p = $a4b_p). A especificação prefe
+> rida para H1 é a da restrição orçamentária (A4); o sinal é o previsto nas trê
+> s versões, mas só é estatisticamente distinto de zero quando a folha substitu
+> i transferências. A amostra de A4 é menor (exige todas as categorias da despe
+> sa)." _n _n
+
+. file write `R' "**H2 (preço versus quantidade) — componente de preço: $b1r_v;
+>  não linearidade do emprego: `b2invs'.** O salário relativo (remuneração por 
+> servidor sobre PIB por trabalhador) tem coeficiente $b1r_b (IC $b1r_ci; p = $
+> b1r_p) em B1 e $b2r_b (IC $b2r_ci) em B2. O emprego público tem coeficiente $
+> b1e_b (IC $b1e_ci) e, com o termo quadrático (B2), a forma estimada é `=cond(
+> "`b2shape'" == "U", "de U (mínimo)", "de U invertido")', com ponto de inflexã
+> o em `b2peak'% do emprego total (IC [`b2plo'; `b2phi']) e teste conjunto p = 
+> `b2pj'; o U invertido de Baerlocher (2021) não aparece. O prêmio salarial aju
+> stado do WWBI (B3) tem coeficiente $b3p_b (IC $b3p_ci), sem sinal negativo. O
+> u seja, a associação negativa vem do componente de preço medido como salário 
+> relativo, mas não se confirma com a medida de prêmio baseada em pesquisas dom
+> iciliares; a amostra de B é pequena (WWBI desde 2000)." _n _n
+
+. file write `R' "**H3 (moderação institucional) — `h3v'.** Na interação linear
+>  (C1), o coeficiente da interação folha × mérito é $c1i_b (IC $c1i_ci; p = $c
+> 1i_p). O efeito marginal da folha é `me10' (IC [`me10lo'; `me10hi']) no perce
+> ntil 10 do mérito (`q10') e `me90' (IC [`me90lo'; `me90hi']) no percentil 90 
+> (`q90'): o custo da folha é um pouco menor onde o recrutamento é meritocrátic
+> o, direção da previsão (a), mas a diferença não é estatisticamente significat
+> iva. A divisão na mediana dá $c3l_b (abaixo) e $c3h_b (acima); nos tercis, $c
+> 3t1_b, $c3t2_b e $c3t3_b. No modelo de limiar dinâmico de Seo e Shin (2016) n
+> a janela em que o número de condições de momento fica abaixo de N/2 (2015–201
+> 9, `thrN' países), o teste de linearidade por bootstrap tem p = `thrp' (limia
+> r estimado em `thr', sem significância); no modelo de efeitos fixos de Hansen
+>  (1999), p = `hanp'. Nenhum dos dois encontra limiar. A versão de Seo e Shin 
+> em 2000–2019 tem `nmom1' condições de momento para `N1' países, isto é, a mes
+> ma proliferação de instrumentos que invalidou o GMM da dissertação, e produz 
+> estatísticas t de até 15 e linearidade rejeitada com p = 0; está na Tabela A6
+>  só por transparência e não é interpretada. Com o WGI (C5), a interação é $c5
+> i_b (IC $c5i_ci). Nas projeções locais com o mérito medido antes do choque (D
+> 3), a trajetória vai na direção oposta: em países de mérito alto, uma expansã
+> o real da folha de 1% do PIB é seguida de variação de `D3_hi_4'% no PIB per c
+> apita em quatro anos (IC [`D3_hi_lo4'; `D3_hi_hi4']), contra `D3_lo_4'% (IC [
+> `D3_lo_lo4'; `D3_lo_hi4']) em países de mérito baixo (p da diferença = `D3_p4
+> '), o que se aproxima da previsão (b) de Mollick et al. (2023). As duas evidê
+> ncias medem coisas diferentes (nível inicial da folha no médio prazo contra e
+> xpansões da folha), e nenhuma é robusta o bastante para escolher entre (a) e 
+> (b)." _n _n
+
+. file write `R' "**H4 (mecanismo) — investimento privado: $e1_v; PTF: $e2_v; e
+> mprego privado: $e3_v.** Em A1, o coeficiente da folha inicial é $e1_b sobre 
+> o investimento privado (p.p. do PIB; IC $e1_ci) e $e2_b sobre o crescimento d
+> a PTF (p.p.; IC $e2_ci). Para o emprego privado o coeficiente é $e3_b (IC $e3
+> _ci), com amostra pequena (ILOSTAT, mesma pesquisa para emprego total e públi
+> co). Nas projeções locais, uma expansão real da folha de 1% do PIB é seguida 
+> de variação de `E1_all_4' p.p. do PIB no investimento privado em quatro anos 
+> (IC [`E1_all_lo4'; `E1_all_hi4'])." _n _n
+
+. file write `R' "**H5 (economia política) — `h5v'; `h5iv'.** A folha cresce em
+>  anos de eleição com calendário predeterminado ($f1_b p.p. do PIB; IC $f1_ci)
+> ; o F do primeiro estágio é `f1F'. `f1txt' Nas projeções locais, expansões da
+>  folha em anos eleitorais não são seguidas de crescimento pior: em quatro ano
+> s, `F3_hi_4'% após choques em ano eleitoral contra `F3_lo_4'% nos demais anos
+>  (p da diferença = `F3_p4'); em países de mérito alto, `F3_hi_hi_4'% contra `
+> F3_hi_lo_4'% (p = `F3_hi_p4'). Pela regra fixada, o veredito usa a diferença 
+> em h = 4 na amostra toda." _n _n
+
+. 
+. file write `R' "**O viés do denominador (resultado central, D4; Figura 3 e Ta
+> bela A7).** Na mesma amostra anual e com o mesmo modelo, o coeficiente da fol
+> ha é `d4b1' (IC [`d4lo1'; `d4hi1']) com a razão contemporânea, `d4b2' (IC [`d
+> 4lo2'; `d4hi2']) com a folha sobre o PIB tendencial do filtro HP, `d4b3' (IC 
+> [`d4lo3'; `d4hi3']) com o filtro de Hamilton e `d4b4' (IC [`d4lo4'; `d4hi4'])
+>  com a folha defasada um ano. Nas médias de cinco anos, `d4b5' com a média do
+>  período contra `d4b6' com o valor inicial. A associação negativa forte da di
+> ssertação é, em grande parte, contemporânea e mecânica; o que sobra com a fol
+> ha medida antes do crescimento é um efeito de médio prazo menor, visível nas 
+> médias de cinco anos e ausente na frequência anual." _n _n
+
+. 
+. file write `R' "## 2. Tamanho do efeito" _n _n
+
+. file write `R' "O desvio-padrão da folha (% do PIB) dentro dos países é `sdw5
+> s' p.p. no painel de cinco anos (valor inicial do período) e `sdwas' p.p. no 
+> painel anual (Tabela 1). Pela especificação A1, uma folha um desvio-padrão (d
+> entro do país) mais alta no início do período está associada a uma variação d
+> e `eff5' p.p. no crescimento anual dos cinco anos seguintes, ou cerca de `eff
+> 5cum'% de PIB per capita acumulado no período. É uma ordem de grandeza abaixo
+>  dos coeficientes da dissertação (−2 a −3 p.p. por ponto do PIB), como o diag
+> nóstico antecipava." _n _n
+
+. 
+. * --- robustez
+. file write `R' "## 3. O que é robusto e o que não é" _n _n
+
+. file write `R' "Especificação de referência: A1 (coeficiente $a1_b; p = $a1_p
+> ). Verificações do Bloco G (Tabelas A8a–A8c, A9; Figuras A5 e A6):" _n _n
+
+. file write `R' "| Verificação | Coeficiente | EP | p | Obs. | Situação |" _n 
+> "|---|---|---|---|---|---|" _n
+
+. local labs `""Governo central (WDI, série da dissertação)" "Governo geral ou 
+> central (série combinada)" "Com microestados" "Sem países ricos em recursos n
+> aturais" "Sem 2008–2009 e 2020–2021" "Sem winsorização" "Controle de dívida p
+> ública" "Renda baixa (1996)" "Renda média-baixa" "Renda média-alta" "Renda al
+> ta" "OCDE" "Fora da OCDE" "Federais" "Unitários" "CCE de grupo médio (anual, 
+> folha defasada)""'
+
+. local mods G_cg_wdi G_comb G_micro G_noresource G_nocrisis G_nowins G_debt G_
+> inc1 G_inc2 G_inc3 G_inc4 G_oecd G_nonoecd G_federal G_unitary G_cce
+
+. local nflip 0
+
+. local nloss 0
+
+. local i 0
+
+. foreach m of local mods {
+  2.     local ++i
+  3.     local l : word `i' of `labs'
+  4.     cf `m' wagebill_gdp0 rr
+  5.     local sit "mantém sinal e significância"
+  6.     if $rr_bn > 0 & $rr_pn < 0.10 {
+  7.         local sit "**muda de sinal (significativo)**"
+  8.         local ++nflip
+  9.     }
+ 10.     else if $rr_bn > 0 {
+ 11.         local sit "**muda de sinal (não significativo)**"
+ 12.         local ++nflip
+ 13.     }
+ 14.     else if $rr_pn >= 0.10 {
+ 15.         local sit "**perde significância**"
+ 16.         local ++nloss
+ 17.     }
+ 18.     else if $rr_pn >= 0.05 local sit "mantém sinal; p entre 0,05 e 0,10"
+ 19.     file write `R' "| `l' | $rr_b | $rr_se | $rr_p | $rr_N | `sit' |" _n
+ 20. }
+
+. use "$INTERIM/loo.dta", clear
+
+. quietly summ b
+
+. local mn = r(min)
+
+. local mx = r(max)
+
+. pt `mn'
+
+. local lmin "`r(s)'"
+
+. pt `mx'
+
+. local lmax "`r(s)'"
+
+. quietly count if b + 1.96 * se < 0
+
+. local lsig = r(N)
+
+. local lN = _N
+
+. use "$INTERIM/bma.dta", clear
+
+. quietly summ pip if var == "wagebill_gdp0"
+
+. pt r(mean) %5.3f
+
+. local pip "`r(s)'"
+
+. use "$INTERIM/cce_individual.dta", clear
+
+. quietly summ b, detail
+
+. local md = r(p50)
+
+. local sdv = r(sd)
+
+. pt `md'
+
+. local ccemed "`r(s)'"
+
+. pt `sdv' %4.2f
+
+. local ccesd "`r(s)'"
+
+. file write `R' _n "- Exclusão de um país por vez: coeficiente entre `lmin' e 
+> `lmax'; IC abaixo de zero em `lsig' das `lN' reestimações (Figura A5)." _n
+
+. file write `R' "- Média bayesiana de modelos: probabilidade posterior de incl
+> usão da folha = `pip' (Tabela A9, Figura A6)." _n
+
+. file write `R' "- Em `nflip' verificações o coeficiente muda de sinal e em `n
+> loss' perde significância (p ≥ 0,10). As mais importantes:" _n
+
+. file write `R' "  - **Série de governo central da dissertação**: com a variáv
+> el original, o efeito desaparece (sinal positivo, não significativo). O resul
+> tado depende de medir a folha do governo geral." _n
+
+. file write `R' "  - **Série combinada GG/GC**: ao acrescentar países só com g
+> overno central (sobretudo de renda baixa), o coeficiente encolhe e perde sign
+> ificância." _n
+
+. file write `R' "  - **CCE de grupo médio**: na frequência anual, com coeficie
+> ntes heterogêneos por país, o sinal se inverte. Os coeficientes por país são 
+> muito dispersos (mediana `ccemed', desvio-padrão `ccesd'), e os maiores apare
+> cem em países europeus cuja folha sobe no ano de recessão e cujo PIB se recup
+> era no ano seguinte: em séries anuais curtas, a folha defasada capta esse reb
+> ote, que é o viés do denominador com o sinal trocado. Não é evidência de efei
+> to positivo de longo prazo, mas mostra que o resultado não sobrevive a estima
+> dores país a país em frequência anual." _n
+
+. file write `R' "  - **Subamostras**: o sinal negativo se mantém em quase toda
+> s, mas a significância depende do tamanho da amostra; o grupo de renda baixa 
+> tem só `inc1nc' países e coeficiente instável." _n
+
+. file write `R' "- Também não é robusto: o System GMM (sinal negativo, interva
+> lo largo) e a especificação anual com a folha defasada (efeito nulo). O efeit
+> o de base aparece em médias de 3 e 5 anos com efeitos fixos e no estimador co
+> m correção de viés." _n _n
+
+. 
+. file write `R' "## 4. Limitações que um parecerista vai apontar" _n _n
+
+. file write `R' "1. **Identificação.** As estimativas de A, B, C e E são assoc
+> iações condicionais em painel com efeitos fixos. A folha inicial é predetermi
+> nada em relação ao crescimento do período, mas não exógena: choques persisten
+> tes e expectativas de crescimento podem afetar a decisão de contratar e reaju
+> star. O System GMM, única estratégia com instrumentos, tem intervalo largo e 
+> Hansen no limite (p = `a5_hansen'). A tentativa de variação exógena (calendár
+> io eleitoral) tem instrumento fraco (F = `f1F')." _n
+
+. file write `R' "2. **Cobertura da folha de governo geral.** `ncann' países no
+>  painel anual e `a1nc' na especificação A1, com sub-representação de países d
+> e renda baixa (ver \`docs/AUDITORIA_DADOS.md\`). A série combinada amplia a a
+> mostra, mas mistura níveis de governo e muda o resultado." _n
+
+. file write `R' "3. **Decomposição.** O emprego público do WWBI vem de pesquis
+> as domiciliares, começa em 2000 e é irregular; o salário relativo é construíd
+> o como folha/participação do emprego, de modo que erro de medida no emprego e
+> ntra com sinal oposto nos dois componentes. Isso pode explicar parte da difer
+> ença entre B1 (salário relativo) e B3 (prêmio ajustado)." _n
+
+. file write `R' "4. **Moderador.** O índice de mérito do V-Dem varia pouco den
+> tro dos países; com efeitos fixos de país, a moderação é identificada por mud
+> anças pequenas. Os modelos de limiar exigem painel estritamente balanceado: `
+> N1' países em 2000–2019 e `thrN' em 2015–2019, uma janela curta para dinâmica
+>  de crescimento." _n
+
+. file write `R' "5. **Projeções locais.** No impacto (h = 0), parte da respost
+> a positiva do PIB é contábil: nas contas nacionais, o valor adicionado do gov
+> erno é medido pelo custo, de modo que a folha entra diretamente no PIB. As re
+> spostas em horizontes longos têm intervalos largos e a amostra encolhe com o 
+> horizonte." _n
+
+. file write `R' "6. **Eleições.** O DPI termina em 2020; a definição de calend
+> ário predeterminado (anos restantes do mandato = 0) segue o DPI e pode classi
+> ficar mal eleições antecipadas em sistemas parlamentares." _n
+
+. file write `R' "7. **Período e choques comuns.** O período de 2019–2023 conté
+> m a pandemia; a exclusão de 2008–2009 e 2020–2021 reduz o coeficiente e o dei
+> xa no limite da significância a 10%." _n _n
+
+. 
+. file write `R' "## 5. Pendências" _n _n
+
+. file write `R' "- **Download manual**: FMI Fiscal Rules Dataset (o servidor d
+> o FMI bloqueia acesso automatizado). Não entra em nenhuma especificação fixad
+> a; colocar em \`data/raw/manual/\` (instruções em \`docs/DOWNLOADS_MANUAIS.md
+> \`)." _n
+
+. file write `R' "- **Estimadores substituídos**: nenhum por falta de Stata (o 
+> Stata 17 estava disponível, e \`xthenreg\` e \`xtdpdbc\` foram usados). O est
+> imador por kernel de Hainmueller, Mummolo e Xu foi implementado no próprio có
+> digo, porque o modo kernel do \`interflex\` para Stata, com efeitos fixos e b
+> ootstrap, termina com erro interno; os tercis e o teste de Wald vêm do \`inte
+> rflex\` (decisão D28)." _n
+
+. file write `R' "- **Fontes substituídas por rota oficial alternativa**: UNU-W
+> IDER GRD via QoG; ILOSTAT via SDMX (detalhes em \`docs/DECISOES.md\`, D22)." 
+> _n
+
+. file write `R' "- **Etapas não incluídas** por não constarem da lista fixada 
+> na seção 7: PMG/CS-ARDL de longo prazo e heterogeneidade por regras fiscais (
+> esta depende do download manual)." _n _n
+
+. 
+. file write `R' "## 6. Onde está cada tabela e figura" _n _n
+
+. file write `R' "Tabelas em \`output/tables/\` (\`.tex\` e \`.docx\`); figuras
+>  em \`output/figures/\` (\`.pdf\` e \`.png\` a 600 dpi); legendas e notas em 
+> \`output/captions.md\`." _n _n
+
+. file write `R' "| Item | Arquivo | Conteúdo |" _n "|---|---|---|" _n
+
+. local items `""Table 1|Table1_descriptives|Estatísticas descritivas" "Table 2
+> |Table2_baseline|Base, A1–A5 e A7" "Table 3|Table3_decomposition|Decomposição
+> , B1–B3" "Table 4|Table4_moderation|Moderação, C1, C3, C5" "Table 5|Table5_me
+> chanisms|Mecanismos, E1–E3" "Table 6|Table6_political_economy|Economia políti
+> ca, F1–F3" "Table A1|TableA1_definitions|Definições e fontes" "Table A2|Table
+> A2_countries|Países por grupo de renda" "Table A3|TableA3_correlations|Matriz
+>  de correlação" "Table A4|TableA4_gmm_instruments|Sensibilidade de instrument
+> os (A5)" "Table A5|TableA5_bond_check|Verificação de Bond (A6)" "Table A6|Tab
+> leA6_threshold|Limiares (C4)" "Table A7|TableA7_denominator|Viés do denominad
+> or (D4)" "Table A8a|TableA8a_robustness_definitions|Robustez: medida, amostra
+> , outliers" "Table A8b|TableA8b_robustness_subsamples|Robustez: subamostras" 
+> "Table A8c|TableA8c_robustness_cce|Robustez: CCE de grupo médio" "Table A9|Ta
+> bleA9_bma|Média bayesiana de modelos" "Figure 1|Figure1_wagebill_income|Folha
+>  por grupo de renda" "Figure 2|Figure2_employment_vs_wage|Emprego público x s
+> alário relativo" "Figure 3|Figure3_denominator|Viés do denominador (D4)" "Fig
+> ure 4|Figure4_marginal_effect_merit|Efeito marginal ao longo do mérito (C1, C
+> 2)" "Figure 5|Figure5_local_projections|Projeções locais (D1, D2)" "Figure 6|
+> Figure6_lp_merit|Projeções locais por regime de mérito (D3)" "Figure A1|Figur
+> eA1_coverage|Cobertura dos dados" "Figure A2|FigureA2_marginal_effect_wgi|Efe
+> ito marginal ao longo do WGI (C5)" "Figure A3|FigureA3_lp_mechanisms|Projeçõe
+> s locais dos mecanismos (E)" "Figure A4|FigureA4_lp_elections|Projeções locai
+> s por ano eleitoral (F3)" "Figure A5|FigureA5_leave_one_out|Exclusão de um pa
+> ís por vez" "Figure A6|FigureA6_bma_pip|Probabilidades de inclusão (BMA)""'
+
+. foreach it of local items {
+  2.     tokenize "`it'", parse("|")
+  3.     local ext = cond(substr("`1'", 1, 3) == "Tab", "tables/`3'.{tex,docx}"
+> , "figures/`3'.{pdf,png}")
+  4.     file write `R' "| `1' | \`output/`ext'\` | `5' |" _n
+  5. }
+
+. file close `R'
+
+. 
+. * ===========================================================================
+> ==========
+. * output/captions.md
+. * ===========================================================================
+> ==========
+. file open `R' using "$ROOT/output/captions.md", write replace text
+
+. file write `R' "# Table and figure captions" _n _n "Generated by \`code/12_re
+> latorio.do\`. Table titles and notes are identical to those in the table file
+> s." _n _n
+
+. file write `R' "## Tables" _n _n
+
+. local tabs Table1_descriptives Table2_baseline Table3_decomposition Table4_mo
+> deration Table5_mechanisms Table6_political_economy ///
+>     TableA1_definitions TableA2_countries TableA3_correlations TableA4_gmm_in
+> struments TableA5_bond_check TableA6_threshold ///
+>     TableA7_denominator TableA8a_robustness_definitions TableA8b_robustness_s
+> ubsamples TableA8c_robustness_cce TableA9_bma
+
+. foreach t of local tabs {
+  2.     tempname C
+  3.     capture file open `C' using "$LOG/captions/`t'.txt", read text
+  4.     if _rc continue
+  5.     file read `C' ttl
+  6.     file read `C' nts
+  7.     file close `C'
+  8.     file write `R' "**`ttl'**" _n _n
+  9.     if `"`nts'"' != "" file write `R' `"*Notes:* `nts'"' _n _n
+ 10. }
+
+. file write `R' "## Figures" _n _n
+
+. file write `R' "**Figure 1. General government wage bill by income group, 199
+> 6-2023.**" _n _n "*Notes:* Median across countries of compensation of employe
+> es of the general government (% of GDP, IMF GFS) by World Bank income group i
+> n 1996; microstates excluded. The set of countries with data changes over tim
+> e (Figure A1), which explains part of the year-to-year movement, especially i
+> n the low-income group." _n _n
+
+. file write `R' "**Figure 2. Public employment and relative public pay across 
+> countries.**" _n _n "*Notes:* Country averages, 1996-2023. Horizontal axis: p
+> ublic sector employment (% of total employment, WWBI). Vertical axis: general
+>  government wage bill per public employee relative to GDP per worker. Labelle
+> d countries selected for reference." _n _n
+
+. file write `R' "**Figure 3. The denominator bias: the wage bill coefficient u
+> nder different timings.**" _n _n "*Notes:* Coefficient of the wage bill in gr
+> owth regressions that differ only in how the wage bill enters (Table A7). Ann
+> ual estimates: country and year fixed effects, same sample, Driscoll-Kraay st
+> andard errors. Five-year estimates: country and period fixed effects, standar
+> d errors clustered by country. Bars are 95% confidence intervals." _n _n
+
+. file write `R' "**Figure 4. Marginal effect of the wage bill on growth across
+>  levels of meritocratic recruitment.**" _n _n "*Notes:* Solid line and shaded
+>  band: marginal effect from the linear interaction model (Table 4, column 1) 
+> with 95% confidence interval. Diamonds with bars: binning estimator at the me
+> dian of each tercile of the moderator (Hainmueller, Mummolo and Xu, 2019), 95
+> % confidence intervals. Dashed line: kernel estimator (Gaussian kernel, bandw
+> idth chosen by cross-validation), with 95% intervals from 200 country-cluster
+>  bootstrap replications reported in the replication files. Grey bars: distrib
+> ution of the moderator in the estimation sample." _n _n
+
+. file write `R' "**Figure 5. Dynamic response of GDP per capita to a real wage
+>  bill shock.**" _n _n "*Notes:* Local projections, annual panel 1996-2023. Pa
+> nel (a): cumulative response of 100 x log GDP per capita to a real increase i
+> n the general government wage bill of 1% of lagged GDP. Panel (b): the shock 
+> split into the contribution of public employment and of relative pay. Country
+>  and year fixed effects, two lags of the shock(s) and of growth; 95% confiden
+> ce intervals from Driscoll-Kraay standard errors (band in panel a, bars in pa
+> nel b)." _n _n
+
+. file write `R' "**Figure 6. Dynamic response by merit regime.**" _n _n "*Note
+> s:* Local projections as in Figure 5, with the shock interacted with an indic
+> ator of meritocratic recruitment above the sample median in the year before t
+> he shock (V-Dem). Shaded bands: 95% confidence intervals (Driscoll-Kraay)." _
+> n _n
+
+. file write `R' "**Figure A1. Data coverage.** *Notes:* Number of countries wi
+> th data by year, excluding microstates." _n _n
+
+. file write `R' "**Figure A2. Marginal effect of the wage bill across governme
+> nt effectiveness (WGI).** *Notes:* Linear interaction model of Table 4, colum
+> n 2; 95% confidence band." _n _n
+
+. file write `R' "**Figure A3. Local projections for the mechanisms.** *Notes:*
+>  As in Figure 5(a), with private investment (p.p. of GDP), 100 x log TFP and 
+> 100 x log private employment as outcomes; 95% confidence bands." _n _n
+
+. file write `R' "**Figure A4. Wage bill shocks in predetermined election years
+>  and in other years.** *Notes:* Local projections as in Figure 5(a), 1996-202
+> 0, with the shock interacted with the predetermined election-year indicator (
+> DPI); 95% confidence bands." _n _n
+
+. file write `R' "**Figure A5. Leave-one-country-out estimates.** *Notes:* Coef
+> ficient of the initial wage bill in specification A1 dropping one country at 
+> a time, ranked; bars are 95% confidence intervals; dashed line: full-sample e
+> stimate." _n _n
+
+. file write `R' "**Figure A6. Posterior inclusion probabilities.** *Notes:* Ba
+> yesian model averaging over the control set (Table A9); dashed line at 0.5." 
+> _n
+
+. file close `R'
+
+. 
+. log close
+      name:  <unnamed>
+       log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Esti
+> mações/output/logs/12_relatorio.log
+  log type:  text
+ closed on:   7 Oct 2026, 23:28:14
+-------------------------------------------------------------------------------

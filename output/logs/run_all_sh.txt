@@ -1,0 +1,28 @@
+cabecalho=196; 23 registros
+series lidas: ['COUNTRY_CODE', 'COUNTRY_NAME', 'DATEID', 'EXP_PUB_COMP', 'EXP_PUB_COMP_X_GOV_EFF', 'EXP_PUB_GDP', 'EXP_PUB_GDP_X_GOV_EFF', 'EXPENSE_GDP', 'FBKF_GDP', 'GDP_PC_GROWTH', 'GOV_EFF', 'INFLATION', 'NET_LENDING_GDP', 'POP_GROWTH', 'REER', 'RESID', 'TERMS_OF_TRADE', 'TRADE_GDP', 'UNEMPLOYMENT', 'YEAR']
+registros ignorados: ['C', 'EQ_DGMM', 'EQ_SGMM']
+(7392, 21)
+[cache] wdi
+[cache] wgi
+[cache] wwbi
+[cache] income_hist
+[cache] imf_gfs
+[cache] imf_icsd
+[cache] imf_gdd
+[cache] imf_ctot
+[cache] imf_fd
+[cache] imf_world
+[cache] imf_weo
+[cache] vdem
+[cache] qog
+[cache] pwt
+[cache] dpi
+[cache] ilostat
+[cache] eurostat
+[cache] ucdp
+
+Falhas: nenhuma
+painel_anual (10638, 146)
+painel_3anos (2955, 71)
+painel_5anos (1773, 71)
+Pipeline concluido.

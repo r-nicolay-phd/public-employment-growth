@@ -1,0 +1,6 @@
+# Python: so download das fontes e conversao .dta -> .parquet (Python 3.11)
+numpy==2.4.4
+pandas==2.3.0
+pyarrow==21.0.0
+requests==2.32.4
+openpyxl==3.1.5

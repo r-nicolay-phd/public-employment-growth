@@ -1,0 +1,2 @@
+Table A4. System GMM: sensitivity to the instrument set
+Dependent variable: growth of real GDP per capita (%, five-year average). Two-step system GMM with Windmeijer-corrected standard errors, collapsed instruments; all columns include the controls of Table 2 and period dummies. Lagged growth, the initial wage bill, investment and initial income are treated as endogenous and instrumented with the lags shown in the column header (for lagged growth, the same lags of growth). * p<0.10, ** p<0.05, *** p<0.01.

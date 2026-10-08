@@ -1,0 +1,23 @@
+% gerado por code/00_tabelas.do -- nao editar a mao
+\begin{table}[htbp]\centering\footnotesize
+\providecommand{\sym}[1]{\ensuremath{^{#1}}}
+\caption{Table A8a. Robustness: measurement, sample and outliers}\label{tab:TableA8a_robustness_definitions}
+\begin{tabular}{l*{8}{c}}
+\toprule
+ & (1) & (2) & (3) & (4) & (5) & (6) & (7) & (8) \\
+ & Baseline & CG wage bill (WDI) & GG or CG & With microstates & No resource-rich & Excl. 2008-09, 2020-21 & No winsorizing & Debt control \\
+\midrule
+Wage bill (\% of GDP), initial & -0.182\sym{**} & 0.035 & -0.061 & -0.172\sym{**} & -0.150\sym{**} & -0.144\sym{*} & -0.181\sym{**} & -0.224\sym{***} \\
+ & (0.072) & (0.076) & (0.051) & (0.071) & (0.066) & (0.083) & (0.073) & (0.065) \\
+Central-government coverage dummy &  &  & -0.393 &  &  &  &  &  \\
+ &  &  & (0.289) &  &  &  &  &  \\
+Public debt (\% of GDP), initial &  &  &  &  &  &  &  & 0.008\sym{**} \\
+ &  &  &  &  &  &  &  & (0.004) \\
+\midrule
+Observations & 365 & 596 & 679 & 377 & 342 & 365 & 365 & 360 \\
+Countries & 72 & 108 & 117 & 74 & 65 & 72 & 72 & 71 \\
+$R^2$ (within) & 0.403 & 0.418 & 0.372 & 0.400 & 0.415 & 0.307 & 0.399 & 0.453 \\
+\bottomrule
+\end{tabular}
+\begin{minipage}{0.95\linewidth}\vspace{4pt}\scriptsize \textit{Notes:} Specification A1 (Table 2, column 1): five-year averages, country and period fixed effects, controls of Table 2, standard errors clustered by country. The coefficient shown is that of the wage bill (\% of GDP) in the first year of the period: general government (IMF GFS) except in column 2 (central government, WDI, as in the original dissertation) and column 3 (general government where available, central government otherwise, with a coverage dummy). Column 6 averages growth excluding 2008-2009 and 2020-2021; column 7 uses growth and inflation without winsorization; column 8 adds general government debt (\% of GDP) in the first year of the period. * p<0.10, ** p<0.05, *** p<0.01.\end{minipage}
+\end{table}

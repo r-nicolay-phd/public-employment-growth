@@ -1,0 +1,2 @@
+Table A3. Correlation matrix, five-year panel
+Pairwise correlations over five-year periods with all variables observed, excluding microstates.

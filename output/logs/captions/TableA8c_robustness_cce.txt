@@ -1,0 +1,2 @@
+Table A8c. Robustness: common correlated effects mean group
+Annual panel 1996-2023, countries with at least 20 annual observations, microstates excluded. Pesaran (2006) CCE mean group estimator (xtdcce2): country-specific regressions augmented with cross-sectional averages of all variables; the table reports mean-group coefficients with nonparametric standard errors. Wage bill lagged one year. * p<0.10, ** p<0.05, *** p<0.01.

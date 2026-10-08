@@ -1,0 +1,34 @@
+% gerado por code/00_tabelas.do -- nao editar a mao
+\begin{table}[htbp]\centering\footnotesize
+\providecommand{\sym}[1]{\ensuremath{^{#1}}}
+\caption{Table A6. Threshold models with meritocratic recruitment as the regime variable}\label{tab:TableA6_threshold}
+\begin{tabular}{l*{3}{c}}
+\toprule
+ & (1) & (2) & (3) \\
+ & Seo-Shin, 2000-2019 & Seo-Shin, 2015-2019 & Hansen, 2000-2019 \\
+\midrule
+Lagged growth, lower regime & 0.126\sym{***} & 0.222 &  \\
+ & (0.042) & (0.231) &  \\
+Wage bill, lower regime & -2.877\sym{***} & 0.102 &  \\
+ & (0.379) & (1.332) &  \\
+Intercept shift above threshold & -79.657\sym{***} & 46.052 &  \\
+ & (6.106) & (36.878) &  \\
+Lagged growth, change above threshold & 0.309\sym{***} & -0.178 &  \\
+ & (0.079) & (0.451) &  \\
+Wage bill, change above threshold & 5.479\sym{***} & -1.255 &  \\
+ & (0.521) & (2.269) &  \\
+Wage bill, regime 1 (merit below threshold) &  &  & -0.628\sym{***} \\
+ &  &  & (0.123) \\
+Wage bill, regime 2 (merit above threshold) &  &  & -0.750\sym{***} \\
+ &  &  & (0.119) \\
+\midrule
+Threshold in lagged merit & 1.658 & 0.701 & 0.733 \\
+95\% CI of threshold &  &  & [0.552, 0.776] \\
+Linearity test, bootstrap p (500 reps) & 0.000 & 0.920 & 0.304 \\
+Countries x years & 35 x 20 & 72 x 5 & 35 x 20 \\
+Moment conditions (GMM) & 207 & 12 & none \\
+Moment conditions below N/2 & No & Yes & n.a. \\
+\bottomrule
+\end{tabular}
+\begin{minipage}{0.95\linewidth}\vspace{4pt}\scriptsize \textit{Notes:} Dependent variable: annual growth of real GDP per capita (\%). Strongly balanced annual panels (required by both estimators), microstates excluded. Regime-dependent regressor: general government wage bill (\% of GDP), lagged one year; threshold variable: V-Dem meritocratic recruitment, lagged one year. Columns 1-2: dynamic panel threshold model of Seo and Shin (2016), first-difference GMM (xthenreg), asymptotic standard errors; the lower-regime slope and the change in the slope above the threshold are shown. In column 1 the number of moment conditions (all available lags of growth for each year) exceeds the number of countries, which is the instrument proliferation that the pre-specified rule excludes; its estimates are reported for transparency and are not interpreted. Column 3: fixed-effects threshold model of Hansen (1999), xthreg, with year dummies as regime-independent regressors and no instruments; slopes by regime. Linearity tests by bootstrap with 500 replications. * p<0.10, ** p<0.05, *** p<0.01.\end{minipage}
+\end{table}

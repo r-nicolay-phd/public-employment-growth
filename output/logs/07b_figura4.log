@@ -1,0 +1,178 @@
+-------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Esti
+> mações/output/logs/07b_figura4.log
+  log type:  text
+ opened on:   7 Oct 2026, 23:27:17
+
+. 
+. * histograma do moderador na amostra de estimacao
+. use "$INTERIM/merit0_sample.dta", clear
+
+. _pctile merit0, p(5 95)
+
+. local p5 = r(r1)
+
+. local p95 = r(r2)
+
+. twoway__histogram_gen merit0, bin(20) gen(hh xx, replace) frequency
+
+. keep hh xx
+
+. keep if !missing(hh)
+(340 observations deleted)
+
+. gen src = "hist"
+
+. tempfile H
+
+. save `H'
+file C:\Users\Usuario\AppData\Local\Temp\ST_77f4_000001.tmp saved as .dta
+    format
+
+. 
+. use "$INTERIM/me_C1.dta", clear
+
+. gen src = "lin"
+
+. append using "$INTERIM/me_bins.dta"
+
+. replace src = "bin" if missing(src)
+(3 real changes made)
+
+. capture confirm file "$INTERIM/me_kernel.dta"
+
+. local haskernel = !_rc
+
+. if `haskernel' {
+.     preserve
+.     use "$INTERIM/me_kernel.dta", clear
+.     * kernel so dentro do suporte comum (percentis 5 a 95 do moderador)
+.     keep if inrange(km_x, `p5', `p95')
+(11 observations deleted)
+.     gen src = "ker"
+.     tempfile K
+.     save `K'
+file C:\Users\Usuario\AppData\Local\Temp\ST_77f4_000003.tmp saved as .dta
+    format
+.     restore
+.     append using `K'
+. }
+
+. append using `H'
+(variable src was str3, now str4 to accommodate using data's values)
+
+. * escala do histograma: ocupa os 18% inferiores do eixo
+. quietly summ lo if src == "lin"
+
+. local ymin = r(min)
+
+. quietly summ hi if src == "lin"
+
+. local ymax = r(max)
+
+. quietly summ bin_CI_l
+
+. local ymin = min(`ymin', r(min))
+
+. quietly summ bin_CI_u
+
+. local ymax = max(`ymax', r(max))
+
+. if `haskernel' {
+.     capture quietly summ km_lo
+.     if !_rc & r(N) > 0 local ymin = min(`ymin', r(min))
+.     capture quietly summ km_hi
+.     if !_rc & r(N) > 0 local ymax = max(`ymax', r(max))
+. }
+
+. local span = `ymax' - `ymin'
+
+. local base = `ymin' - 0.25 * `span'
+
+. quietly summ hh
+
+. gen hbar = `base' + hh / r(max) * 0.20 * `span' if src == "hist"
+(83 missing values generated)
+
+. gen hbase = `base' if src == "hist"
+(83 missing values generated)
+
+. quietly summ xx if src == "hist"
+
+. local bw = (r(max) - r(min)) / 19
+
+. 
+. local kplot ""
+
+. local kleg ""
+
+. if `haskernel' {
+.     local kplot (line km_me km_x if src == "ker", sort lcolor("$C3") lpattern
+> (shortdash) lwidth(medthick)) ///
+>         (line km_lo km_x if src == "ker", sort lcolor("$C3") lpattern(dot) lw
+> idth(thin)) ///
+>         (line km_hi km_x if src == "ker", sort lcolor("$C3") lpattern(dot) lw
+> idth(thin))
+.     local kleg 5 "Kernel estimate (95% CI dotted)"
+. }
+
+. twoway (rbar hbase hbar xx if src == "hist", barwidth(`bw') color(gs12) lcolo
+> r(gs9) lwidth(vthin)) ///
+>        (rarea lo hi m if src == "lin", sort color("$C2%20") lwidth(none)) ///
+>        (line me m if src == "lin", sort lcolor("$C2") lwidth(medthick) lpatte
+> rn(solid)) ///
+>        (rcap bin_CI_l bin_CI_u x0 if src == "bin", lcolor("$C1") lwidth(medth
+> in)) ///
+>        `kplot' ///
+>        (scatter bin_marg x0 if src == "bin", msymbol(D) mcolor("$C1") msize(m
+> edsmall)), ///
+>        $GOPT yline(0, lcolor(gs10) lpattern(dash)) ///
+>        legend(order(3 "Linear interaction (95% CI shaded)" `=cond(`haskernel'
+> , 8, 5)' "Tercile estimates" `kleg') rows(1) pos(6) size(7pt)) ///
+>        xtitle("Meritocratic recruitment, V-Dem (first year of period)", size(
+> 8pt)) ///
+>        ytitle("Marginal effect of wage bill on growth (p.p.)", size(8pt)) ///
+>        xlabel(, labsize(7pt)) ylabel(, labsize(7pt) nogrid angle(horizontal))
+
+. fig_export Figure4_marginal_effect_merit, width(190) height(100)
+file C:\Users\Usuario\Dropbox\Papers\Emprego Público e
+    Crescimento\Estimações/output/figures/Figure4_marginal_effect_merit.pdf
+    saved as PDF format
+file C:\Users\Usuario\Dropbox\Papers\Emprego Público e
+    Crescimento\Estimações/output/figures/Figure4_marginal_effect_merit.png
+    saved as PNG format
+figura gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\E
+> stimações/output/figures/Figure4_marginal_effect_merit.{pdf,png} (190 x 100 m
+> m)
+
+. 
+. * apendice: efeito marginal ao longo do WGI (C5)
+. use "$INTERIM/me_C5.dta", clear
+
+. twoway (rarea lo hi m, sort color("$C2%20") lwidth(none)) (line me m, sort lc
+> olor("$C2") lwidth(medthick) lpattern(solid)), ///
+>        $GOPT yline(0, lcolor(gs10) lpattern(dash)) legend(off) ///
+>        xtitle("Government effectiveness, WGI (first year of period)", size(8p
+> t)) ///
+>        ytitle("Marginal effect of wage bill on growth (p.p.)", size(8pt)) ///
+>        xlabel(, labsize(7pt)) ylabel(, labsize(7pt) nogrid angle(horizontal))
+
+. fig_export FigureA2_marginal_effect_wgi, width(90) height(75)
+file C:\Users\Usuario\Dropbox\Papers\Emprego Público e
+    Crescimento\Estimações/output/figures/FigureA2_marginal_effect_wgi.pdf
+    saved as PDF format
+file C:\Users\Usuario\Dropbox\Papers\Emprego Público e
+    Crescimento\Estimações/output/figures/FigureA2_marginal_effect_wgi.png
+    saved as PNG format
+figura gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\E
+> stimações/output/figures/FigureA2_marginal_effect_wgi.{pdf,png} (90 x 75 mm)
+
+. 
+. log close
+      name:  <unnamed>
+       log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Esti
+> mações/output/logs/07b_figura4.log
+  log type:  text
+ closed on:   7 Oct 2026, 23:27:20
+-------------------------------------------------------------------------------

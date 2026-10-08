@@ -1,0 +1,748 @@
+-------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Esti
+> mações/output/logs/10_economia_politica.log
+  log type:  text
+ opened on:   7 Oct 2026, 23:27:49
+
+. 
+. use "$FINAL/painel_anual.dta", clear
+
+. keep if micro == 0 & inrange(year, 1990, 2023)
+(4,926 observations deleted)
+
+. xtset id year
+
+Panel variable: id (strongly balanced)
+ Time variable: year, 1990 to 2023
+         Delta: 1 unit
+
+. gen y100 = 100 * lny
+(147 missing values generated)
+
+. gen L_g = L.g
+(336 missing values generated)
+
+. * DPI termina em 2020
+. local per "inrange(year, 1996, 2020)"
+
+. 
+. * ---------------------------------------------------------------- F1. primei
+> ro estagio
+. reghdfe d_wagebill_real election_fixed L_g if `per', absorb(id year) vce(clus
+> ter id)
+(dropped 4 singleton observations)
+(MWFE estimator converged in 7 iterations)
+
+HDFE Linear regression                            Number of obs   =      1,512
+Absorbing 2 HDFE groups                           F(   2,     92) =       9.89
+Statistics robust to heteroskedasticity           Prob > F        =     0.0001
+                                                  R-squared       =     0.2434
+                                                  Adj R-squared   =     0.1793
+                                                  Within R-sq.    =     0.0638
+Number of clusters (id)      =         93         Root MSE        =     0.5447
+
+                                    (Std. err. adjusted for 93 clusters in id)
+------------------------------------------------------------------------------
+             |               Robust
+d_wagebill~l | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+election_f~d |   .0837128   .0363132     2.31   0.023     .0115917     .155834
+         L_g |   .0487643   .0116529     4.18   0.000     .0256205    .0719081
+       _cons |   .1550071    .032291     4.80   0.000     .0908745    .2191397
+------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+          id |        93          93           0    *|
+        year |        25           1          24     |
+-----------------------------------------------------+
+* = FE nested within cluster; treated as redundant for DoF computation
+
+. estadd scalar nc = e(N_clust)
+
+added scalar:
+                 e(nc) =  93
+
+. test election_fixed
+
+ ( 1)  election_fixed = 0
+
+       F(  1,    92) =    5.31
+            Prob > F =    0.0234
+
+. estadd scalar F1 = r(F)
+
+added scalar:
+                 e(F1) =  5.314416
+
+. scalar F_fixed = r(F)
+
+. estimates store F1
+
+. reghdfe d_wagebill_real election L_g if `per', absorb(id year) vce(cluster id
+> )
+(dropped 4 singleton observations)
+(MWFE estimator converged in 7 iterations)
+
+HDFE Linear regression                            Number of obs   =      1,516
+Absorbing 2 HDFE groups                           F(   2,     92) =      11.53
+Statistics robust to heteroskedasticity           Prob > F        =     0.0000
+                                                  R-squared       =     0.2431
+                                                  Adj R-squared   =     0.1792
+                                                  Within R-sq.    =     0.0636
+Number of clusters (id)      =         93         Root MSE        =     0.5441
+
+                                    (Std. err. adjusted for 93 clusters in id)
+------------------------------------------------------------------------------
+             |               Robust
+d_wagebill~l | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+    election |    .070403   .0306147     2.30   0.024     .0095995    .1312065
+         L_g |   .0489725   .0116329     4.21   0.000     .0258685    .0720764
+       _cons |   .1507636   .0314434     4.79   0.000     .0883142     .213213
+------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+          id |        93          93           0    *|
+        year |        25           1          24     |
+-----------------------------------------------------+
+* = FE nested within cluster; treated as redundant for DoF computation
+
+. estadd scalar nc = e(N_clust)
+
+added scalar:
+                 e(nc) =  93
+
+. test election
+
+ ( 1)  election = 0
+
+       F(  1,    92) =    5.29
+            Prob > F =    0.0237
+
+. estadd scalar F1 = r(F)
+
+added scalar:
+                 e(F1) =  5.2883611
+
+. estimates store F1b
+
+. di "F1: F do primeiro estagio (eleicao predeterminada) = " F_fixed
+F1: F do primeiro estagio (eleicao predeterminada) = 5.314416
+
+. 
+. * ---------------------------------------------------------------- F2. VI ape
+> nas se o primeiro estagio for forte
+. * (regra fixada antes de ver os resultados: F > 10). Com instrumento fraco, o
+>  segundo estagio nao e
+. * apresentado como evidencia; o IC de Anderson-Rubin e reportado em qualquer 
+> caso, como diagnostico.
+. local strong = F_fixed > 10
+
+. ivreghdfe g (d_wagebill_real = election_fixed) balance_gdp L_g if `per', abso
+> rb(id year) cluster(id)
+(dropped 4 singleton observations)
+(MWFE estimator converged in 7 iterations)
+
+IV (2SLS) estimation
+--------------------
+
+Estimates efficient for homoskedasticity only
+Statistics robust to heteroskedasticity and clustering on id
+
+Number of clusters (id) =           92                Number of obs =     1500
+                                                      F(  3,    91) =    24.02
+                                                      Prob > F      =   0.0000
+Total (centered) SS     =  11308.62881                Centered R2   =  -0.0331
+Total (uncentered) SS   =  11308.62881                Uncentered R2 =  -0.0331
+Residual SS             =  11682.84353                Root MSE      =    2.816
+
+------------------------------------------------------------------------------
+             |               Robust
+           g | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+d_wagebill~l |   3.300252   2.671718     1.24   0.220    -2.006788    8.607292
+ balance_gdp |   .1113515   .0575005     1.94   0.056    -.0028661    .2255691
+         L_g |   .1372652    .145193     0.95   0.347    -.1511429    .4256732
+------------------------------------------------------------------------------
+Underidentification test (Kleibergen-Paap rk LM statistic):              5.268
+                                                   Chi-sq(1) P-val =    0.0217
+------------------------------------------------------------------------------
+Weak identification test (Cragg-Donald Wald F statistic):                4.748
+                         (Kleibergen-Paap rk Wald F statistic):          5.248
+Stock-Yogo weak ID test critical values: 10% maximal IV size             16.38
+                                         15% maximal IV size              8.96
+                                         20% maximal IV size              6.66
+                                         25% maximal IV size              5.53
+Source: Stock-Yogo (2005).  Reproduced by permission.
+NB: Critical values are for Cragg-Donald F statistic and i.i.d. errors.
+------------------------------------------------------------------------------
+Hansen J statistic (overidentification test of all instruments):         0.000
+                                                 (equation exactly identified)
+------------------------------------------------------------------------------
+Instrumented:         d_wagebill_real
+Included instruments: balance_gdp L_g
+Excluded instruments: election_fixed
+Partialled-out:       _cons
+                      nb: total SS, model F and R2s are after partialling-out;
+                          any small-sample adjustments include partialled-out
+                          variables in regressor count K
+------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+          id |        92          92           0    *|
+        year |        25           1          24     |
+-----------------------------------------------------+
+* = FE nested within cluster; treated as redundant for DoF computation
+
+. estadd scalar nc = e(N_clust)
+
+added scalar:
+                 e(nc) =  92
+
+. estadd scalar F_kp = e(widstat)
+
+added scalar:
+               e(F_kp) =  5.2481306
+
+. estimates store F2
+
+. weakiv ivreg2 g (d_wagebill_real = election_fixed) balance_gdp L_g i.year i.i
+> d if `per', cluster(id)
+Estimating model for Wald tests using ivreg2...
+Estimating confidence sets over 100 grid points
+----+--- 1 ---+--- 2 ---+--- 3 ---+--- 4 ---+--- 5 
+..................................................    50
+..................................................   100
+
+Weak instrument robust tests and confidence sets for linear IV
+H0: beta[g:d_wagebill_real] = 0
+------------------------------------------------------------------------------
+ Test |       Statistic         p-value |  Conf. level        Conf. Set       
+------+---------------------------------+-------------------------------------
+   AR | chi2(1)   =     1.91     0.1665 |      95%       [-1.60158,   ...  ]  
+------+---------------------------------+-------------------------------------
+ Wald | chi2(1)   =     1.57     0.2102 |      95%       [-1.86232, 8.46282]  
+------------------------------------------------------------------------------
+Confidence sets estimated for 100 points in [-7.02489, 13.6254].
+Number of obs N = 1504.
+Method = lagrange multiplier (LM).
+Tests robust to heteroskedasticity and clustering on id (N_clust=96).
+Wald statistic in last row is based on ivreg2 estimation and is not robust to
+weak instruments.
+
+. di "F2: IC de Anderson-Rubin (95%): " e(ar_cset)
+F2: IC de Anderson-Rubin (95%): [-1.60158,   ...  ]
+
+. local arci "`e(ar_cset)'"
+
+. local arci : subinstr local arci "  ...  ]" " +inf)"
+
+. local arci : subinstr local arci "[  ...  " "(-inf"
+
+. 
+. * ---------------------------------------------------------------- F3. projec
+> oes locais: anos eleitorais x nao eleitorais
+. gen byte elec = election_fixed
+(871 missing values generated)
+
+. lpirf, y(y100) shocks(d_wagebill_real) state(elec) saving("$INTERIM/lp_F3.dta
+> ") h(6) cond(`per')
+(file C:\Users\Usuario\AppData\Local\Temp\ST_77f4_000001.tmp not found)
+file C:\Users\Usuario\Dropbox\Papers\Emprego Público e
+    Crescimento\Estimações/data/interim/lp_F3.dta saved
+
+  +--------------------------------------------------------------------+
+  | h |           shock | regime |          b |        se |         lo |
+  | 0 | d_wagebill_real |     hi |  1.3853957 | .53996234 |  .27096824 |
+  |--------------------------------------------------------------------|
+  |          hi    |       pdiff    |    df    |       N    |    nc    |
+  |   2.4998232    |   .09416572    |    24    |    1363    |    89    |
+  +--------------------------------------------------------------------+
+
+  +--------------------------------------------------------------------+
+  | h |           shock | regime |          b |        se |         lo |
+  | 0 | d_wagebill_real |     lo |  .62608461 | .23080655 |   .1497233 |
+  |--------------------------------------------------------------------|
+  |          hi    |       pdiff    |    df    |       N    |    nc    |
+  |   1.1024459    |   .09416572    |    24    |    1363    |    89    |
+  +--------------------------------------------------------------------+
+
+  +--------------------------------------------------------------------+
+  | h |           shock | regime |          b |        se |         lo |
+  | 1 | d_wagebill_real |     hi |  1.4094183 | 1.0476475 | -.75281974 |
+  |--------------------------------------------------------------------|
+  |          hi    |       pdiff    |    df    |       N    |    nc    |
+  |   3.5716564    |   .33421778    |    24    |    1363    |    89    |
+  +--------------------------------------------------------------------+
+
+  +--------------------------------------------------------------------+
+  | h |           shock | regime |          b |        se |         lo |
+  | 1 | d_wagebill_real |     lo |   .5832068 | .34852335 | -.13611005 |
+  |--------------------------------------------------------------------|
+  |          hi    |       pdiff    |    df    |       N    |    nc    |
+  |   1.3025236    |   .33421778    |    24    |    1363    |    89    |
+  +--------------------------------------------------------------------+
+
+  +--------------------------------------------------------------------+
+  | h |           shock | regime |          b |        se |         lo |
+  | 2 | d_wagebill_real |     hi |  1.1282654 | 1.0960721 | -1.1339162 |
+  |--------------------------------------------------------------------|
+  |          hi    |       pdiff    |    df    |       N    |    nc    |
+  |   3.3904469    |    .2442732    |    24    |    1363    |    89    |
+  +--------------------------------------------------------------------+
+
+  +--------------------------------------------------------------------+
+  | h |           shock | regime |          b |        se |         lo |
+  | 2 | d_wagebill_real |     lo | -.08417994 | .44879474 | -1.0104468 |
+  |--------------------------------------------------------------------|
+  |          hi    |       pdiff    |    df    |       N    |    nc    |
+  |   .84208688    |    .2442732    |    24    |    1363    |    89    |
+  +--------------------------------------------------------------------+
+
+  +--------------------------------------------------------------------+
+  | h |           shock | regime |          b |        se |         lo |
+  | 3 | d_wagebill_real |     hi |  1.0831543 | 1.2883419 | -1.5758526 |
+  |--------------------------------------------------------------------|
+  |          hi    |       pdiff    |    df    |       N    |    nc    |
+  |   3.7421612    |   .18736777    |    24    |    1363    |    89    |
+  +--------------------------------------------------------------------+
+
+  +--------------------------------------------------------------------+
+  | h |           shock | regime |          b |        se |         lo |
+  | 3 | d_wagebill_real |     lo | -.71711803 | .54034768 | -1.8323408 |
+  |--------------------------------------------------------------------|
+  |          hi    |       pdiff    |    df    |       N    |    nc    |
+  |   .39810477    |   .18736777    |    24    |    1363    |    89    |
+  +--------------------------------------------------------------------+
+
+  +--------------------------------------------------------------------+
+  | h |           shock | regime |          b |        se |         lo |
+  | 4 | d_wagebill_real |     hi |  1.6634418 | 1.4532507 | -1.3428363 |
+  |--------------------------------------------------------------------|
+  |          hi    |       pdiff    |    df    |       N    |    nc    |
+  |     4.66972    |   .05775997    |    23    |    1286    |    87    |
+  +--------------------------------------------------------------------+
+
+  +--------------------------------------------------------------------+
+  | h |           shock | regime |          b |        se |         lo |
+  | 4 | d_wagebill_real |     lo | -1.3011203 | .66415061 | -2.6750205 |
+  |--------------------------------------------------------------------|
+  |          hi    |       pdiff    |    df    |       N    |    nc    |
+  |   .07277995    |   .05775997    |    23    |    1286    |    87    |
+  +--------------------------------------------------------------------+
+
+  +--------------------------------------------------------------------+
+  | h |           shock | regime |          b |        se |         lo |
+  | 5 | d_wagebill_real |     hi |  1.7193823 | 1.6079343 | -1.6152693 |
+  |--------------------------------------------------------------------|
+  |          hi    |       pdiff    |    df    |       N    |    nc    |
+  |    5.054034    |   .07421521    |    22    |    1212    |    85    |
+  +--------------------------------------------------------------------+
+
+  +--------------------------------------------------------------------+
+  | h |           shock | regime |          b |        se |         lo |
+  | 5 | d_wagebill_real |     lo | -1.0827049 | .85396394 | -2.8537177 |
+  |--------------------------------------------------------------------|
+  |          hi    |       pdiff    |    df    |       N    |    nc    |
+  |   .68830795    |   .07421521    |    22    |    1212    |    85    |
+  +--------------------------------------------------------------------+
+
+  +--------------------------------------------------------------------+
+  | h |           shock | regime |          b |        se |         lo |
+  | 6 | d_wagebill_real |     hi |  1.7573838 | 1.8389125 |  -2.066844 |
+  |--------------------------------------------------------------------|
+  |          hi    |       pdiff    |    df    |       N    |    nc    |
+  |   5.5816116    |   .10907072    |    21    |    1139    |    82    |
+  +--------------------------------------------------------------------+
+
+  +--------------------------------------------------------------------+
+  | h |           shock | regime |          b |        se |         lo |
+  | 6 | d_wagebill_real |     lo | -1.0501013 | 1.0076817 |   -3.14569 |
+  |--------------------------------------------------------------------|
+  |          hi    |       pdiff    |    df    |       N    |    nc    |
+  |   1.0454875    |   .10907072    |    21    |    1139    |    82    |
+  +--------------------------------------------------------------------+
+
+. * interacao com merito: mesma decomposicao em paises-ano de merito alto e bai
+> xo (defasado, mediana)
+. quietly summ merit_l1 if `per' & !missing(d_wagebill_real), detail
+
+. local med = r(p50)
+
+. lpirf, y(y100) shocks(d_wagebill_real) state(elec) saving("$INTERIM/lp_F3_hi.
+> dta") h(6) cond(`per' & merit_l1 > `med' & !missing(merit_l1))
+(file C:\Users\Usuario\AppData\Local\Temp\ST_77f4_000001.tmp not found)
+file C:\Users\Usuario\Dropbox\Papers\Emprego Público e
+    Crescimento\Estimações/data/interim/lp_F3_hi.dta saved
+
+  +--------------------------------------------------------------------+
+  | h |           shock | regime |          b |        se |         lo |
+  | 0 | d_wagebill_real |     hi |  1.5824739 | .37526039 |   .8079745 |
+  |--------------------------------------------------------------------|
+  |           hi    |       pdiff    |    df    |      N    |    nc    |
+  |    2.3569733    |   .33915552    |    24    |    714    |    37    |
+  +--------------------------------------------------------------------+
+
+  +--------------------------------------------------------------------+
+  | h |           shock | regime |          b |        se |         lo |
+  | 0 | d_wagebill_real |     lo |  .99624304 | .56706849 |  -.1741288 |
+  |--------------------------------------------------------------------|
+  |           hi    |       pdiff    |    df    |      N    |    nc    |
+  |    2.1666149    |   .33915552    |    24    |    714    |    37    |
+  +--------------------------------------------------------------------+
+
+  +--------------------------------------------------------------------+
+  | h |           shock | regime |          b |        se |         lo |
+  | 1 | d_wagebill_real |     hi |  2.0242438 |  .7174808 |  .54343617 |
+  |--------------------------------------------------------------------|
+  |           hi    |       pdiff    |    df    |      N    |    nc    |
+  |    3.5050513    |   .14096607    |    24    |    714    |    37    |
+  +--------------------------------------------------------------------+
+
+  +--------------------------------------------------------------------+
+  | h |           shock | regime |          b |        se |         lo |
+  | 1 | d_wagebill_real |     lo |  .81044984 | .70748737 | -.64973234 |
+  |--------------------------------------------------------------------|
+  |           hi    |       pdiff    |    df    |      N    |    nc    |
+  |     2.270632    |   .14096607    |    24    |    714    |    37    |
+  +--------------------------------------------------------------------+
+
+  +--------------------------------------------------------------------+
+  | h |           shock | regime |          b |        se |         lo |
+  | 2 | d_wagebill_real |     hi |  2.1186364 | .84489193 |  .37486514 |
+  |--------------------------------------------------------------------|
+  |           hi    |       pdiff    |    df    |      N    |    nc    |
+  |    3.8624076    |   .01139186    |    24    |    714    |    37    |
+  +--------------------------------------------------------------------+
+
+  +--------------------------------------------------------------------+
+  | h |           shock | regime |          b |        se |         lo |
+  | 2 | d_wagebill_real |     lo | -.50138529 | .67056871 | -1.8853711 |
+  |--------------------------------------------------------------------|
+  |           hi    |       pdiff    |    df    |      N    |    nc    |
+  |    .88260052    |   .01139186    |    24    |    714    |    37    |
+  +--------------------------------------------------------------------+
+
+  +--------------------------------------------------------------------+
+  | h |           shock | regime |          b |        se |         lo |
+  | 3 | d_wagebill_real |     hi |  2.2684532 | 1.0856716 |  .02773711 |
+  |--------------------------------------------------------------------|
+  |           hi    |       pdiff    |    df    |      N    |    nc    |
+  |    4.5091694    |   .00746746    |    24    |    714    |    37    |
+  +--------------------------------------------------------------------+
+
+  +--------------------------------------------------------------------+
+  | h |           shock | regime |          b |        se |         lo |
+  | 3 | d_wagebill_real |     lo | -1.3199515 | .71427503 | -2.7941427 |
+  |--------------------------------------------------------------------|
+  |           hi    |       pdiff    |    df    |      N    |    nc    |
+  |    .15423968    |   .00746746    |    24    |    714    |    37    |
+  +--------------------------------------------------------------------+
+
+  +--------------------------------------------------------------------+
+  | h |           shock | regime |          b |        se |         lo |
+  | 4 | d_wagebill_real |     hi |  2.1222823 | 1.2074412 | -.37550022 |
+  |--------------------------------------------------------------------|
+  |           hi    |       pdiff    |    df    |      N    |    nc    |
+  |    4.6200647    |   .00927813    |    23    |    680    |    37    |
+  +--------------------------------------------------------------------+
+
+  +--------------------------------------------------------------------+
+  | h |           shock | regime |          b |        se |         lo |
+  | 4 | d_wagebill_real |     lo | -1.6819454 | .88886161 | -3.5206957 |
+  |--------------------------------------------------------------------|
+  |           hi    |       pdiff    |    df    |      N    |    nc    |
+  |    .15680497    |   .00927813    |    23    |    680    |    37    |
+  +--------------------------------------------------------------------+
+
+  +--------------------------------------------------------------------+
+  | h |           shock | regime |          b |        se |         lo |
+  | 5 | d_wagebill_real |     hi |   1.129766 | 1.2120269 |  -1.383824 |
+  |--------------------------------------------------------------------|
+  |           hi    |       pdiff    |    df    |      N    |    nc    |
+  |    3.6433559    |   .01681139    |    22    |    647    |    37    |
+  +--------------------------------------------------------------------+
+
+  +--------------------------------------------------------------------+
+  | h |           shock | regime |          b |        se |         lo |
+  | 5 | d_wagebill_real |     lo | -2.8591123 | 1.1054279 | -5.1516294 |
+  |--------------------------------------------------------------------|
+  |           hi    |       pdiff    |    df    |      N    |    nc    |
+  |   -.56659519    |   .01681139    |    22    |    647    |    37    |
+  +--------------------------------------------------------------------+
+
+  +--------------------------------------------------------------------+
+  | h |           shock | regime |          b |        se |         lo |
+  | 6 | d_wagebill_real |     hi |  .01978723 | 1.2173332 | -2.5117958 |
+  |--------------------------------------------------------------------|
+  |           hi    |       pdiff    |    df    |      N    |    nc    |
+  |    2.5513703    |   .10147843    |    21    |    614    |    37    |
+  +--------------------------------------------------------------------+
+
+  +--------------------------------------------------------------------+
+  | h |           shock | regime |          b |        se |         lo |
+  | 6 | d_wagebill_real |     lo | -3.0582783 | 1.4426169 | -6.0583644 |
+  |--------------------------------------------------------------------|
+  |           hi    |       pdiff    |    df    |      N    |    nc    |
+  |   -.05819208    |   .10147843    |    21    |    614    |    37    |
+  +--------------------------------------------------------------------+
+
+. lpirf, y(y100) shocks(d_wagebill_real) state(elec) saving("$INTERIM/lp_F3_lo.
+> dta") h(6) cond(`per' & merit_l1 <= `med')
+(file C:\Users\Usuario\AppData\Local\Temp\ST_77f4_000001.tmp not found)
+file C:\Users\Usuario\Dropbox\Papers\Emprego Público e
+    Crescimento\Estimações/data/interim/lp_F3_lo.dta saved
+
+  +--------------------------------------------------------------------+
+  | h |           shock | regime |          b |        se |         lo |
+  | 0 | d_wagebill_real |     hi |  1.3916093 | .64809113 |  .05401492 |
+  |--------------------------------------------------------------------|
+  |          hi    |        pdiff    |    df    |      N    |    nc    |
+  |   2.7292036    |    .18335714    |    24    |    631    |    60    |
+  +--------------------------------------------------------------------+
+
+  +--------------------------------------------------------------------+
+  | h |           shock | regime |          b |        se |         lo |
+  | 0 | d_wagebill_real |     lo |  .57929633 | .15015797 |  .26938552 |
+  |--------------------------------------------------------------------|
+  |          hi    |        pdiff    |    df    |      N    |    nc    |
+  |   .88920714    |    .18335714    |    24    |    631    |    60    |
+  +--------------------------------------------------------------------+
+
+  +--------------------------------------------------------------------+
+  | h |           shock | regime |          b |        se |         lo |
+  | 1 | d_wagebill_real |     hi |  1.4582446 | 1.2182747 | -1.0561508 |
+  |--------------------------------------------------------------------|
+  |          hi    |        pdiff    |    df    |      N    |    nc    |
+  |   3.9726399    |    .56438392    |    24    |    631    |    60    |
+  +--------------------------------------------------------------------+
+
+  +--------------------------------------------------------------------+
+  | h |           shock | regime |          b |        se |         lo |
+  | 1 | d_wagebill_real |     lo |  .78698655 | .24978313 |  .27145952 |
+  |--------------------------------------------------------------------|
+  |          hi    |        pdiff    |    df    |      N    |    nc    |
+  |   1.3025136    |    .56438392    |    24    |    631    |    60    |
+  +--------------------------------------------------------------------+
+
+  +--------------------------------------------------------------------+
+  | h |           shock | regime |          b |        se |         lo |
+  | 2 | d_wagebill_real |     hi |  1.3322724 | 1.1085216 | -.95560372 |
+  |--------------------------------------------------------------------|
+  |          hi    |        pdiff    |    df    |      N    |    nc    |
+  |   3.6201485    |    .44130409    |    24    |    631    |    60    |
+  +--------------------------------------------------------------------+
+
+  +--------------------------------------------------------------------+
+  | h |           shock | regime |          b |        se |         lo |
+  | 2 | d_wagebill_real |     lo |  .45916084 | .42981069 | -.42792483 |
+  |--------------------------------------------------------------------|
+  |          hi    |        pdiff    |    df    |      N    |    nc    |
+  |   1.3462465    |    .44130409    |    24    |    631    |    60    |
+  +--------------------------------------------------------------------+
+
+  +--------------------------------------------------------------------+
+  | h |           shock | regime |          b |        se |         lo |
+  | 3 | d_wagebill_real |     hi |  1.4811093 | 1.3159038 | -1.2347826 |
+  |--------------------------------------------------------------------|
+  |          hi    |        pdiff    |    df    |      N    |    nc    |
+  |   4.1970013    |    .30446151    |    24    |    631    |    60    |
+  +--------------------------------------------------------------------+
+
+  +--------------------------------------------------------------------+
+  | h |           shock | regime |          b |        se |         lo |
+  | 3 | d_wagebill_real |     lo | -.02634013 | .57666794 | -1.2165243 |
+  |--------------------------------------------------------------------|
+  |          hi    |        pdiff    |    df    |      N    |    nc    |
+  |    1.163844    |    .30446151    |    24    |    631    |    60    |
+  +--------------------------------------------------------------------+
+
+  +--------------------------------------------------------------------+
+  | h |           shock | regime |          b |        se |         lo |
+  | 4 | d_wagebill_real |     hi |  2.2970748 | 1.6236495 | -1.0617001 |
+  |--------------------------------------------------------------------|
+  |          hi    |        pdiff    |    df    |      N    |    nc    |
+  |   5.6558498    |     .0951355    |    23    |    588    |    58    |
+  +--------------------------------------------------------------------+
+
+  +--------------------------------------------------------------------+
+  | h |           shock | regime |          b |        se |         lo |
+  | 4 | d_wagebill_real |     lo | -.60970003 | .60518545 | -1.8616215 |
+  |--------------------------------------------------------------------|
+  |          hi    |        pdiff    |    df    |      N    |    nc    |
+  |   .64222145    |     .0951355    |    23    |    588    |    58    |
+  +--------------------------------------------------------------------+
+
+  +--------------------------------------------------------------------+
+  | h |           shock | regime |          b |        se |         lo |
+  | 5 | d_wagebill_real |     hi |  2.7502047 | 1.8273397 | -1.0394659 |
+  |--------------------------------------------------------------------|
+  |          hi    |        pdiff    |    df    |      N    |    nc    |
+  |   6.5398753    |    .11252759    |    22    |    547    |    56    |
+  +--------------------------------------------------------------------+
+
+  +--------------------------------------------------------------------+
+  | h |           shock | regime |          b |        se |         lo |
+  | 5 | d_wagebill_real |     lo | -.03625624 | .73030549 | -1.5508171 |
+  |--------------------------------------------------------------------|
+  |          hi    |        pdiff    |    df    |      N    |    nc    |
+  |   1.4783046    |    .11252759    |    22    |    547    |    56    |
+  +--------------------------------------------------------------------+
+
+  +--------------------------------------------------------------------+
+  | h |           shock | regime |          b |        se |         lo |
+  | 6 | d_wagebill_real |     hi |  3.5150192 | 2.0793169 | -.80915699 |
+  |--------------------------------------------------------------------|
+  |          hi    |        pdiff    |    df    |      N    |    nc    |
+  |   7.8391953    |    .07519893    |    21    |    507    |    52    |
+  +--------------------------------------------------------------------+
+
+  +--------------------------------------------------------------------+
+  | h |           shock | regime |          b |        se |         lo |
+  | 6 | d_wagebill_real |     lo |  .10701937 |  .8653125 | -1.6924965 |
+  |--------------------------------------------------------------------|
+  |          hi    |        pdiff    |    df    |      N    |    nc    |
+  |   1.9065352    |    .07519893    |    21    |    507    |    52    |
+  +--------------------------------------------------------------------+
+
+. 
+. * ---------------------------------------------------------------- Tabela 6
+. local stars "* p<0.10, ** p<0.05, *** p<0.01."
+
+. tab_new, ncol(3) head1("(1)" "(2)" "(3)") head2("First stage" "First stage" "
+> IV diagnostics")
+
+. * o coeficiente de VI nao e mostrado (instrumento fraco pela regra F > 10); f
+> icam so os diagnosticos
+. if `strong' tab_est F1 F1b F2, keep(election_fixed election d_wagebill_real)
+
+. else tab_est F1 F1b F2, keep(election_fixed election)
+
+. tab_mid
+
+. tab_stat F1 "F statistic, excluded instrument" %6.2f
+
+. tab_stat F_kp "Kleibergen-Paap F" %6.2f
+
+. tab_row "Anderson-Rubin 95% CI" "" "" "`arci'"
+
+. tab_row "Second stage shown as evidence" "" "" "`=cond(`strong', "Yes", "No: 
+> weak instrument")'"
+
+. tab_stat N "Observations"
+
+. tab_stat nc "Countries"
+
+. tab_mid
+
+. * painel B: F3 em horizontes selecionados
+. tab_row "Panel B. Local projections, cumulative GDP per capita response (%)" 
+> "" "" ""
+
+. foreach f in F3 F3_hi F3_lo {
+  2.     local lab = cond("`f'" == "F3", "All", cond("`f'" == "F3_hi", "High me
+> rit", "Low merit"))
+  3.     preserve
+  4.     use "$INTERIM/lp_`f'.dta", clear
+  5.     foreach hh in 2 4 {
+  6.         foreach r in hi lo {
+  7.             quietly summ b if h == `hh' & regime == "`r'"
+  8.             local b_`r'_`hh' : display %6.3f r(mean)
+  9.             quietly summ se if h == `hh' & regime == "`r'"
+ 10.             local s_`r'_`hh' : display %6.3f r(mean)
+ 11.         }
+ 12.         quietly summ pdiff if h == `hh'
+ 13.         local p_`hh' : display %5.3f r(mean)
+ 14.     }
+ 15.     restore
+ 16.     foreach hh in 2 4 {
+ 17.         tab_row "`lab', h = `hh': election year / other years" "`=strtrim(
+> "`b_hi_`hh''")' / `=strtrim("`b_lo_`hh''")'" ///
+>             "(`=strtrim("`s_hi_`hh''")') / (`=strtrim("`s_lo_`hh''")')" "p(di
+> ff) = `=strtrim("`p_`hh''")'"
+ 18.     }
+ 19. }
+
+. tab_out Table6_political_economy, title("Table 6. Electoral cycles in the wag
+> e bill") landscape ///
+>     notes("Panel A, columns 1-2: dependent variable is the real change in the
+>  general government wage bill (% of lagged GDP); predetermined election year 
+> = election held in the year the constitutional term expires (DPI, years left 
+> in term = 0); election year = any executive (presidential systems) or legisla
+> tive (other systems) election. Country and year fixed effects, lagged growth,
+>  standard errors clustered by country, 1996-2020 (DPI ends in 2020). Column 3
+> : 2SLS of GDP per capita growth on the wage bill change instrumented by the p
+> redetermined election year, controlling for the overall fiscal balance (% of 
+> GDP) and lagged growth; following the pre-specified rule, the second-stage co
+> efficient is shown only if the first-stage F exceeds 10, which is not the cas
+> e here; the Anderson-Rubin confidence set is robust to weak instruments. Pane
+> l B: local projections of 100 x log GDP per capita on wage bill shocks occurr
+> ing in predetermined election years and in other years (two lags of the shock
+>  and of growth, country and year fixed effects, Driscoll-Kraay standard error
+> s); high and low merit split at the median of lagged V-Dem meritocratic recru
+> itment. Entries: coefficient for election-year shocks / other-year shocks, st
+> andard errors in parentheses, p-value of the difference. `stars'")
+successfully replaced "C:/Users/Usuario/Dropbox/Papers/Emprego Público e Cresci
+> mento/Estimações/output/tables/Table6_political_economy.docx"
+tabela gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\E
+> stimações/output/tables/Table6_political_economy.{tex,docx}
+
+. 
+. * ---------------------------------------------------------------- Figura A4
+. use "$INTERIM/lp_F3.dta", clear
+
+. twoway (rarea lo hi h if regime == "lo", color("$C1%15") lwidth(none)) ///
+>        (rarea lo hi h if regime == "hi", color("$C3%25") lwidth(none)) ///
+>        (connected b h if regime == "lo", lcolor("$C1") mcolor("$C1") msymbol(
+> T) lpattern(dash)) ///
+>        (connected b h if regime == "hi", lcolor("$C3") mcolor("$C3") msymbol(
+> O) lpattern(solid)), ///
+>        $GOPT yline(0, lcolor(gs10) lpattern(dash)) xlabel(0(1)6, labsize(7pt)
+> ) ylabel(, labsize(7pt) nogrid angle(horizontal)) ///
+>        legend(order(4 "Shock in predetermined election year" 3 "Shock in othe
+> r years") cols(1) pos(6) size(7pt) symxsize(8)) ///
+>        xtitle("Years after the shock", size(8pt)) ytitle("GDP per capita (%)"
+> , size(8pt) margin(r=1))
+
+. fig_export FigureA4_lp_elections, width(90) height(90)
+file C:\Users\Usuario\Dropbox\Papers\Emprego Público e
+    Crescimento\Estimações/output/figures/FigureA4_lp_elections.pdf saved as
+    PDF format
+file C:\Users\Usuario\Dropbox\Papers\Emprego Público e
+    Crescimento\Estimações/output/figures/FigureA4_lp_elections.png saved as
+    PNG format
+figura gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\E
+> stimações/output/figures/FigureA4_lp_elections.{pdf,png} (90 x 90 mm)
+
+. 
+. foreach m in F1 F1b F2 {
+  2.     estimates restore `m'
+  3.     estimates save "$LOG/est_`m'", replace
+  4. }
+(results F1 are active now)
+file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/o
+> utput/logs/est_F1.ster saved
+(results F1b are active now)
+file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/o
+> utput/logs/est_F1b.ster saved
+(results F2 are active now)
+file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/o
+> utput/logs/est_F2.ster saved
+
+. log close
+      name:  <unnamed>
+       log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Esti
+> mações/output/logs/10_economia_politica.log
+  log type:  text
+ closed on:   7 Oct 2026, 23:28:01
+-------------------------------------------------------------------------------

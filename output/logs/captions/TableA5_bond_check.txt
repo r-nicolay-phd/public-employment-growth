@@ -1,0 +1,2 @@
+Table A5. Bond (2002) check on the coefficient of lagged growth
+Five-year averages, 1979-2023, microstates excluded. All columns include the controls of Table 2 and period effects. Pooled OLS is biased upwards and fixed effects downwards for the coefficient of the lagged dependent variable; a consistent estimator should lie between them. Standard errors clustered by country (1-2), Windmeijer-corrected (3) and robust (4). * p<0.10, ** p<0.05, *** p<0.01.

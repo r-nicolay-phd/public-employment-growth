@@ -1,0 +1,2 @@
+Table A9. Bayesian model averaging over the control set
+Bayesian model averaging (Magnus, Powell and Prufer, 2010; De Luca and Magnus, 2011) over all 2^10 combinations of the regressors listed, all treated as auxiliary. Five-year averages; country and period fixed effects partialled out of every variable beforehand (Frisch-Waugh), common sample of 370 observations, microstates excluded. Dependent variable: growth of real GDP per capita (%, five-year average).

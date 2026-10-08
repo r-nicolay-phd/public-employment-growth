@@ -1,0 +1,2 @@
+Table 1. Descriptive statistics, annual panel
+Annual country-year observations, 1996-2023, excluding microstates (population below 500,000). SD between is the standard deviation of country means; SD within is the standard deviation of deviations from country means. Growth and inflation winsorized at the 1st and 99th percentiles. Wage bill: compensation of employees of the general government (IMF GFS). Public employment, relative wage and premium: World Bank Worldwide Bureaucracy Indicators.

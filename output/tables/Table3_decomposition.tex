@@ -1,0 +1,45 @@
+% gerado por code/00_tabelas.do -- nao editar a mao
+\begin{table}[htbp]\centering\footnotesize
+\providecommand{\sym}[1]{\ensuremath{^{#1}}}
+\caption{Table 3. Employment or pay? Decomposing the public wage bill}\label{tab:Table3_decomposition}
+\begin{tabular}{l*{3}{c}}
+\toprule
+ & (1) & (2) & (3) \\
+ & B1 & B2 & B3 \\
+\midrule
+Public employment (\% of total employment), initial & -0.006 & -0.205 & 0.036 \\
+ & (0.041) & (0.147) & (0.047) \\
+Public employment squared, initial &  & 0.003 &  \\
+ &  & (0.002) &  \\
+Relative public wage, initial & -0.940\sym{*} & -1.595\sym{**} &  \\
+ & (0.551) & (0.772) &  \\
+Public wage premium (log points), initial &  &  & 1.644 \\
+ &  &  & (1.206) \\
+Log initial GDP per capita & -8.058\sym{***} & -8.130\sym{***} & -8.638\sym{***} \\
+ & (1.290) & (1.278) & (1.297) \\
+Human capital index, initial & -0.531 & -0.538 & -1.082 \\
+ & (2.512) & (2.474) & (2.036) \\
+Investment (\% of GDP) & 0.198\sym{***} & 0.198\sym{***} & 0.176\sym{***} \\
+ & (0.074) & (0.073) & (0.047) \\
+Trade openness (\% of GDP) & 0.028 & 0.026 & 0.012 \\
+ & (0.019) & (0.019) & (0.013) \\
+Inflation (\%) & 0.049 & 0.049 & -0.015 \\
+ & (0.035) & (0.035) & (0.016) \\
+Population growth (\%) & -0.894\sym{**} & -0.869\sym{**} & -0.644 \\
+ & (0.381) & (0.372) & (0.515) \\
+Commodity terms-of-trade growth (\%) & -0.066 & -0.053 & 0.259 \\
+ & (0.234) & (0.240) & (0.280) \\
+\midrule
+Shape of the quadratic in public employment &  & U-shaped (minimum) &  \\
+Turning point of public employment (\%) &  & 29.5 &  \\
+95\% CI of turning point (delta method) &  & [18.7, 40.4] &  \\
+Share of sample left of turning point (\%) &  & 85.9 &  \\
+Joint test, linear and squared terms (p) &  & 0.274 &  \\
+Country and period fixed effects & Yes & Yes & Yes \\
+Observations & 205 & 205 & 252 \\
+Countries & 57 & 57 & 77 \\
+$R^2$ (within) & 0.509 & 0.515 & 0.402 \\
+\bottomrule
+\end{tabular}
+\begin{minipage}{0.95\linewidth}\vspace{4pt}\scriptsize \textit{Notes:} Dependent variable: growth of real GDP per capita (\%, five-year average). Public employment is public sector employment as a share of total employment (World Bank WWBI); the relative public wage is the general government wage bill (\% of GDP, IMF GFS) divided by the public employment share, i.e. pay per public employee relative to GDP per worker; the public wage premium is the WWBI conditional public-private wage gap with respect to all private employees (log points). WWBI variables are survey-based: the first observation available within each period is used. Country and period fixed effects; standard errors clustered by country. Turning point = -b1/(2 b2), with a 95\% confidence interval from the delta method. Five-year periods, 1999-2023 (WWBI starts in 2000); microstates excluded. * p<0.10, ** p<0.05, *** p<0.01.\end{minipage}
+\end{table}

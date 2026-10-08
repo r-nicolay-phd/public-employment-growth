@@ -1,0 +1,30 @@
+% gerado por code/00_tabelas.do -- nao editar a mao
+\begin{table}[htbp]\centering\footnotesize
+\providecommand{\sym}[1]{\ensuremath{^{#1}}}
+\caption{Table 4. Does bureaucratic recruitment moderate the growth cost of the wage bill?}\label{tab:Table4_moderation}
+\begin{tabular}{l*{7}{c}}
+\toprule
+ & (1) & (2) & (3) & (4) & (5) & (6) & (7) \\
+ & Merit, linear & WGI, linear & Merit < median & Merit > median & Merit, tercile 1 & Merit, tercile 2 & Merit, tercile 3 \\
+\midrule
+Wage bill (\% of GDP), initial & -0.224\sym{***} & -0.412\sym{***} & -0.314\sym{**} & -0.172\sym{*} & -0.369\sym{**} & -0.246\sym{**} & -0.175 \\
+ & (0.082) & (0.140) & (0.128) & (0.092) & (0.170) & (0.106) & (0.103) \\
+Meritocratic recruitment (V-Dem), initial & -0.565 &  &  &  &  &  &  \\
+ & (0.643) &  &  &  &  &  &  \\
+Wage bill x meritocratic recruitment & 0.041 &  &  &  &  &  &  \\
+ & (0.051) &  &  &  &  &  &  \\
+Government effectiveness (WGI), initial &  & 0.938 &  &  &  &  &  \\
+ &  & (1.364) &  &  &  &  &  \\
+Wage bill x government effectiveness &  & -0.062 &  &  &  &  &  \\
+ &  & (0.107) &  &  &  &  &  \\
+\midrule
+Equality of wage bill coefficients (p) &  &  & 0.734 &  & 0.587 &  &  \\
+Controls & Yes & Yes & Yes & Yes & Yes & Yes & Yes \\
+Country and period fixed effects & Yes & Yes & Yes & Yes & Yes & Yes & Yes \\
+Observations & 359 & 251 & 170 & 178 & 116 & 112 & 120 \\
+Countries & 72 & 71 & 44 & 30 & 35 & 25 & 19 \\
+$R^2$ (within) & 0.409 & 0.511 & 0.442 & 0.292 & 0.359 & 0.614 & 0.369 \\
+\bottomrule
+\end{tabular}
+\begin{minipage}{0.95\linewidth}\vspace{4pt}\scriptsize \textit{Notes:} Dependent variable: growth of real GDP per capita (\%, five-year average). Wage bill: general government compensation of employees (\% of GDP) in the first year of the period. Meritocratic recruitment: V-Dem v2stcritrecadm (criteria for appointment decisions in the state administration; higher values = more merit-based), measured in the first year of the period. WGI: government effectiveness, first year of the period (from 1996). Columns 3-7 split the sample at the median and terciles of merit in the estimation sample of column 1; the equality test comes from a pooled model with all coefficients and the period effects interacted with the group. Controls as in Table 2. Country and period fixed effects; standard errors clustered by country. The threshold estimates (Seo and Shin, 2016) are in Table A6. * p<0.10, ** p<0.05, *** p<0.01.\end{minipage}
+\end{table}

@@ -1,0 +1,1063 @@
+-------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Esti
+> mações/output/logs/05_base.log
+  log type:  text
+ opened on:   7 Oct 2026, 23:21:51
+
+. 
+. global X5 "lny0 hc0 inv open infl popg ctot_g"
+
+. 
+. * ---------------------------------------------------------------- A1. EF pai
+> s e periodo, medias de 5 anos
+. use "$FINAL/painel_5anos.dta", clear
+
+. keep if micro == 0
+(261 observations deleted)
+
+. xtset id period
+
+Panel variable: id (strongly balanced)
+ Time variable: period, 0 to 8
+         Delta: 1 unit
+
+. reghdfe g wagebill_gdp0 $X5, absorb(id period) vce(cluster id)
+(dropped 15 singleton observations)
+(MWFE estimator converged in 7 iterations)
+
+HDFE Linear regression                            Number of obs   =        365
+Absorbing 2 HDFE groups                           F(   8,     71) =      17.83
+Statistics robust to heteroskedasticity           Prob > F        =     0.0000
+                                                  R-squared       =     0.7266
+                                                  Adj R-squared   =     0.6407
+                                                  Within R-sq.    =     0.4030
+Number of clusters (id)      =         72         Root MSE        =     1.3074
+
+                                    (Std. err. adjusted for 72 clusters in id)
+------------------------------------------------------------------------------
+             |               Robust
+           g | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+wagebill_g~0 |  -.1817291   .0724032    -2.51   0.014    -.3260969   -.0373612
+        lny0 |  -5.229825   .8562268    -6.11   0.000    -6.937093   -3.522558
+         hc0 |   2.344566   1.138573     2.06   0.043     .0743155    4.614816
+         inv |   .1529867   .0487482     3.14   0.002     .0557856    .2501879
+        open |   .0295535    .010238     2.89   0.005     .0091395    .0499675
+        infl |  -.0171154   .0060374    -2.83   0.006    -.0291535   -.0050773
+        popg |   -.692001   .2376375    -2.91   0.005    -1.165837   -.2181653
+      ctot_g |   .2207698   .0846225     2.61   0.011     .0520374    .3895022
+       _cons |    41.4028   8.355942     4.95   0.000     24.74152    58.06408
+------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+          id |        72          72           0    *|
+      period |         9           1           8     |
+-----------------------------------------------------+
+* = FE nested within cluster; treated as redundant for DoF computation
+
+. estadd scalar nc = e(N_clust)
+
+added scalar:
+                 e(nc) =  72
+
+. estadd scalar r2w = e(r2_within)
+
+added scalar:
+                e(r2w) =  .40296933
+
+. estimates store A1
+
+. 
+. * ---------------------------------------------------------------- A4. restri
+> cao orcamentaria do governo
+. * As participacoes das categorias somam 100: uma categoria fica omitida e o c
+> oeficiente da folha mede a
+. * realocacao de 1 p.p. da despesa da categoria omitida para a folha. O result
+> ado fiscal e receita - despesa
+. * no GFS; com receita e despesa no modelo ele fica implicito (colinearidade e
+> xata).
+. reghdfe g wagebill_share0 sh_goods0 sh_int0 sh_transf0 sh_other0 exp_gdp0 rev
+> _gdp0 $X5, absorb(id period) vce(cluster id)
+(dropped 16 singleton observations)
+(MWFE estimator converged in 7 iterations)
+
+HDFE Linear regression                            Number of obs   =        240
+Absorbing 2 HDFE groups                           F(  14,     61) =      22.57
+Statistics robust to heteroskedasticity           Prob > F        =     0.0000
+                                                  R-squared       =     0.7888
+                                                  Adj R-squared   =     0.6826
+                                                  Within R-sq.    =     0.5078
+Number of clusters (id)      =         62         Root MSE        =     1.2410
+
+                                    (Std. err. adjusted for 62 clusters in id)
+------------------------------------------------------------------------------
+             |               Robust
+           g | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+wagebill_s~0 |  -.0390665   .0312192    -1.25   0.216    -.1014931    .0233602
+   sh_goods0 |  -.0427741   .0537694    -0.80   0.429    -.1502927    .0647445
+     sh_int0 |   .1130352   .0507949     2.23   0.030     .0114646    .2146058
+  sh_transf0 |   .0276134   .0208986     1.32   0.191    -.0141758    .0694027
+   sh_other0 |    .074945   .0334293     2.24   0.029      .008099     .141791
+    exp_gdp0 |  -.2146811   .0482568    -4.45   0.000    -.3111766   -.1181856
+    rev_gdp0 |   .1017944   .0626108     1.63   0.109    -.0234037    .2269924
+        lny0 |  -6.359465   .8825151    -7.21   0.000    -8.124163   -4.594767
+         hc0 |   3.089044    1.58257     1.95   0.056    -.0754994    6.253588
+         inv |   .2151999   .0599802     3.59   0.001      .095262    .3351377
+        open |   .0165128    .013266     1.24   0.218    -.0100141    .0430398
+        infl |  -.0658493   .0310331    -2.12   0.038    -.1279038   -.0037947
+        popg |  -.5365528   .3234394    -1.66   0.102     -1.18331    .1102043
+      ctot_g |   .3528125   .1628776     2.17   0.034     .0271187    .6785064
+       _cons |   50.49372   10.19787     4.95   0.000     30.10181    70.88564
+------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+          id |        62          62           0    *|
+      period |         6           1           5     |
+-----------------------------------------------------+
+* = FE nested within cluster; treated as redundant for DoF computation
+
+. estadd scalar nc = e(N_clust)
+
+added scalar:
+                 e(nc) =  62
+
+. estadd scalar r2w = e(r2_within)
+
+added scalar:
+                e(r2w) =  .50782149
+
+. estadd local omitted "Investment"
+
+added macro:
+            e(omitted) : "Investment"
+
+. estimates store A4a
+
+. reghdfe g wagebill_share0 sh_goods0 sh_int0 sh_inv0 sh_other0 exp_gdp0 rev_gd
+> p0 $X5, absorb(id period) vce(cluster id)
+(dropped 16 singleton observations)
+(MWFE estimator converged in 7 iterations)
+
+HDFE Linear regression                            Number of obs   =        240
+Absorbing 2 HDFE groups                           F(  14,     61) =      22.57
+Statistics robust to heteroskedasticity           Prob > F        =     0.0000
+                                                  R-squared       =     0.7888
+                                                  Adj R-squared   =     0.6826
+                                                  Within R-sq.    =     0.5078
+Number of clusters (id)      =         62         Root MSE        =     1.2410
+
+                                    (Std. err. adjusted for 62 clusters in id)
+------------------------------------------------------------------------------
+             |               Robust
+           g | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+wagebill_s~0 |  -.0666799   .0305584    -2.18   0.033    -.1277853   -.0055745
+   sh_goods0 |  -.0703875   .0612632    -1.15   0.255    -.1928908    .0521158
+     sh_int0 |   .0854218   .0528632     1.62   0.111    -.0202847    .1911282
+     sh_inv0 |  -.0276134   .0208986    -1.32   0.191    -.0694027    .0141758
+   sh_other0 |   .0473316    .034449     1.37   0.174    -.0215534    .1162165
+    exp_gdp0 |  -.2146811   .0482568    -4.45   0.000    -.3111766   -.1181856
+    rev_gdp0 |   .1017944   .0626108     1.63   0.109    -.0234037    .2269924
+        lny0 |  -6.359465   .8825151    -7.21   0.000    -8.124163   -4.594767
+         hc0 |   3.089044    1.58257     1.95   0.056    -.0754994    6.253588
+         inv |   .2151999   .0599802     3.59   0.001      .095262    .3351377
+        open |   .0165128    .013266     1.24   0.218    -.0100141    .0430398
+        infl |  -.0658493   .0310331    -2.12   0.038    -.1279038   -.0037947
+        popg |  -.5365528   .3234394    -1.66   0.102     -1.18331    .1102043
+      ctot_g |   .3528125   .1628776     2.17   0.034     .0271187    .6785064
+       _cons |   53.25507   9.756525     5.46   0.000     33.74569    72.76444
+------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+          id |        62          62           0    *|
+      period |         6           1           5     |
+-----------------------------------------------------+
+* = FE nested within cluster; treated as redundant for DoF computation
+
+. estadd scalar nc = e(N_clust)
+
+added scalar:
+                 e(nc) =  62
+
+. estadd scalar r2w = e(r2_within)
+
+added scalar:
+                e(r2w) =  .50782149
+
+. estadd local omitted "Transfers"
+
+added macro:
+            e(omitted) : "Transfers"
+
+. estimates store A4b
+
+. * forma reduzida de H1: participacao da folha, mantida a despesa total (apend
+> ice)
+. reghdfe g wagebill_share0 exp_gdp0 $X5, absorb(id period) vce(cluster id)
+(dropped 15 singleton observations)
+(MWFE estimator converged in 7 iterations)
+
+HDFE Linear regression                            Number of obs   =        356
+Absorbing 2 HDFE groups                           F(   9,     71) =      13.70
+Statistics robust to heteroskedasticity           Prob > F        =     0.0000
+                                                  R-squared       =     0.7176
+                                                  Adj R-squared   =     0.6246
+                                                  Within R-sq.    =     0.3739
+Number of clusters (id)      =         72         Root MSE        =     1.3092
+
+                                    (Std. err. adjusted for 72 clusters in id)
+------------------------------------------------------------------------------
+             |               Robust
+           g | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+wagebill_s~0 |  -.0269941   .0185731    -1.45   0.151    -.0640279    .0100397
+    exp_gdp0 |  -.0589503    .033576    -1.76   0.083     -.125899    .0079983
+        lny0 |  -5.316131   .9015619    -5.90   0.000    -7.113795   -3.518468
+         hc0 |   2.220452   1.087923     2.04   0.045     .0511959    4.389708
+         inv |   .1482856   .0455081     3.26   0.002      .057545    .2390262
+        open |   .0288434   .0101176     2.85   0.006     .0086694    .0490174
+        infl |  -.0121328    .008065    -1.50   0.137    -.0282139    .0039483
+        popg |  -.6365727   .2406857    -2.64   0.010    -1.116486    -.156659
+      ctot_g |   .1930722    .088767     2.18   0.033     .0160757    .3700687
+       _cons |   43.85127   9.380478     4.67   0.000     25.14713    62.55541
+------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+          id |        72          72           0    *|
+      period |         9           1           8     |
+-----------------------------------------------------+
+* = FE nested within cluster; treated as redundant for DoF computation
+
+. estadd scalar nc = e(N_clust)
+
+added scalar:
+                 e(nc) =  72
+
+. estadd scalar r2w = e(r2_within)
+
+added scalar:
+                e(r2w) =  .37391005
+
+. estimates store A4s
+
+. 
+. * ---------------------------------------------------------------- A5. System
+>  GMM (Blundell-Bond)
+. * Crescimento defasado (L_g = crescimento medio do periodo anterior), folha i
+> nicial, investimento e renda
+. * inicial tratados como endogenos; capital humano, abertura, inflacao, popula
+> cao, termos de troca e dummies
+. * de periodo como instrumentos padrao. Instrumentos colapsados; defasagens 2-
+> 3 (L_g: 1-2, que sao as
+. * defasagens 2-3 de g); dois estagios com correcao de Windmeijer.
+. local exo "hc0 open infl popg ctot_g"
+
+. quietly tab period, gen(pd)
+
+. drop pd1
+
+. local gmmset1 "gmm(L_g, lag(1 1) collapse) gmm(wagebill_gdp0 inv lny0, lag(2 
+> 2) collapse)"
+
+. local gmmset2 "gmm(L_g, lag(1 2) collapse) gmm(wagebill_gdp0 inv lny0, lag(2 
+> 3) collapse)"
+
+. local gmmset3 "gmm(L_g, lag(1 3) collapse) gmm(wagebill_gdp0 inv lny0, lag(2 
+> 4) collapse)"
+
+. forvalues s = 1/3 {
+  2.     xtabond2 g L_g wagebill_gdp0 $X5 pd*, `gmmset`s'' iv(`exo' pd*) twoste
+> p robust small
+  3.     estadd scalar nc = e(N_g)
+  4.     estadd scalar nins = e(j)
+  5.     estadd scalar ratio_ins = e(j) / e(N_g)
+  6.     matrix DH = e(diffsargan)
+  7.     estadd scalar dhansenp = DH[5, 1]
+  8.     di "Conjunto `s': instrumentos = " e(j) ", paises = " e(N_g) ", AR(2) 
+> p = " %5.3f e(ar2p) ", Hansen p = " %5.3f e(hansenp) ", dif-Hansen (nivel) p 
+> = " %5.3f DH[5, 1]
+  9.     assert e(j) < e(N_g) / 2
+ 10.     estimates store A5_s`s'
+ 11. }
+Favoring space over speed. To switch, type or click on mata: mata set matafavor
+>  speed, perm.
+pd8 dropped due to collinearity
+Warning: Two-step estimated covariance matrix of moments is singular.
+  Using a generalized inverse to calculate optimal weighting matrix for two-ste
+> p estimation.
+  Difference-in-Sargan/Hansen statistics may be negative.
+
+Dynamic panel-data estimation, two-step system GMM
+------------------------------------------------------------------------------
+Group variable: id                              Number of obs      =       368
+Time variable : period                          Number of groups   =        87
+Number of instruments = 21                      Obs per group: min =         1
+F(16, 86)     =     31.78                                      avg =      4.23
+Prob > F      =     0.000                                      max =         8
+------------------------------------------------------------------------------
+             |              Corrected
+           g | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+         L_g |   .2584667   .1828447     1.41   0.161    -.1050166    .6219499
+wagebill_g~0 |  -.1517622   .3052669    -0.50   0.620    -.7586128    .4550883
+        lny0 |  -1.670279   1.180254    -1.42   0.161    -4.016547    .6759891
+         hc0 |   2.151703   1.739129     1.24   0.219    -1.305571    5.608976
+         inv |  -.1129672   .1683664    -0.67   0.504    -.4476685    .2217342
+        open |   .0070447   .0071195     0.99   0.325    -.0071084    .0211978
+        infl |     -.0249   .0106135    -2.35   0.021    -.0459989   -.0038011
+        popg |  -.2554887   .3601611    -0.71   0.480    -.9714652    .4604879
+      ctot_g |   -.117741   .1911474    -0.62   0.540    -.4977293    .2622474
+         pd2 |   2.580706   .9412369     2.74   0.007     .7095891    4.451823
+         pd3 |   .8660184   1.034224     0.84   0.405    -1.189951    2.921988
+         pd4 |   2.144823   .7867078     2.73   0.008     .5808995    3.708746
+         pd5 |      .7947   .4857077     1.64   0.105    -.1708549    1.760255
+         pd6 |   1.710091   .4260349     4.01   0.000     .8631611     2.55702
+         pd7 |  -1.686108   .7744592    -2.18   0.032    -3.225682   -.1465342
+         pd9 |  -.8563533   .2856005    -3.00   0.004    -1.424108   -.2885983
+       _cons |   14.52983   4.498984     3.23   0.002     5.586148    23.47351
+------------------------------------------------------------------------------
+Instruments for first differences equation
+  Standard
+    D.(hc0 open infl popg ctot_g pd2 pd3 pd4 pd5 pd6 pd7 pd8 pd9)
+  GMM-type (missing=0, separate instruments for each period unless collapsed)
+    L2.(wagebill_gdp0 inv lny0) collapsed
+    L.L_g collapsed
+Instruments for levels equation
+  Standard
+    hc0 open infl popg ctot_g pd2 pd3 pd4 pd5 pd6 pd7 pd8 pd9
+    _cons
+  GMM-type (missing=0, separate instruments for each period unless collapsed)
+    DL.(wagebill_gdp0 inv lny0) collapsed
+    D.L_g collapsed
+------------------------------------------------------------------------------
+Arellano-Bond test for AR(1) in first differences: z =  -3.44  Pr > z =  0.001
+Arellano-Bond test for AR(2) in first differences: z =   0.12  Pr > z =  0.904
+------------------------------------------------------------------------------
+Sargan test of overid. restrictions: chi2(4)    =   5.87  Prob > chi2 =  0.209
+  (Not robust, but not weakened by many instruments.)
+Hansen test of overid. restrictions: chi2(4)    =   6.55  Prob > chi2 =  0.162
+  (Robust, but weakened by many instruments.)
+
+Difference-in-Hansen tests of exogeneity of instrument subsets:
+  GMM instruments for levels
+    Hansen test excluding group:     chi2(0)    =   0.00  Prob > chi2 =      .
+    Difference (null H = exogenous): chi2(4)    =   6.55  Prob > chi2 =  0.162
+  gmm(L_g, collapse lag(1 1))
+    Hansen test excluding group:     chi2(2)    =   0.29  Prob > chi2 =  0.865
+    Difference (null H = exogenous): chi2(2)    =   6.26  Prob > chi2 =  0.044
+
+
+added scalar:
+                 e(nc) =  87
+
+added scalar:
+               e(nins) =  21
+
+added scalar:
+          e(ratio_ins) =  .24137931
+
+added scalar:
+           e(dhansenp) =  .16178147
+Conjunto 1: instrumentos = 21, paises = 87, AR(2) p = 0.904, Hansen p = 0.162, 
+> dif-Hansen (nivel) p = 0.162
+Favoring space over speed. To switch, type or click on mata: mata set matafavor
+>  speed, perm.
+pd8 dropped due to collinearity
+Warning: Two-step estimated covariance matrix of moments is singular.
+  Using a generalized inverse to calculate optimal weighting matrix for two-ste
+> p estimation.
+  Difference-in-Sargan/Hansen statistics may be negative.
+
+Dynamic panel-data estimation, two-step system GMM
+------------------------------------------------------------------------------
+Group variable: id                              Number of obs      =       368
+Time variable : period                          Number of groups   =        87
+Number of instruments = 25                      Obs per group: min =         1
+F(16, 86)     =     32.97                                      avg =      4.23
+Prob > F      =     0.000                                      max =         8
+------------------------------------------------------------------------------
+             |              Corrected
+           g | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+         L_g |   .1701253   .1931614     0.88   0.381    -.2138668    .5541174
+wagebill_g~0 |  -.2799382   .2784985    -1.01   0.318    -.8335749    .2736985
+        lny0 |  -1.287568   1.335545    -0.96   0.338    -3.942544    1.367408
+         hc0 |   1.632095   2.074552     0.79   0.434    -2.491978    5.756168
+         inv |  -.0150169   .1794154    -0.08   0.933    -.3716829    .3416491
+        open |   .0047135   .0075731     0.62   0.535    -.0103414    .0197684
+        infl |  -.0206515    .011056    -1.87   0.065    -.0426302    .0013272
+        popg |  -.5041703   .3319926    -1.52   0.133     -1.16415    .1558091
+      ctot_g |  -.0002168   .1945191    -0.00   0.999    -.3869079    .3864743
+         pd2 |   2.153452   1.064207     2.02   0.046     .0378779    4.269026
+         pd3 |   .7285786   1.123217     0.65   0.518    -1.504303     2.96146
+         pd4 |   1.690454   .9127261     1.85   0.067    -.1239858    3.504893
+         pd5 |    .786223   .5298536     1.48   0.142    -.2670911    1.839537
+         pd6 |   1.751412    .408608     4.29   0.000      .939126    2.563698
+         pd7 |  -1.046904   .6709899    -1.56   0.122    -2.380788    .2869801
+         pd9 |   -.679152   .2362145    -2.88   0.005    -1.148731   -.2095731
+       _cons |   11.85066   4.973326     2.38   0.019     1.964016    21.73731
+------------------------------------------------------------------------------
+Instruments for first differences equation
+  Standard
+    D.(hc0 open infl popg ctot_g pd2 pd3 pd4 pd5 pd6 pd7 pd8 pd9)
+  GMM-type (missing=0, separate instruments for each period unless collapsed)
+    L(2/3).(wagebill_gdp0 inv lny0) collapsed
+    L(1/2).L_g collapsed
+Instruments for levels equation
+  Standard
+    hc0 open infl popg ctot_g pd2 pd3 pd4 pd5 pd6 pd7 pd8 pd9
+    _cons
+  GMM-type (missing=0, separate instruments for each period unless collapsed)
+    DL.(wagebill_gdp0 inv lny0) collapsed
+    D.L_g collapsed
+------------------------------------------------------------------------------
+Arellano-Bond test for AR(1) in first differences: z =  -2.80  Pr > z =  0.005
+Arellano-Bond test for AR(2) in first differences: z =  -0.49  Pr > z =  0.621
+------------------------------------------------------------------------------
+Sargan test of overid. restrictions: chi2(8)    =  19.81  Prob > chi2 =  0.011
+  (Not robust, but not weakened by many instruments.)
+Hansen test of overid. restrictions: chi2(8)    =  14.09  Prob > chi2 =  0.080
+  (Robust, but weakened by many instruments.)
+
+Difference-in-Hansen tests of exogeneity of instrument subsets:
+  GMM instruments for levels
+    Hansen test excluding group:     chi2(4)    =   9.27  Prob > chi2 =  0.055
+    Difference (null H = exogenous): chi2(4)    =   4.82  Prob > chi2 =  0.307
+  gmm(L_g, collapse lag(1 2))
+    Hansen test excluding group:     chi2(5)    =   6.43  Prob > chi2 =  0.267
+    Difference (null H = exogenous): chi2(3)    =   7.65  Prob > chi2 =  0.054
+
+
+added scalar:
+                 e(nc) =  87
+
+added scalar:
+               e(nins) =  25
+
+added scalar:
+          e(ratio_ins) =  .28735632
+
+added scalar:
+           e(dhansenp) =  .30652498
+Conjunto 2: instrumentos = 25, paises = 87, AR(2) p = 0.621, Hansen p = 0.080, 
+> dif-Hansen (nivel) p = 0.307
+Favoring space over speed. To switch, type or click on mata: mata set matafavor
+>  speed, perm.
+pd8 dropped due to collinearity
+Warning: Two-step estimated covariance matrix of moments is singular.
+  Using a generalized inverse to calculate optimal weighting matrix for two-ste
+> p estimation.
+  Difference-in-Sargan/Hansen statistics may be negative.
+
+Dynamic panel-data estimation, two-step system GMM
+------------------------------------------------------------------------------
+Group variable: id                              Number of obs      =       368
+Time variable : period                          Number of groups   =        87
+Number of instruments = 29                      Obs per group: min =         1
+F(16, 86)     =     23.47                                      avg =      4.23
+Prob > F      =     0.000                                      max =         8
+------------------------------------------------------------------------------
+             |              Corrected
+           g | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+         L_g |  -.0611101   .1341484    -0.46   0.650    -.3277882     .205568
+wagebill_g~0 |  -.1296943   .2630235    -0.49   0.623    -.6525678    .3931792
+        lny0 |  -1.836581    1.13979    -1.61   0.111    -4.102408    .4292464
+         hc0 |   2.280615   1.917007     1.19   0.237    -1.530269    6.091499
+         inv |   .2018605   .1325897     1.52   0.132    -.0617192    .4654401
+        open |   .0068968   .0056497     1.22   0.226    -.0043345    .0181281
+        infl |  -.0184202   .0118789    -1.55   0.125    -.0420347    .0051943
+        popg |   -.517027   .3520795    -1.47   0.146    -1.216938    .1828839
+      ctot_g |   .2057495   .1636841     1.26   0.212    -.1196437    .5311427
+         pd2 |   1.569428   1.065188     1.47   0.144    -.5480958    3.686951
+         pd3 |    .620128   1.023642     0.61   0.546    -1.414805    2.655061
+         pd4 |   1.461086   .8000372     1.83   0.071    -.1293351    3.051507
+         pd5 |   1.018014   .5593474     1.82   0.072    -.0939321    2.129959
+         pd6 |    1.61156   .4283201     3.76   0.000     .7600878    2.463032
+         pd7 |  -.6310371   .4502113    -1.40   0.165    -1.526028    .2639533
+         pd9 |  -.5857866   .2204717    -2.66   0.009     -1.02407   -.1475035
+       _cons |   9.041595   4.278227     2.11   0.037     .5367613    17.54643
+------------------------------------------------------------------------------
+Instruments for first differences equation
+  Standard
+    D.(hc0 open infl popg ctot_g pd2 pd3 pd4 pd5 pd6 pd7 pd8 pd9)
+  GMM-type (missing=0, separate instruments for each period unless collapsed)
+    L(2/4).(wagebill_gdp0 inv lny0) collapsed
+    L(1/3).L_g collapsed
+Instruments for levels equation
+  Standard
+    hc0 open infl popg ctot_g pd2 pd3 pd4 pd5 pd6 pd7 pd8 pd9
+    _cons
+  GMM-type (missing=0, separate instruments for each period unless collapsed)
+    DL.(wagebill_gdp0 inv lny0) collapsed
+    D.L_g collapsed
+------------------------------------------------------------------------------
+Arellano-Bond test for AR(1) in first differences: z =  -2.17  Pr > z =  0.030
+Arellano-Bond test for AR(2) in first differences: z =  -1.08  Pr > z =  0.278
+------------------------------------------------------------------------------
+Sargan test of overid. restrictions: chi2(12)   =  63.63  Prob > chi2 =  0.000
+  (Not robust, but not weakened by many instruments.)
+Hansen test of overid. restrictions: chi2(12)   =  20.32  Prob > chi2 =  0.061
+  (Robust, but weakened by many instruments.)
+
+Difference-in-Hansen tests of exogeneity of instrument subsets:
+  GMM instruments for levels
+    Hansen test excluding group:     chi2(8)    =  19.44  Prob > chi2 =  0.013
+    Difference (null H = exogenous): chi2(4)    =   0.87  Prob > chi2 =  0.928
+  gmm(L_g, collapse lag(1 3))
+    Hansen test excluding group:     chi2(8)    =  15.52  Prob > chi2 =  0.050
+    Difference (null H = exogenous): chi2(4)    =   4.79  Prob > chi2 =  0.309
+  gmm(wagebill_gdp0 inv lny0, collapse lag(2 4))
+    Hansen test excluding group:     chi2(0)    =   0.00  Prob > chi2 =      .
+    Difference (null H = exogenous): chi2(12)   =  20.32  Prob > chi2 =  0.061
+  iv(hc0 open infl popg ctot_g pd2 pd3 pd4 pd5 pd6 pd7 pd8 pd9)
+    Hansen test excluding group:     chi2(0)    =   0.00  Prob > chi2 =      .
+    Difference (null H = exogenous): chi2(12)   =  20.32  Prob > chi2 =  0.061
+
+
+added scalar:
+                 e(nc) =  87
+
+added scalar:
+               e(nins) =  29
+
+added scalar:
+          e(ratio_ins) =  .33333333
+
+added scalar:
+           e(dhansenp) =  .92822783
+Conjunto 3: instrumentos = 29, paises = 87, AR(2) p = 0.278, Hansen p = 0.061, 
+> dif-Hansen (nivel) p = 0.928
+
+. estimates restore A5_s2
+(results A5_s2 are active now)
+
+. estimates store A5
+
+. 
+. * ---------------------------------------------------------------- A6. verifi
+> cacao de Bond: MQO agrupado e EF
+. regress g L_g wagebill_gdp0 $X5 pd*, vce(cluster id)
+note: pd3 omitted because of collinearity.
+
+Linear regression                               Number of obs     =        368
+                                                F(16, 86)         =      38.08
+                                                Prob > F          =     0.0000
+                                                R-squared         =     0.4709
+                                                Root MSE          =     1.6417
+
+                                    (Std. err. adjusted for 87 clusters in id)
+------------------------------------------------------------------------------
+             |               Robust
+           g | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+         L_g |   .2453031   .0614343     3.99   0.000     .1231758    .3674304
+wagebill_g~0 |  -.1055151   .0425108    -2.48   0.015    -.1900236   -.0210065
+        lny0 |  -.4856242   .1360229    -3.57   0.001    -.7560287   -.2152198
+         hc0 |   .4047894   .2652543     1.53   0.131    -.1225186    .9320975
+         inv |   .0290974   .0412723     0.71   0.483    -.0529491     .111144
+        open |   .0045186   .0016811     2.69   0.009     .0011767    .0078604
+        infl |  -.0093414   .0063503    -1.47   0.145    -.0219654    .0032826
+        popg |  -.5182821   .1173668    -4.42   0.000    -.7515996   -.2849647
+      ctot_g |   .1137125   .1038599     1.09   0.277    -.0927542    .3201792
+         pd2 |   1.071223    .599612     1.79   0.078     -.120766    2.263212
+         pd3 |          0  (omitted)
+         pd4 |   1.762297   .5982299     2.95   0.004     .5730556    2.951539
+         pd5 |     .66768   .5398529     1.24   0.220     -.405512    1.740872
+         pd6 |   1.642792   .5103847     3.22   0.002     .6281811    2.657403
+         pd7 |  -1.546739   .4992575    -3.10   0.003     -2.53923   -.5542479
+         pd8 |   .4674127   .5213569     0.90   0.372    -.5690105    1.503836
+         pd9 |  -.4977937   .4896063    -1.02   0.312    -1.471099    .4755114
+       _cons |   5.119369   1.192195     4.29   0.000     2.749364    7.489374
+------------------------------------------------------------------------------
+
+. estadd scalar nc = e(N_clust)
+
+added scalar:
+                 e(nc) =  87
+
+. estimates store A6_ols
+
+. reghdfe g L_g wagebill_gdp0 $X5, absorb(id period) vce(cluster id)
+(dropped 15 singleton observations)
+(MWFE estimator converged in 7 iterations)
+
+HDFE Linear regression                            Number of obs   =        353
+Absorbing 2 HDFE groups                           F(   9,     71) =      20.63
+Statistics robust to heteroskedasticity           Prob > F        =     0.0000
+                                                  R-squared       =     0.7340
+                                                  Adj R-squared   =     0.6467
+                                                  Within R-sq.    =     0.4136
+Number of clusters (id)      =         72         Root MSE        =     1.3061
+
+                                    (Std. err. adjusted for 72 clusters in id)
+------------------------------------------------------------------------------
+             |               Robust
+           g | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+         L_g |   .0409997   .0628039     0.65   0.516    -.0842277     .166227
+wagebill_g~0 |  -.1859809   .0756136    -2.46   0.016    -.3367502   -.0352117
+        lny0 |  -5.829341   .7664057    -7.61   0.000    -7.357511   -4.301172
+         hc0 |    2.22266   1.151371     1.93   0.058    -.0731086    4.518428
+         inv |   .1476455   .0414008     3.57   0.001     .0650947    .2301963
+        open |    .027512   .0096877     2.84   0.006     .0081952    .0468289
+        infl |  -.0174502    .006118    -2.85   0.006    -.0296491   -.0052512
+        popg |  -.6120332   .2268104    -2.70   0.009     -1.06428   -.1597861
+      ctot_g |   .2192934    .079158     2.77   0.007     .0614569    .3771299
+       _cons |   47.64513   7.263246     6.56   0.000     33.16263    62.12763
+------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+          id |        72          72           0    *|
+      period |         8           1           7     |
+-----------------------------------------------------+
+* = FE nested within cluster; treated as redundant for DoF computation
+
+. estadd scalar nc = e(N_clust)
+
+added scalar:
+                 e(nc) =  72
+
+. estadd scalar r2w = e(r2_within)
+
+added scalar:
+                e(r2w) =  .41360312
+
+. estimates store A6_fe
+
+. 
+. * ---------------------------------------------------------------- A7. EF com
+>  correcao de vies (Breitung, Kripfganz e Hayakawa 2022)
+. xtdpdbc g wagebill_gdp0 $X5, fe lags(1) teffects vce(robust) small
+note: 33 groups are dropped due to gaps or insufficient number of observations
+
+Bias-corrected estimation
+Iteration 0:   f(b) =  3.5847734  
+Iteration 1:   f(b) =  .00050152  
+Iteration 2:   f(b) =  1.313e-08  
+Iteration 3:   f(b) =  9.645e-18  
+
+Group variable: id                           Number of obs         =       288
+Time variable: period                        Number of groups      =        54
+
+Fixed-effects model                          Obs per group:    min =         3
+                                                               avg =  5.333333
+                                                               max =         8
+
+                                     (Std. err. adjusted for clustering on id)
+------------------------------------------------------------------------------
+             |               Robust
+           g | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+           g |
+         L1. |   .1668931   .0640058     2.61   0.012     .0385137    .2952725
+             |
+wagebill_g~0 |  -.1838164   .0897492    -2.05   0.046    -.3638305   -.0038023
+        lny0 |  -7.006863   .8472722    -8.27   0.000    -8.706276   -5.307451
+         hc0 |   2.336552    1.42862     1.64   0.108    -.5288963       5.202
+         inv |    .076901   .0482816     1.59   0.117    -.0199395    .1737416
+        open |   .0291362   .0115061     2.53   0.014      .006058    .0522144
+        infl |  -.0223658   .0056556    -3.95   0.000    -.0337095   -.0110221
+        popg |  -.4072818   .2437695    -1.67   0.101    -.8962216    .0816579
+      ctot_g |   .1415357   .0937922     1.51   0.137    -.0465876     .329659
+             |
+      period |
+          2  |  -.5774637   .4397751    -1.31   0.195    -1.459541    .3046135
+          3  |   1.207497   .4693931     2.57   0.013     .2660139     2.14898
+          4  |   .6339737   .5167893     1.23   0.225    -.4025744    1.670522
+          5  |   1.641104   .5459688     3.01   0.004     .5460293    2.736179
+          6  |  -.7019932   .6600545    -1.06   0.292    -2.025895    .6219085
+          7  |   1.324006   .7401911     1.79   0.079    -.1606295    2.808641
+          8  |   .8000568   .8061241     0.99   0.325    -.8168235    2.416937
+             |
+       _cons |   59.61529    7.23777     8.24   0.000     45.09816    74.13242
+------------------------------------------------------------------------------
+
+. estadd scalar nc = e(N_g)
+
+added scalar:
+                 e(nc) =  54
+
+. estimates store A7
+
+. 
+. * ---------------------------------------------------------------- A2. medias
+>  de 3 anos
+. use "$FINAL/painel_3anos.dta", clear
+
+. keep if micro == 0
+(435 observations deleted)
+
+. xtset id period
+
+Panel variable: id (strongly balanced)
+ Time variable: period, 0 to 14
+         Delta: 1 unit
+
+. reghdfe g wagebill_gdp0 $X5, absorb(id period) vce(cluster id)
+(dropped 10 singleton observations)
+(MWFE estimator converged in 7 iterations)
+
+HDFE Linear regression                            Number of obs   =        620
+Absorbing 2 HDFE groups                           F(   8,     76) =      11.97
+Statistics robust to heteroskedasticity           Prob > F        =     0.0000
+                                                  R-squared       =     0.6105
+                                                  Adj R-squared   =     0.5382
+                                                  Within R-sq.    =     0.3060
+Number of clusters (id)      =         77         Root MSE        =     1.7481
+
+                                    (Std. err. adjusted for 77 clusters in id)
+------------------------------------------------------------------------------
+             |               Robust
+           g | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+wagebill_g~0 |  -.2331765   .0916296    -2.54   0.013    -.4156725   -.0506804
+        lny0 |  -5.432422   .8730375    -6.22   0.000    -7.171227   -3.693617
+         hc0 |   2.169221   1.218327     1.78   0.079    -.2572872     4.59573
+         inv |   .1628108   .0487643     3.34   0.001     .0656882    .2599334
+        open |   .0380925   .0087501     4.35   0.000     .0206652    .0555198
+        infl |  -.0237278   .0079937    -2.97   0.004    -.0396486   -.0078069
+        popg |  -.6583499   .2751687    -2.39   0.019    -1.206396    -.110304
+      ctot_g |   .1958374   .0890205     2.20   0.031     .0185377     .373137
+       _cons |   43.21048    7.76302     5.57   0.000     27.74909    58.67188
+------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+          id |        77          77           0    *|
+      period |        14           1          13     |
+-----------------------------------------------------+
+* = FE nested within cluster; treated as redundant for DoF computation
+
+. estadd scalar nc = e(N_clust)
+
+added scalar:
+                 e(nc) =  77
+
+. estadd scalar r2w = e(r2_within)
+
+added scalar:
+                e(r2w) =  .30601523
+
+. estimates store A2
+
+. 
+. * ---------------------------------------------------------------- A3. painel
+>  anual, folha defasada, Driscoll-Kraay
+. use "$FINAL/painel_anual.dta", clear
+
+. keep if micro == 0 & inrange(year, 1996, 2023)
+(5,934 observations deleted)
+
+. xtset id year
+
+Panel variable: id (strongly balanced)
+ Time variable: year, 1996 to 2023
+         Delta: 1 unit
+
+. * nomes alinhados com as colunas de medias: valores defasados em um ano
+. gen wagebill_gdp0 = L.wagebill_gdp
+(2,893 missing values generated)
+
+. gen L_g = L.g
+(268 missing values generated)
+
+. gen lny0 = L.lny
+(263 missing values generated)
+
+. gen hc0 = L.hc
+(978 missing values generated)
+
+. xtscc g wagebill_gdp0 L_g lny0 hc0 inv open infl popg ctot_g i.year, fe
+
+Regression with Driscoll-Kraay standard errors   Number of obs     =      1622
+Method: Fixed-effects regression                 Number of groups  =        88
+Group variable (i): id                           F( 35,    26)     =1466662.62
+maximum lag: 2                                   Prob > F          =    0.0000
+                                                 within R-squared  =    0.5546
+
+------------------------------------------------------------------------------
+             |             Drisc/Kraay
+           g | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+wagebill_g~0 |   .0395246    .129122     0.31   0.762    -.2258895    .3049388
+         L_g |   .1992847   .0580538     3.43   0.002     .0799535     .318616
+        lny0 |  -5.534502   1.413988    -3.91   0.001    -8.440996   -2.628008
+         hc0 |    2.19771   1.200625     1.83   0.079    -.2702095    4.665629
+         inv |   .1513547   .0465425     3.25   0.003     .0556853    .2470241
+        open |    .028148   .0080129     3.51   0.002     .0116773    .0446188
+        infl |  -.0302739   .0034309    -8.82   0.000    -.0373263   -.0232215
+        popg |  -.8729861   .3135009    -2.78   0.010    -1.517396   -.2285757
+      ctot_g |   .0001786   .0697316     0.00   0.998    -.1431567    .1435139
+             |
+        year |
+       1996  |          0  (empty)
+       1997  |   1.419289   .0875513    16.21   0.000     1.239325    1.599254
+       1998  |          0  (omitted)
+       1999  |  -.7122573   .0909862    -7.83   0.000     -.899282   -.5252326
+       2000  |    1.46621   .1716889     8.54   0.000     1.113298    1.819122
+       2001  |  -.3506081   .1679418    -2.09   0.047    -.6958174   -.0053989
+       2002  |   .5845062   .2159367     2.71   0.012      .140642     1.02837
+       2003  |   .8297932   .2456055     3.38   0.002     .3249438    1.334643
+       2004  |   1.806962    .291162     6.21   0.000      1.20847    2.405454
+       2005  |   1.100246   .3480764     3.16   0.004     .3847647    1.815727
+       2006  |   2.123649   .4175729     5.09   0.000     1.265315    2.981982
+       2007  |   1.492566   .4616012     3.23   0.003     .5437314    2.441401
+       2008  |  -.6212893   .5356263    -1.16   0.257    -1.722285    .4797062
+       2009  |  -5.300842   .5877189    -9.02   0.000    -6.508916   -4.092769
+       2010  |   2.119647   .8293044     2.56   0.017     .4149873    3.824307
+       2011  |   .1061636   .6125907     0.17   0.864    -1.153035    1.365362
+       2012  |  -.6870228   .6711273    -1.02   0.315    -2.066545    .6924991
+       2013  |  -.1697129   .7249877    -0.23   0.817    -1.659947    1.320521
+       2014  |   .1936016   .7566191     0.26   0.800    -1.361651    1.748854
+       2015  |   .1456543   .7778322     0.19   0.853    -1.453203    1.744511
+       2016  |   .4250669   .8068412     0.53   0.603    -1.233419    2.083553
+       2017  |   1.286491   .8498792     1.51   0.142    -.4604609    3.033443
+       2018  |   1.014342   .8665556     1.17   0.252    -.7668885    2.795572
+       2019  |    .362703   .9163072     0.40   0.695    -1.520794    2.246199
+       2020  |  -6.308037   .9691207    -6.51   0.000    -8.300093   -4.315981
+       2021  |   5.756442   1.219642     4.72   0.000     3.249432    8.263451
+       2022  |   .5037651   .9688969     0.52   0.608    -1.487831    2.495361
+       2023  |   .1399919    1.07474     0.13   0.897    -2.069168    2.349151
+             |
+       _cons |   41.59776   14.34654     2.90   0.008     12.10803    71.08749
+------------------------------------------------------------------------------
+
+
+. estadd scalar nc = e(N_g)
+
+added scalar:
+                 e(nc) =  88
+
+. estadd scalar r2w = e(r2_w)
+
+added scalar:
+                e(r2w) =  .55462753
+
+. estimates store A3
+
+. 
+. * ===========================================================================
+> ==========
+. * Tabela 2
+. * ===========================================================================
+> ==========
+. local stars "* p<0.10, ** p<0.05, *** p<0.01."
+
+. tab_new, ncol(7) head1("(1)" "(2)" "(3)" "(4)" "(5)" "(6)" "(7)") ///
+>     head2("FE, 5-year" "FE, 3-year" "FE annual, DK" "Budget (a)" "Budget (b)"
+>  "System GMM" "BC-FE")
+
+. tab_est A1 A2 A3 A4a A4b A5 A7, keep(wagebill_gdp0 wagebill_share0 L_g lny0 h
+> c0 inv open infl popg ctot_g exp_gdp0 rev_gdp0)
+
+. tab_mid
+
+. tab_row "Omitted expenditure category" "" "" "" "Investment" "Transfers" "" "
+> "
+
+. tab_row "Other expenditure shares" "" "" "" "Yes" "Yes" "" ""
+
+. tab_row "Country fixed effects" "Yes" "Yes" "Yes" "Yes" "Yes" "GMM" "Yes"
+
+. tab_row "Period fixed effects" "Yes" "Yes" "Yes (year)" "Yes" "Yes" "Yes" "Ye
+> s"
+
+. tab_stat N "Observations"
+
+. tab_stat nc "Countries"
+
+. tab_stat r2w "R2 (within)" %5.3f
+
+. tab_stat nins "Instruments"
+
+. tab_stat ar2p "AR(2), p-value" %5.3f
+
+. tab_stat hansenp "Hansen, p-value" %5.3f
+
+. tab_stat dhansenp "Diff-in-Hansen (levels), p-value" %5.3f
+
+. tab_out Table2_baseline, title("Table 2. Public wage bill and growth: baselin
+> e estimates") landscape ///
+>     notes("Dependent variable: growth of real GDP per capita (%, annual avera
+> ge over the period in columns 1, 2 and 4-7; annual in column 3). The wage bil
+> l is compensation of employees of the general government (IMF GFS), measured 
+> in the first year of each period (columns 1, 2, 4-7) or lagged one year (colu
+> mn 3). Columns 1-2 and 4-5: country and period fixed effects, standard errors
+>  clustered by country. Column 3: annual panel with country and year fixed eff
+> ects, Driscoll-Kraay standard errors; regressors lagged one year. Columns 4-5
+> : government budget constraint, with expenditure shares of goods and services
+> , interest, other expense and either transfers (4) or investment (5), total e
+> xpenditure and revenue; the fiscal balance is implied. The wage bill coeffici
+> ent measures a reallocation of one percentage point of spending from the omit
+> ted category to the wage bill. Column 6: two-step system GMM (Blundell-Bond) 
+> with Windmeijer-corrected standard errors; lagged growth, wage bill, investme
+> nt and initial income instrumented with lags 2-3, collapsed. Column 7: bias-c
+> orrected fixed effects for dynamic panels (Breitung, Kripfganz and Hayakawa, 
+> 2022), robust standard errors. Five-year periods 1979-2023, three-year period
+> s 1981-2023, annual 1996-2023; microstates excluded. `stars'")
+successfully replaced "C:/Users/Usuario/Dropbox/Papers/Emprego Público e Cresci
+> mento/Estimações/output/tables/Table2_baseline.docx"
+tabela gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\E
+> stimações/output/tables/Table2_baseline.{tex,docx}
+
+. 
+. * ---------------------------------------------------------------- Tabela A4:
+>  sensibilidade de instrumentos
+. tab_new, ncol(3) head1("(1)" "(2)" "(3)") head2("Lags 2" "Lags 2-3 (baseline)
+> " "Lags 2-4")
+
+. tab_est A5_s1 A5_s2 A5_s3, keep(wagebill_gdp0 L_g lny0 inv)
+
+. tab_mid
+
+. tab_stat N "Observations"
+
+. tab_stat nc "Countries"
+
+. tab_stat nins "Instruments"
+
+. tab_stat ratio_ins "Instruments / countries" %5.2f
+
+. tab_stat ar1p "AR(1), p-value" %5.3f
+
+. tab_stat ar2p "AR(2), p-value" %5.3f
+
+. tab_stat hansenp "Hansen, p-value" %5.3f
+
+. tab_stat dhansenp "Diff-in-Hansen (levels), p-value" %5.3f
+
+. tab_out TableA4_gmm_instruments, title("Table A4. System GMM: sensitivity to 
+> the instrument set") ///
+>     notes("Dependent variable: growth of real GDP per capita (%, five-year av
+> erage). Two-step system GMM with Windmeijer-corrected standard errors, collap
+> sed instruments; all columns include the controls of Table 2 and period dummi
+> es. Lagged growth, the initial wage bill, investment and initial income are t
+> reated as endogenous and instrumented with the lags shown in the column heade
+> r (for lagged growth, the same lags of growth). `stars'")
+successfully replaced "C:/Users/Usuario/Dropbox/Papers/Emprego Público e Cresci
+> mento/Estimações/output/tables/TableA4_gmm_instruments.docx"
+tabela gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\E
+> stimações/output/tables/TableA4_gmm_instruments.{tex,docx}
+
+. 
+. * ---------------------------------------------------------------- Tabela A5:
+>  verificacao de Bond
+. tab_new, ncol(4) head1("(1)" "(2)" "(3)" "(4)") head2("Pooled OLS" "Fixed eff
+> ects" "System GMM" "BC-FE")
+
+. tab_est A6_ols A6_fe A5 A7, keep(L_g wagebill_gdp0)
+
+. tab_mid
+
+. foreach m in A6_ols A6_fe A5 A7 {
+  2.     estimates restore `m'
+  3.     capture local rho_`m' = _b[L_g]
+  4.     if _rc local rho_`m' = _b[L.g]
+  5. }
+(results A6_ols are active now)
+(results A6_fe are active now)
+(results A5 are active now)
+(results A7 are active now)
+
+. local ok = cond(`rho_A5' <= `rho_A6_ols' & `rho_A5' >= `rho_A6_fe', "Yes", "N
+> o")
+
+. local okbc = cond(`rho_A7' <= `rho_A6_ols' & `rho_A7' >= `rho_A6_fe', "Yes", 
+> "No")
+
+. tab_row "Lagged growth within [FE, OLS] bounds" "" "" "`ok'" "`okbc'"
+
+. tab_stat N "Observations"
+
+. tab_stat nc "Countries"
+
+. tab_out TableA5_bond_check, title("Table A5. Bond (2002) check on the coeffic
+> ient of lagged growth") ///
+>     notes("Five-year averages, 1979-2023, microstates excluded. All columns i
+> nclude the controls of Table 2 and period effects. Pooled OLS is biased upwar
+> ds and fixed effects downwards for the coefficient of the lagged dependent va
+> riable; a consistent estimator should lie between them. Standard errors clust
+> ered by country (1-2), Windmeijer-corrected (3) and robust (4). `stars'")
+successfully replaced "C:/Users/Usuario/Dropbox/Papers/Emprego Público e Cresci
+> mento/Estimações/output/tables/TableA5_bond_check.docx"
+tabela gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\E
+> stimações/output/tables/TableA5_bond_check.{tex,docx}
+
+. di "Bond: OLS = " `rho_A6_ols' ", FE = " `rho_A6_fe' ", GMM = " `rho_A5' ", B
+> C-FE = " `rho_A7'
+Bond: OLS = .2453031, FE = .04099968, GMM = .17012531, BC-FE = .16689307
+
+. 
+. * guarda as estimativas usadas depois (resultados e robustez)
+. foreach m in A1 A2 A3 A4a A4b A4s A5 A5_s1 A5_s2 A5_s3 A6_ols A6_fe A7 {
+  2.     estimates restore `m'
+  3.     estimates save "$LOG/est_`m'", replace
+  4. }
+(results A1 are active now)
+file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/o
+> utput/logs/est_A1.ster saved
+(results A2 are active now)
+file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/o
+> utput/logs/est_A2.ster saved
+(results A3 are active now)
+file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/o
+> utput/logs/est_A3.ster saved
+(results A4a are active now)
+file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/o
+> utput/logs/est_A4a.ster saved
+(results A4b are active now)
+file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/o
+> utput/logs/est_A4b.ster saved
+(results A4s are active now)
+file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/o
+> utput/logs/est_A4s.ster saved
+(results A5 are active now)
+file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/o
+> utput/logs/est_A5.ster saved
+(results A5_s1 are active now)
+file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/o
+> utput/logs/est_A5_s1.ster saved
+(results A5_s2 are active now)
+file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/o
+> utput/logs/est_A5_s2.ster saved
+(results A5_s3 are active now)
+file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/o
+> utput/logs/est_A5_s3.ster saved
+(results A6_ols are active now)
+file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/o
+> utput/logs/est_A6_ols.ster saved
+(results A6_fe are active now)
+file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/o
+> utput/logs/est_A6_fe.ster saved
+(results A7 are active now)
+file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/o
+> utput/logs/est_A7.ster saved
+
+. 
+. log close
+      name:  <unnamed>
+       log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Esti
+> mações/output/logs/05_base.log
+  log type:  text
+ closed on:   7 Oct 2026, 23:21:59
+-------------------------------------------------------------------------------

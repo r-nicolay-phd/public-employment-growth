@@ -1,0 +1,30 @@
+% gerado por code/00_tabelas.do -- nao editar a mao
+\begin{table}[htbp]\centering\footnotesize
+\providecommand{\sym}[1]{\ensuremath{^{#1}}}
+\caption{Table A4. System GMM: sensitivity to the instrument set}\label{tab:TableA4_gmm_instruments}
+\begin{tabular}{l*{3}{c}}
+\toprule
+ & (1) & (2) & (3) \\
+ & Lags 2 & Lags 2-3 (baseline) & Lags 2-4 \\
+\midrule
+Wage bill (\% of GDP), initial & -0.152 & -0.280 & -0.130 \\
+ & (0.305) & (0.278) & (0.263) \\
+Lagged growth & 0.258 & 0.170 & -0.061 \\
+ & (0.183) & (0.193) & (0.134) \\
+Log initial GDP per capita & -1.670 & -1.288 & -1.837 \\
+ & (1.180) & (1.336) & (1.140) \\
+Investment (\% of GDP) & -0.113 & -0.015 & 0.202 \\
+ & (0.168) & (0.179) & (0.133) \\
+\midrule
+Observations & 368 & 368 & 368 \\
+Countries & 87 & 87 & 87 \\
+Instruments & 21 & 25 & 29 \\
+Instruments / countries & 0.24 & 0.29 & 0.33 \\
+AR(1), p-value & 0.001 & 0.005 & 0.030 \\
+AR(2), p-value & 0.904 & 0.621 & 0.278 \\
+Hansen, p-value & 0.162 & 0.080 & 0.061 \\
+Diff-in-Hansen (levels), p-value & 0.162 & 0.307 & 0.928 \\
+\bottomrule
+\end{tabular}
+\begin{minipage}{0.95\linewidth}\vspace{4pt}\scriptsize \textit{Notes:} Dependent variable: growth of real GDP per capita (\%, five-year average). Two-step system GMM with Windmeijer-corrected standard errors, collapsed instruments; all columns include the controls of Table 2 and period dummies. Lagged growth, the initial wage bill, investment and initial income are treated as endogenous and instrumented with the lags shown in the column header (for lagged growth, the same lags of growth). * p<0.10, ** p<0.05, *** p<0.01.\end{minipage}
+\end{table}

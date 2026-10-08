@@ -1,0 +1,32 @@
+% gerado por code/00_tabelas.do -- nao editar a mao
+\begin{table}[htbp]\centering\footnotesize
+\providecommand{\sym}[1]{\ensuremath{^{#1}}}
+\caption{Table 6. Electoral cycles in the wage bill}\label{tab:Table6_political_economy}
+\begin{tabular}{l*{3}{c}}
+\toprule
+ & (1) & (2) & (3) \\
+ & First stage & First stage & IV diagnostics \\
+\midrule
+Predetermined election year & 0.084\sym{**} &  &  \\
+ & (0.036) &  &  \\
+Election year &  & 0.070\sym{**} &  \\
+ &  & (0.031) &  \\
+\midrule
+F statistic, excluded instrument & 5.31 & 5.29 &  \\
+Kleibergen-Paap F &  &  & 5.25 \\
+Anderson-Rubin 95\% CI &  &  & [-1.60158,  +inf) \\
+Second stage shown as evidence &  &  & No: weak instrument \\
+Observations & 1,512 & 1,516 & 1,500 \\
+Countries & 93 & 93 & 92 \\
+\midrule
+Panel B. Local projections, cumulative GDP per capita response (\%) &  &  &  \\
+All, h = 2: election year / other years & 1.128 / -0.084 & (1.096) / (0.449) & p(diff) = 0.244 \\
+All, h = 4: election year / other years & 1.663 / -1.301 & (1.453) / (0.664) & p(diff) = 0.058 \\
+High merit, h = 2: election year / other years & 2.119 / -0.501 & (0.845) / (0.671) & p(diff) = 0.011 \\
+High merit, h = 4: election year / other years & 2.122 / -1.682 & (1.207) / (0.889) & p(diff) = 0.009 \\
+Low merit, h = 2: election year / other years & 1.332 / 0.459 & (1.109) / (0.430) & p(diff) = 0.441 \\
+Low merit, h = 4: election year / other years & 2.297 / -0.610 & (1.624) / (0.605) & p(diff) = 0.095 \\
+\bottomrule
+\end{tabular}
+\begin{minipage}{0.95\linewidth}\vspace{4pt}\scriptsize \textit{Notes:} Panel A, columns 1-2: dependent variable is the real change in the general government wage bill (\% of lagged GDP); predetermined election year = election held in the year the constitutional term expires (DPI, years left in term = 0); election year = any executive (presidential systems) or legislative (other systems) election. Country and year fixed effects, lagged growth, standard errors clustered by country, 1996-2020 (DPI ends in 2020). Column 3: 2SLS of GDP per capita growth on the wage bill change instrumented by the predetermined election year, controlling for the overall fiscal balance (\% of GDP) and lagged growth; following the pre-specified rule, the second-stage coefficient is shown only if the first-stage F exceeds 10, which is not the case here; the Anderson-Rubin confidence set is robust to weak instruments. Panel B: local projections of 100 x log GDP per capita on wage bill shocks occurring in predetermined election years and in other years (two lags of the shock and of growth, country and year fixed effects, Driscoll-Kraay standard errors); high and low merit split at the median of lagged V-Dem meritocratic recruitment. Entries: coefficient for election-year shocks / other-year shocks, standard errors in parentheses, p-value of the difference. * p<0.10, ** p<0.05, *** p<0.01.\end{minipage}
+\end{table}

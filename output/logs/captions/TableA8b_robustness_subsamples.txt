@@ -1,0 +1,2 @@
+Table A8b. Robustness: subsamples
+Specification A1 estimated separately by World Bank income group in 1996, OECD membership and federal structure (Forum of Federations). Five-year averages, country and period fixed effects, controls of Table 2, standard errors clustered by country; microstates excluded. * p<0.10, ** p<0.05, *** p<0.01.
