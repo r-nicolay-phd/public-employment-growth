@@ -11,3 +11,4 @@ inputs/*.wf1
 !output/logs/*.log
 ~$*
 *.smcl
+!output/revisao/logs/*.log

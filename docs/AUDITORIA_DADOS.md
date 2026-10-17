@@ -1,6 +1,6 @@
 # Auditoria dos dados
 
-Gerado por `code/04_descritivas.do` em 15 Oct 2026. Não editar à mão: todo número abaixo sai do código.
+Gerado por `code/04_descritivas.do` em 17 Oct 2026. Não editar à mão: todo número abaixo sai do código.
 
 ## 1. Regras de limpeza (na ordem aplicada)
 

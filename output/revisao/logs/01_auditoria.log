@@ -1,0 +1,2210 @@
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/logs/01_auditoria.log
+  log type:  text
+ opened on:  17 Oct 2026, 16:13:40
+
+. capture erase "$RINT/kv.csv"
+
+. 
+. * =====================================================================================
+. * A. Fontes novas (data/raw/<fonte>/, ver _SOURCE.txt)
+. * =====================================================================================
+. * A1. WDI complementar
+. import delimited "$RAW/wdi_rev/wdi_rev.csv", clear varnames(1) case(lower) stringcols(1 3)
+(encoding automatically selected: ISO-8859-2)
+(4 vars, 86,450 obs)
+
+. drop if missing(iso3) | iso3 == ""
+(1,625 observations deleted)
+
+. replace indicator = subinstr(indicator, ".", "_", .)
+(84,825 real changes made)
+
+. reshape wide value, i(iso3 year) j(indicator) string
+(j = NE_CON_GOVT_KD NY_GDP_MKTP_KD SE_XPD_TOTL_GD_ZS SH_XPD_GHED_GD_ZS SP_POP_DPND_OL)
+
+Data                               Long   ->   Wide
+-----------------------------------------------------------------------------
+Number of observations           84,825   ->   16,965      
+Number of variables                   4   ->   7           
+j variable (5 values)         indicator   ->   (dropped)
+xij variables:
+                                  value   ->   valueNE_CON_GOVT_KD valueNY_GDP_MKTP_KD ... valueSP_POP_DPND_OL
+-----------------------------------------------------------------------------
+
+. rename (valueSP_POP_DPND_OL valueSH_XPD_GHED_GD_ZS valueSE_XPD_TOTL_GD_ZS valueNE_CON_GOVT_KD valueNY_GDP_MKTP_KD) ///
+>        (oldage_dep health_gov_gdp educ_gov_gdp govcons_real gdp_real_wdi)
+
+. label var oldage_dep "Old-age dependency ratio (% of working-age population), WDI"
+
+. label var health_gov_gdp "General government health expenditure (% of GDP), WDI"
+
+. label var educ_gov_gdp "Government expenditure on education (% of GDP), WDI"
+
+. label var govcons_real "General government final consumption (constant 2015 USD), WDI"
+
+. save "$RINT/wdi_rev.dta", replace
+file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/wdi_rev.dta saved
+
+. 
+. * A2. Crises bancarias sistemicas: Laeven e Valencia (2018), anos de inicio a fim
+. import excel "$RAW/laeven_valencia/SYSTEMIC_BANKING_CRISES_DATABASE_2018.xlsx", sheet("Crisis Resolution and Outcomes") ///
+>     cellrange(A2) clear allstring
+(11 vars, 169 obs)
+
+. keep A B C
+
+. rename (A B C) (cname start end)
+
+. foreach v in cname start end {
+  2.     replace `v' = ustrregexra(`v', "[0-9]+/", "")
+  3.     replace `v' = strtrim(`v')
+  4. }
+(12 real changes made)
+(31 real changes made)
+(0 real changes made)
+(0 real changes made)
+(56 real changes made)
+(56 real changes made)
+
+. destring start end, replace force
+start: all characters numeric; replaced as int
+(18 missing values generated)
+end: contains nonnumeric characters; replaced as int
+(21 missing values generated)
+
+. drop if missing(start) | cname == ""
+(18 observations deleted)
+
+. replace end = start if missing(end)
+(3 real changes made)
+
+. gen cn = lower(cname)
+
+. replace cn = ustrregexra(cn, "[^a-z ]", "")
+(10 real changes made)
+
+. replace cn = strtrim(stritrim(cn))
+(1 real change made)
+
+. tempfile LV
+
+. save `LV'
+file C:\Users\Usuario\AppData\Local\Temp\ST_e78_000001.tmp saved as .dta format
+
+. use "$FINAL/painel_anual.dta", clear
+
+. keep iso3 country
+
+. duplicates drop
+
+Duplicates in terms of all variables
+
+(10,441 observations deleted)
+
+. gen cn = lower(country)
+
+. replace cn = ustrregexra(cn, "[^a-z ]", "")
+(20 real changes made)
+
+. replace cn = strtrim(stritrim(cn))
+(0 real changes made)
+
+. * nomes do Laeven-Valencia que diferem dos do Banco Mundial
+. tempfile WB
+
+. save `WB'
+file C:\Users\Usuario\AppData\Local\Temp\ST_e78_000002.tmp saved as .dta format
+
+. use `LV', clear
+
+. replace cn = "bosnia and herzegovina" if cn == "bosnia and herzegovina"
+(0 real changes made)
+
+. replace cn = "cabo verde" if cn == "cape verde"
+(1 real change made)
+
+. replace cn = "central african republic" if cn == "central african rep"
+variable cn was str22 now str24
+(2 real changes made)
+
+. replace cn = "congo dem rep" if inlist(cn, "congo dem rep of", "congo democratic republic of", "democratic republic of congo", "congo dem rep")
+(0 real changes made)
+
+. replace cn = "congo rep" if inlist(cn, "congo rep of", "congo republic of", "congo")
+(0 real changes made)
+
+. replace cn = "cote divoire" if inlist(cn, "cote divoire", "cte divoire", "cote d ivoire")
+(0 real changes made)
+
+. replace cn = "egypt arab rep" if cn == "egypt"
+(1 real change made)
+
+. replace cn = "gambia the" if cn == "gambia"
+(0 real changes made)
+
+. replace cn = "iran islamic rep" if cn == "iran"
+(0 real changes made)
+
+. replace cn = "korea rep" if cn == "korea"
+(1 real change made)
+
+. replace cn = "kyrgyz republic" if inlist(cn, "kyrgyz republic", "kyrgyzstan")
+(0 real changes made)
+
+. replace cn = "lao pdr" if cn == "lao peoples democratic republic"
+(0 real changes made)
+
+. replace cn = "macedonia fyr" if cn == "macedonia"
+(0 real changes made)
+
+. replace cn = "north macedonia" if inlist(cn, "macedonia fyr", "fyr macedonia")
+(1 real change made)
+
+. replace cn = "russian federation" if cn == "russia"
+(2 real changes made)
+
+. replace cn = "slovak republic" if cn == "slovak rep"
+(1 real change made)
+
+. replace cn = "syrian arab republic" if cn == "syria"
+(0 real changes made)
+
+. replace cn = "venezuela rb" if cn == "venezuela"
+(1 real change made)
+
+. replace cn = "yemen rep" if cn == "yemen"
+(1 real change made)
+
+. replace cn = "turkiye" if cn == "turkey"
+(2 real changes made)
+
+. replace cn = "china" if cn == "china mainland"
+(1 real change made)
+
+. replace cn = "dominican republic" if cn == "dominican rep"
+(1 real change made)
+
+. replace cn = "kyrgyz republic" if cn == "kyrgyz rep"
+(1 real change made)
+
+. replace cn = "sao tome and principe" if strpos(cn, "tom") & strpos(cn, "prncipe")
+(1 real change made)
+
+. replace cn = "viet nam" if cn == "vietnam"
+(1 real change made)
+
+. replace cn = "czechia" if inlist(cn, "czech republic")
+(1 real change made)
+
+. replace cn = "eswatini" if cn == "swaziland"
+(1 real change made)
+
+. replace cn = "sao tome and principe" if cn == "sao tome and principe"
+(0 real changes made)
+
+. merge m:1 cn using `WB', keep(master match)
+(variable cn was str24, now str30 to accommodate using data's values)
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                             0
+    Matched                               151  (_merge==3)
+    -----------------------------------------
+
+. di "Laeven-Valencia: episodios sem pais casado:"
+Laeven-Valencia: episodios sem pais casado:
+
+. list cname start if _merge == 1, noobs
+
+. keep if _merge == 3
+(0 observations deleted)
+
+. expand end - start + 1
+(312 observations created)
+
+. bysort iso3 start: gen year = start + _n - 1
+
+. gen byte crisis_bank = 1
+
+. collapse (max) crisis_bank, by(iso3 year)
+
+. label var crisis_bank "Systemic banking crisis (Laeven and Valencia 2018), start to end year"
+
+. save "$RINT/laeven_valencia.dta", replace
+file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/laeven_valencia.dta saved
+
+. 
+. * A3. Consolidacoes narrativas (Alesina, Favero e Giavazzi 2019): componente de folha (Spending - Salaries)
+. * aba GDP, % do PIB de t-1; colunas por posicao (cabecalho em 2 linhas): A pais, B ano,
+. * BN-BT salarios (u_t, a_t, a_t+1..a_t+5), CW-DC tributos totais, DD-DJ gasto total
+. import excel "$RAW/afg/NewComponents1978-2014_final.xlsx", sheet("GDP") cellrange(A3) clear
+(154 vars, 592 obs)
+
+. rename (A B) (iso3 year)
+
+. rename (BN BO) (afg_sal_u afg_sal_a)
+
+. rename (CW CX) (afg_tax_u afg_tax_a)
+
+. rename (DD DE) (afg_spend_u afg_spend_a)
+
+. keep iso3 year afg_sal_u afg_sal_a afg_tax_u afg_tax_a afg_spend_u afg_spend_a
+
+. destring year afg_*, replace force
+year already numeric; no replace
+afg_sal_u already numeric; no replace
+afg_sal_a already numeric; no replace
+afg_tax_u already numeric; no replace
+afg_tax_a already numeric; no replace
+afg_spend_u already numeric; no replace
+afg_spend_a already numeric; no replace
+
+. drop if missing(year) | iso3 == ""
+(0 observations deleted)
+
+. * choque implementado no ano (nao antecipado + anunciado antes e implementado em t); positivo = corte
+. gen afg_sal = afg_sal_u + afg_sal_a
+
+. gen afg_spend = afg_spend_u + afg_spend_a
+
+. gen afg_tax = afg_tax_u + afg_tax_a
+
+. label var afg_sal "Narrative wage-bill consolidation (cuts, % of lagged GDP), AFG 2019"
+
+. label var afg_spend "Narrative spending consolidation (% of lagged GDP), AFG 2019"
+
+. label var afg_tax "Narrative tax consolidation (% of lagged GDP), AFG 2019"
+
+. tab iso3
+
+       iso3 |      Freq.     Percent        Cum.
+------------+-----------------------------------
+        AUS |         37        6.25        6.25
+        AUT |         37        6.25       12.50
+        BEL |         37        6.25       18.75
+        CAN |         37        6.25       25.00
+        DEU |         37        6.25       31.25
+        DNK |         37        6.25       37.50
+        ESP |         37        6.25       43.75
+        FIN |         37        6.25       50.00
+        FRA |         37        6.25       56.25
+        GBR |         37        6.25       62.50
+        IRL |         37        6.25       68.75
+        ITA |         37        6.25       75.00
+        JPN |         37        6.25       81.25
+        PRT |         37        6.25       87.50
+        SWE |         37        6.25       93.75
+        USA |         37        6.25      100.00
+------------+-----------------------------------
+      Total |        592      100.00
+
+. summ afg_sal afg_spend afg_tax
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+     afg_sal |        592    .0267087    .1187678    -.19641    1.21321
+   afg_spend |        592     .232872    .5138902    -.36045    3.75529
+     afg_tax |        592    .1690316     .440059    -.75094    3.00959
+
+. count if afg_sal != 0 & !missing(afg_sal)
+  87
+
+. save "$RINT/afg.dta", replace
+file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/afg.dta saved
+
+. 
+. * A4. Densidade sindical (ILOSTAT)
+. import delimited "$RAW/ilostat_ud/ud.csv", clear varnames(1) case(lower)
+(encoding automatically selected: ISO-8859-1)
+(17 vars, 1,287 obs)
+
+. keep ref_area time_period obs_value
+
+. rename (ref_area time_period obs_value) (iso3 year union_density)
+
+. destring year union_density, replace force
+year already numeric; no replace
+union_density already numeric; no replace
+
+. collapse (mean) union_density, by(iso3 year)
+
+. label var union_density "Trade union density (% of employees), ILOSTAT"
+
+. save "$RINT/ilo_ud.dta", replace
+file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/ilo_ud.dta saved
+
+. 
+. * A5. V-Dem (clientelismo/particularismo e regime)
+. import delimited "$RAW/vdem/vdem_rev.csv", clear varnames(1) case(lower)
+(encoding automatically selected: ISO-8859-1)
+(8 vars, 12,646 obs)
+
+. rename country_text_id iso3
+
+. duplicates drop iso3 year, force
+
+Duplicates in terms of iso3 year
+
+(0 observations are duplicates)
+
+. rename v2dlencmps clientelism_prog
+
+. label var clientelism_prog "Particularistic vs programmatic linkages (V-Dem v2dlencmps; higher = programmatic)"
+note: label truncated to 80 characters
+
+. keep iso3 year clientelism_prog v2x_regime
+
+. save "$RINT/vdem_rev.dta", replace
+file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/vdem_rev.dta saved
+
+. 
+. * A6. DPI: ideologia do executivo, maioria e fracionamento, competitividade
+. use "$RAW/dpi/DPI2020_stata13.dta", clear
+(Database of Political Institutions 2020. Inter-American Development Bank.)
+
+. rename ifs iso3
+
+. replace iso3 = "ROU" if iso3 == "ROM"
+(46 real changes made)
+
+. replace iso3 = "COD" if iso3 == "ZAR"
+(46 real changes made)
+
+. replace iso3 = "TLS" if iso3 == "TMP"
+(46 real changes made)
+
+. replace iso3 = "SRB" if iso3 == "YUG" & year >= 2006
+(0 real changes made)
+
+. keep iso3 year execrlc maj frac eiec liec checks
+
+. foreach v in execrlc maj frac eiec liec checks {
+  2.     replace `v' = . if `v' < 0
+  3. }
+(649 real changes made, 649 to missing)
+(1,424 real changes made, 1,424 to missing)
+(1,424 real changes made, 1,424 to missing)
+(532 real changes made, 532 to missing)
+(527 real changes made, 527 to missing)
+(547 real changes made, 547 to missing)
+
+. gen byte exec_left = execrlc == 3 if inlist(execrlc, 1, 2, 3)
+(3,750 missing values generated)
+
+. gen byte exec_right = execrlc == 1 if inlist(execrlc, 1, 2, 3)
+(3,750 missing values generated)
+
+. label var exec_left "Left executive (DPI execrlc = 3)"
+
+. label var maj "Government majority (share of seats, DPI)"
+
+. label var frac "Legislative fractionalization (DPI)"
+
+. duplicates drop iso3 year, force
+
+Duplicates in terms of iso3 year
+
+(0 observations are duplicates)
+
+. save "$RINT/dpi_rev.dta", replace
+file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/dpi_rev.dta saved
+
+. 
+. * A7. QoG: ICRG quality of government (substituto publico da qualidade da burocracia do ICRG), Polity e BMR
+. import delimited "$RAW/qog/qog_std_ts_jan26.csv", clear varnames(1) case(lower) encoding(utf8)
+(1,813 vars, 12,585 obs)
+
+. keep ccodealp year icrg_qog p_polity2 bmr_dem bmr_demdur
+
+. rename ccodealp iso3
+
+. keep if strlen(iso3) == 3
+(0 observations deleted)
+
+. duplicates drop iso3 year, force
+
+Duplicates in terms of iso3 year
+
+(0 observations are duplicates)
+
+. label var icrg_qog "ICRG indicator of quality of government (0-1), via QoG"
+
+. save "$RINT/qog_rev.dta", replace
+file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/qog_rev.dta saved
+
+. 
+. * =====================================================================================
+. * B. Painel anual da revisao
+. * =====================================================================================
+. use "$FINAL/painel_anual.dta", clear
+
+. foreach f in wdi_rev laeven_valencia afg ilo_ud vdem_rev dpi_rev qog_rev {
+  2.     merge 1:1 iso3 year using "$RINT/`f'.dta", keep(master match) nogen
+  3. }
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                             0
+    Matched                            10,638  
+    -----------------------------------------
+(variable year was int, now float to accommodate using data's values)
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                        10,177
+        from master                    10,177  
+        from using                          0  
+
+    Matched                               461  
+    -----------------------------------------
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                        10,046
+        from master                    10,046  
+        from using                          0  
+
+    Matched                               592  
+    -----------------------------------------
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                         9,369
+        from master                     9,369  
+        from using                          0  
+
+    Matched                             1,269  
+    -----------------------------------------
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                         1,674
+        from master                     1,674  
+        from using                          0  
+
+    Matched                             8,964  
+    -----------------------------------------
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                         2,703
+        from master                     2,703  
+        from using                          0  
+
+    Matched                             7,935  
+    -----------------------------------------
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                         1,120
+        from master                     1,120  
+        from using                          0  
+
+    Matched                             9,518  
+    -----------------------------------------
+
+. replace crisis_bank = 0 if missing(crisis_bank) & year <= 2017
+(8,995 real changes made)
+
+. xtset id year
+
+Panel variable: id (strongly balanced)
+ Time variable: year, 1970 to 2023
+         Delta: 1 unit
+
+. 
+. * B1. Limpeza ampliada [P31]: guarda os valores originais e conta cada regra
+. foreach v in rev_gdp balance_gdp infl infl_raw open wagebill_share sh_goods sh_int sh_transf sh_inv sh_other {
+  2.     gen double `v'_orig = `v'
+  3. }
+(7,976 missing values generated)
+(8,150 missing values generated)
+(1,057 missing values generated)
+(1,057 missing values generated)
+(2,923 missing values generated)
+(8,204 missing values generated)
+(8,205 missing values generated)
+(8,156 missing values generated)
+(8,861 missing values generated)
+(8,133 missing values generated)
+(8,863 missing values generated)
+
+. local per "inrange(year, 1979, 2023) & micro == 0"
+
+. tempname R
+
+. file open `R' using "$RINT/limpeza_revisao.csv", write replace text
+
+. file write `R' "regra,obs_pais_ano" _n
+
+. count if rev_gdp > 100 & !missing(rev_gdp) & `per'
+  9
+
+. file write `R' "Receita > 100% do PIB,`r(N)'" _n
+
+. rv_kv clean_rev `r(N)'
+(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/kv.csv not found)
+
+. replace rev_gdp = . if rev_gdp > 100
+(23 real changes made, 23 to missing)
+
+. count if abs(balance_gdp) > 50 & !missing(balance_gdp) & `per'
+  6
+
+. file write `R' "Saldo fiscal fora de +-50% do PIB,`r(N)'" _n
+
+. rv_kv clean_bal `r(N)'
+
+. replace balance_gdp = . if abs(balance_gdp) > 50
+(7 real changes made, 7 to missing)
+
+. count if infl_raw > 1000 & !missing(infl_raw) & `per'
+  58
+
+. file write `R' "Inflacao > 1000%,`r(N)'" _n
+
+. rv_kv clean_infl `r(N)'
+
+. replace infl = . if infl_raw > 1000 & !missing(infl_raw)
+(58 real changes made, 58 to missing)
+
+. replace infl_raw = . if infl_raw > 1000
+(58 real changes made, 58 to missing)
+
+. count if open == 0 & `per'
+  21
+
+. file write `R' "Abertura igual a zero,`r(N)'" _n
+
+. rv_kv clean_open `r(N)'
+
+. replace open = . if open == 0
+(21 real changes made, 21 to missing)
+
+. local n = 0
+
+. foreach v in wagebill_share sh_goods sh_int sh_transf sh_inv sh_other {
+  2.     count if (`v' < 0 | `v' > 100) & !missing(`v') & `per'
+  3.     local n = `n' + r(N)
+  4.     replace `v' = . if `v' < 0 | `v' > 100
+  5. }
+  0
+(0 real changes made)
+  0
+(0 real changes made)
+  0
+(0 real changes made)
+  0
+(0 real changes made)
+  202
+(223 real changes made, 223 to missing)
+  20
+(33 real changes made, 33 to missing)
+
+. file write `R' "Participacoes na despesa fora de [0, 100],`n'" _n
+
+. rv_kv clean_shares `n'
+
+. * despesa e receita: a regra de despesa > 100% ja estava no draft 7; receita implausivel tambem zera as participacoes
+. file close `R'
+
+. * winsorizacao: limites aplicados no draft 7 (amostra sem microestados, 1980-2023)
+. _pctile g_raw if micro == 0 & inrange(year, 1980, 2023), p(1 99)
+
+. rv_kv wins_g_lo `=string(r(r1), "%5.2f")'
+
+. rv_kv wins_g_hi `=string(r(r2), "%5.2f")'
+
+. 
+. * B2. Tendencias do log do PIB real: Hamilton (H = 2, k = 2), HP unilateral e HP bilateral (lambda = 6,25)
+. rv_hamilton lnY, gen(lnY_ham) h(2) k(2)
+
+. rv_hp1s lnY, gen(lnY_hp1) lambda(6.25) minobs(8)
+
+. * lnY_hp (bilateral) ja existe no painel do draft 7
+. gen wb = wagebill_gdp
+(8,097 missing values generated)
+
+. gen wb_ham = wagebill_gdp * exp(lnY - lnY_ham)
+(8,114 missing values generated)
+
+. gen wb_hp1 = wagebill_gdp * exp(lnY - lnY_hp1)
+(8,173 missing values generated)
+
+. gen wb_hp2 = wagebill_gdp * exp(lnY - lnY_hp)
+(8,107 missing values generated)
+
+. label var wb "Wage bill, general government (% of GDP)"
+
+. label var wb_ham "Wage bill (% of trend GDP, Hamilton)"
+
+. label var wb_hp1 "Wage bill (% of trend GDP, one-sided HP)"
+
+. label var wb_hp2 "Wage bill (% of trend GDP, two-sided HP)"
+
+. * decomposicao multiplicativa: W/Y = (W/Y*)(Y*/Y)
+. gen lwb_trend = ln(wb_ham)
+(8,114 missing values generated)
+
+. gen lgap_ham = lnY_ham - lnY
+(1,713 missing values generated)
+
+. label var lwb_trend "log wage bill over trend GDP (Hamilton)"
+
+. label var lgap_ham "log(trend GDP / GDP), Hamilton"
+
+. * numerador placebo: folha real do ano anterior crescendo a tendencia do pais, dividida pelo PIB corrente
+. gen double wreal = wagebill_gdp / 100 * gdp_real
+(8,107 missing values generated)
+
+. gen double dlw = ln(wreal) - ln(L.wreal)
+(8,250 missing values generated)
+
+. bysort id: egen gstar = mean(dlw)
+(4,482 missing values generated)
+
+. gen wb_placebo = L.wagebill_gdp * (L.gdp_real / gdp_real) * exp(gstar)
+(8,194 missing values generated)
+
+. label var wb_placebo "Placebo ratio: lagged real wage bill grown at trend / current GDP (% of GDP)"
+
+. drop wreal dlw
+
+. * salario relativo sobre o PIB por trabalhador tendencial
+. gen relwage_ham = wb_ham / pubemp_share
+(9,895 missing values generated)
+
+. label var relwage_ham "Relative public wage over trend GDP per worker (Hamilton)"
+
+. * ciclicidade do consumo do governo (Frankel-Vegh-Vuletin): dlog consumo real sobre o hiato (HP bilateral)
+. gen dlgc = 100 * (ln(govcons_real) - ln(L.govcons_real))
+(4,567 missing values generated)
+
+. gen gap_hp = 100 * (lnY - lnY_hp)
+(1,115 missing values generated)
+
+. gen double cyc_pre = .
+(10,638 missing values generated)
+
+. levelsof id, local(ids)
+1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70
+>  71 72 73 74 75 76 77 78 79 80 81 82 83 84 85 86 87 88 89 90 91 92 93 94 95 96 97 98 99 100 101 102 103 104 105 106 107 108 109 110 111 112 113 114 115 116 117 118 119 120 121 122 123 124 125 126 12
+> 7 128 129 130 131 132 133 134 135 136 137 138 139 140 141 142 143 144 145 146 147 148 149 150 151 152 153 154 155 156 157 158 159 160 161 162 163 164 165 166 167 168 169 170 171 172 173 174 175 176 
+> 177 178 179 180 181 182 183 184 185 186 187 188 189 190 191 192 193 194 195 196 197
+
+. foreach i of local ids {
+  2.     capture quietly regress dlgc gap_hp if id == `i' & inrange(year, 1970, 1995)
+  3.     if !_rc & e(N) >= 12 quietly replace cyc_pre = _b[gap_hp] if id == `i'
+  4. }
+
+. label var cyc_pre "Cyclicality of real government consumption, 1970-1995 (coef. on output gap)"
+
+. * democracia e idade da democracia (V-Dem polyarchy >= 0,5)
+. gen byte dem = v2x_polyarchy >= 0.5 if !missing(v2x_polyarchy)
+(1,675 missing values generated)
+
+. gen demage = 0
+
+. bysort id (year): replace demage = cond(dem == 1, cond(_n == 1, 1, demage[_n - 1] + 1), 0) if !missing(dem)
+(3,739 real changes made)
+
+. replace demage = . if missing(dem)
+(1,675 real changes made, 1,675 to missing)
+
+. gen byte dem_new = dem == 1 & demage <= 16 if !missing(dem)
+(1,675 missing values generated)
+
+. label var dem "Democracy (V-Dem polyarchy >= 0.5)"
+
+. label var demage "Years of continuous democracy since 1970 (V-Dem)"
+
+. label var dem_new "New democracy (democracy for 16 years or fewer: about the first four elections)"
+
+. * zona do euro (membros e ano de adesao) e regioes
+. gen int euro_year = .
+(10,638 missing values generated)
+
+. foreach c in AUT BEL DEU ESP FIN FRA IRL ITA LUX NLD PRT {
+  2.     replace euro_year = 1999 if iso3 == "`c'"
+  3. }
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+
+. replace euro_year = 2001 if iso3 == "GRC"
+(54 real changes made)
+
+. replace euro_year = 2007 if iso3 == "SVN"
+(54 real changes made)
+
+. replace euro_year = 2008 if inlist(iso3, "CYP", "MLT")
+(108 real changes made)
+
+. replace euro_year = 2009 if iso3 == "SVK"
+(54 real changes made)
+
+. replace euro_year = 2011 if iso3 == "EST"
+(54 real changes made)
+
+. replace euro_year = 2014 if iso3 == "LVA"
+(54 real changes made)
+
+. replace euro_year = 2015 if iso3 == "LTU"
+(54 real changes made)
+
+. replace euro_year = 2023 if iso3 == "HRV"
+(54 real changes made)
+
+. gen byte euro = !missing(euro_year) & year >= euro_year
+
+. encode region, gen(region_id)
+
+. gen health_edu_share = 100 * (health_gov_gdp + educ_gov_gdp) / exp_gdp if exp_gdp > 0
+(9,183 missing values generated)
+
+. label var health_edu_share "Health and education spending (% of total expenditure), WDI/GFS"
+
+. gen y100 = 100 * lny
+(1,114 missing values generated)
+
+. label var y100 "100 x log GDP per capita"
+
+. compress
+  variable year was float now int
+  variable execrlc was int now byte
+  variable checks was float now byte
+  variable demage was float now byte
+  variable region_id was long now byte
+  (127,656 bytes saved)
+
+. save "$RINT/anual_rv.dta", replace
+file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/anual_rv.dta saved
+
+. 
+. * =====================================================================================
+. * C. Paineis de medias nao sobrepostas (5 e 3 anos), com variantes de timing
+. * =====================================================================================
+. * t_p = primeiro ano do periodo; t_p - 1 = ultimo ano do periodo anterior
+. capture program drop rv_painel
+
+. program define rv_painel
+  1.     args L
+  2.     use "$RINT/anual_rv.dta", clear
+  3.     keep if year >= 1978
+  4.     gen period = floor((year - 1979) / `L')
+  5.     gen year0 = 1979 + `L' * period
+  6.     gen byte first = year == year0
+  7.     gen byte notfirst = year > year0
+  8.     * crescimento: media do periodo (draft 7) e media excluindo o primeiro ano (T2)
+.     gen g_x1 = g if notfirst
+  9.     gen g_excr = g if !inlist(year, 2008, 2009, 2020, 2021)
+ 10.     * valores no ano t_p - 1 (ultimo ano do periodo anterior) e em t_p
+.     sort id year
+ 11.     local pre wb wb_ham wb_hp1 wb_hp2 wb_placebo wagebill_cg_wdi wagebill_comb cov_central wagebill_share exp_gdp ///
+>         rev_gdp balance_gdp sh_goods sh_int sh_transf sh_inv sh_other inv open infl popg ctot_g hc lny merit wgi_ge ///
+>         debt oldage_dep health_edu_share icrg_qog exec_left maj frac union_density clientelism_prog impartial ///
+>         dem demage dem_new v2x_polyarchy govcons_gdp lwb_trend lgap_ham
+ 12.     foreach v of local pre {
+ 13.         gen `v'_m1 = L.`v'
+ 14.         gen `v'_tp = `v'
+ 15.     }
+ 16.     * valores no ano t_p (draft 7) e em t_p - 1 so nas linhas do primeiro ano
+.     foreach v of local pre {
+ 17.         replace `v'_m1 = . if !first
+ 18.         replace `v'_tp = . if !first
+ 19.     }
+ 20.     * WWBI (4.4): mesmo ano para folha e emprego publico, o mais proximo de t_p - 1, com prioridade para anos anteriores
+.     * ordem de busca: t_p-1, t_p-2, t_p-3, t_p-4, t_p, t_p+1, t_p+2, t_p+3
+.     gen int yd = .
+ 21.     gen pe_sel = .
+ 22.     gen wb_sel = .
+ 23.     gen prem_sel = .
+ 24.     gen premf_sel = .
+ 25.     gen ilo_sel = .
+ 26.     gen relh_sel = .
+ 27.     foreach d in 1 2 3 4 0 -1 -2 -3 {
+ 28.         local s = cond(`d' > 0, "L`d'.", cond(`d' < 0, "F`=-`d''.", ""))
+ 29.         replace pe_sel = `s'pubemp_share if first & missing(yd) & !missing(`s'pubemp_share, `s'wagebill_gdp)
+ 30.         replace wb_sel = `s'wagebill_gdp if first & missing(yd) & !missing(`s'pubemp_share, `s'wagebill_gdp)
+ 31.         replace relh_sel = `s'relwage_ham if first & missing(yd) & !missing(`s'pubemp_share, `s'wagebill_gdp)
+ 32.         replace ilo_sel = `s'ilo_pubemp_share if first & missing(yd) & !missing(`s'pubemp_share, `s'wagebill_gdp)
+ 33.         replace yd = `d' if first & missing(yd) & !missing(`s'pubemp_share, `s'wagebill_gdp)
+ 34.     }
+ 35.     * premio (mesma regra, so o premio)
+.     gen int ydp = .
+ 36.     foreach d in 1 2 3 4 0 -1 -2 -3 {
+ 37.         local s = cond(`d' > 0, "L`d'.", cond(`d' < 0, "F`=-`d''.", ""))
+ 38.         replace prem_sel = `s'wwbi_prem_all if first & missing(ydp) & !missing(`s'wwbi_prem_all)
+ 39.         replace premf_sel = `s'wwbi_prem_formal if first & missing(ydp) & !missing(`s'wwbi_prem_all)
+ 40.         replace ydp = `d' if first & missing(ydp) & !missing(`s'wwbi_prem_all)
+ 41.     }
+ 42.     * crise no periodo e zona do euro 2008-2013
+.     gen byte euro_0813 = euro & inrange(year, 2008, 2013)
+ 43.     gen ng = !missing(g)
+ 44.     gen ng_x1 = !missing(g_x1)
+ 45.     drop if year < 1979
+ 46.     collapse (mean) g g_x1 g_excr g_raw infl infl_raw inv open popg ctot_g ipriv tfp_g privemp_g debt ///
+>         exp_gdp rev_gdp balance_gdp wb_mean = wb hc ///
+>         (max) crisis_p = crisis_bank euro_0813_p = euro_0813 war_any = war ///
+>         (firstnm) *_m1 *_tp yd ydp pe_sel wb_sel prem_sel premf_sel ilo_sel relh_sel ///
+>         iso3 country region region_id income_grp oecd resource_rich federal micro year0 euro_year ///
+>         (sum) ng ng_x1, by(id period)
+ 47.     replace g = . if ng < cond(`L' == 5, 3, 2)
+ 48.     replace g_x1 = . if ng_x1 < cond(`L' == 5, 3, 2)
+ 49.     rename lny_m1 lny0
+ 50.     xtset id period
+ 51.     gen L_g = L.g
+ 52.     * leads: folha no inicio do periodo seguinte
+.     gen wb_tp_lead = F.wb_tp
+ 53.     gen wb_m1_lead = F.wb_m1
+ 54.     label var g "GDP per capita growth (%, period mean)"
+ 55.     label var g_x1 "GDP per capita growth (%, period mean excluding the first year)"
+ 56.     label var wb_tp "Wage bill, general government (% of GDP), t_p"
+ 57.     label var wb_m1 "Wage bill, general government (% of GDP), t_p - 1"
+ 58.     label var wb_ham_m1 "Wage bill (% of trend GDP, Hamilton), t_p - 1"
+ 59.     label var wb_mean "Wage bill (% of GDP), period mean"
+ 60.     gen byte early2 = 0
+ 61.     bysort id (period): replace early2 = _n <= 2 if !missing(wb_m1)
+ 62.     compress
+ 63.     save "$RINT/p`L'_rv.dta", replace
+ 64. end
+
+. rv_painel 5
+(1,576 observations deleted)
+(2,290 missing values generated)
+(1,434 missing values generated)
+(6,660 missing values generated)
+(6,574 missing values generated)
+(6,671 missing values generated)
+(6,585 missing values generated)
+(6,695 missing values generated)
+(6,609 missing values generated)
+(6,670 missing values generated)
+(6,584 missing values generated)
+(6,748 missing values generated)
+(6,659 missing values generated)
+(5,077 missing values generated)
+(4,991 missing values generated)
+(4,399 missing values generated)
+(4,285 missing values generated)
+(4,350 missing values generated)
+(4,234 missing values generated)
+(6,755 missing values generated)
+(6,669 missing values generated)
+(6,711 missing values generated)
+(6,624 missing values generated)
+(6,591 missing values generated)
+(6,503 missing values generated)
+(6,724 missing values generated)
+(6,636 missing values generated)
+(6,755 missing values generated)
+(6,668 missing values generated)
+(6,722 missing values generated)
+(6,635 missing values generated)
+(7,366 missing values generated)
+(7,285 missing values generated)
+(6,920 missing values generated)
+(6,834 missing values generated)
+(7,401 missing values generated)
+(7,320 missing values generated)
+(2,664 missing values generated)
+(2,500 missing values generated)
+(2,323 missing values generated)
+(2,154 missing values generated)
+(855 missing values generated)
+(663 missing values generated)
+(212 missing values generated)
+(15 missing values generated)
+(1,505 missing values generated)
+(1,325 missing values generated)
+(2,773 missing values generated)
+(2,629 missing values generated)
+(834 missing values generated)
+(643 missing values generated)
+(1,711 missing values generated)
+(1,536 missing values generated)
+(4,466 missing values generated)
+(4,269 missing values generated)
+(1,843 missing values generated)
+(1,660 missing values generated)
+(209 missing values generated)
+(12 missing values generated)
+(7,645 missing values generated)
+(7,607 missing values generated)
+(3,939 missing values generated)
+(3,801 missing values generated)
+(5,042 missing values generated)
+(5,042 missing values generated)
+(2,751 missing values generated)
+(2,751 missing values generated)
+(2,821 missing values generated)
+(2,821 missing values generated)
+(7,793 missing values generated)
+(7,793 missing values generated)
+(1,495 missing values generated)
+(1,320 missing values generated)
+(1,495 missing values generated)
+(1,320 missing values generated)
+(1,496 missing values generated)
+(1,321 missing values generated)
+(1,496 missing values generated)
+(1,321 missing values generated)
+(1,496 missing values generated)
+(1,321 missing values generated)
+(1,496 missing values generated)
+(1,321 missing values generated)
+(2,495 missing values generated)
+(2,328 missing values generated)
+(6,671 missing values generated)
+(6,585 missing values generated)
+(1,008 missing values generated)
+(818 missing values generated)
+(1,945 real changes made, 1,945 to missing)
+(2,029 real changes made, 2,029 to missing)
+(1,936 real changes made, 1,936 to missing)
+(2,020 real changes made, 2,020 to missing)
+(1,914 real changes made, 1,914 to missing)
+(1,998 real changes made, 1,998 to missing)
+(1,937 real changes made, 1,937 to missing)
+(2,021 real changes made, 2,021 to missing)
+(1,884 real changes made, 1,884 to missing)
+(1,948 real changes made, 1,948 to missing)
+(3,225 real changes made, 3,225 to missing)
+(3,291 real changes made, 3,291 to missing)
+(3,773 real changes made, 3,773 to missing)
+(3,867 real changes made, 3,867 to missing)
+(3,812 real changes made, 3,812 to missing)
+(3,908 real changes made, 3,908 to missing)
+(1,873 real changes made, 1,873 to missing)
+(1,951 real changes made, 1,951 to missing)
+(1,909 real changes made, 1,909 to missing)
+(1,986 real changes made, 1,986 to missing)
+(2,002 real changes made, 2,002 to missing)
+(2,087 real changes made, 2,087 to missing)
+(1,901 real changes made, 1,901 to missing)
+(1,978 real changes made, 1,978 to missing)
+(1,875 real changes made, 1,875 to missing)
+(1,953 real changes made, 1,953 to missing)
+(1,901 real changes made, 1,901 to missing)
+(1,977 real changes made, 1,977 to missing)
+(1,389 real changes made, 1,389 to missing)
+(1,458 real changes made, 1,458 to missing)
+(1,737 real changes made, 1,737 to missing)
+(1,810 real changes made, 1,810 to missing)
+(1,359 real changes made, 1,359 to missing)
+(1,431 real changes made, 1,431 to missing)
+(5,156 real changes made, 5,156 to missing)
+(5,312 real changes made, 5,312 to missing)
+(5,424 real changes made, 5,424 to missing)
+(5,585 real changes made, 5,585 to missing)
+(6,586 real changes made, 6,586 to missing)
+(6,776 real changes made, 6,776 to missing)
+(7,080 real changes made, 7,080 to missing)
+(7,277 real changes made, 7,277 to missing)
+(6,053 real changes made, 6,053 to missing)
+(6,230 real changes made, 6,230 to missing)
+(5,041 real changes made, 5,041 to missing)
+(5,184 real changes made, 5,184 to missing)
+(6,606 real changes made, 6,606 to missing)
+(6,793 real changes made, 6,793 to missing)
+(5,897 real changes made, 5,897 to missing)
+(6,070 real changes made, 6,070 to missing)
+(3,652 real changes made, 3,652 to missing)
+(4,018 real changes made, 4,018 to missing)
+(5,807 real changes made, 5,807 to missing)
+(5,985 real changes made, 5,985 to missing)
+(7,083 real changes made, 7,083 to missing)
+(7,280 real changes made, 7,280 to missing)
+(1,169 real changes made, 1,169 to missing)
+(1,194 real changes made, 1,194 to missing)
+(4,199 real changes made, 4,199 to missing)
+(4,229 real changes made, 4,229 to missing)
+(3,183 real changes made, 3,183 to missing)
+(3,180 real changes made, 3,180 to missing)
+(5,005 real changes made, 5,005 to missing)
+(4,997 real changes made, 4,997 to missing)
+(4,949 real changes made, 4,949 to missing)
+(4,941 real changes made, 4,941 to missing)
+(1,008 real changes made, 1,008 to missing)
+(1,018 real changes made, 1,018 to missing)
+(6,065 real changes made, 6,065 to missing)
+(6,238 real changes made, 6,238 to missing)
+(6,065 real changes made, 6,065 to missing)
+(6,238 real changes made, 6,238 to missing)
+(6,064 real changes made, 6,064 to missing)
+(6,237 real changes made, 6,237 to missing)
+(6,064 real changes made, 6,064 to missing)
+(6,237 real changes made, 6,237 to missing)
+(6,064 real changes made, 6,064 to missing)
+(6,237 real changes made, 6,237 to missing)
+(6,064 real changes made, 6,064 to missing)
+(6,237 real changes made, 6,237 to missing)
+(5,284 real changes made, 5,284 to missing)
+(5,446 real changes made, 5,446 to missing)
+(1,936 real changes made, 1,936 to missing)
+(2,020 real changes made, 2,020 to missing)
+(6,455 real changes made, 6,455 to missing)
+(6,642 real changes made, 6,642 to missing)
+(9,062 missing values generated)
+(9,062 missing values generated)
+(9,062 missing values generated)
+(9,062 missing values generated)
+(9,062 missing values generated)
+(9,062 missing values generated)
+(9,062 missing values generated)
+(144 real changes made)
+(144 real changes made)
+(144 real changes made)
+(62 real changes made)
+(144 real changes made)
+(22 real changes made)
+(22 real changes made)
+(22 real changes made)
+(16 real changes made)
+(22 real changes made)
+(10 real changes made)
+(10 real changes made)
+(10 real changes made)
+(4 real changes made)
+(10 real changes made)
+(10 real changes made)
+(10 real changes made)
+(10 real changes made)
+(5 real changes made)
+(10 real changes made)
+(14 real changes made)
+(14 real changes made)
+(14 real changes made)
+(5 real changes made)
+(14 real changes made)
+(25 real changes made)
+(25 real changes made)
+(25 real changes made)
+(12 real changes made)
+(25 real changes made)
+(11 real changes made)
+(11 real changes made)
+(11 real changes made)
+(5 real changes made)
+(11 real changes made)
+(17 real changes made)
+(17 real changes made)
+(17 real changes made)
+(4 real changes made)
+(17 real changes made)
+(9,062 missing values generated)
+(168 real changes made)
+(141 real changes made)
+(168 real changes made)
+(48 real changes made)
+(37 real changes made)
+(48 real changes made)
+(30 real changes made)
+(20 real changes made)
+(30 real changes made)
+(30 real changes made)
+(20 real changes made)
+(30 real changes made)
+(22 real changes made)
+(14 real changes made)
+(22 real changes made)
+(42 real changes made)
+(30 real changes made)
+(42 real changes made)
+(23 real changes made)
+(11 real changes made)
+(23 real changes made)
+(25 real changes made)
+(20 real changes made)
+(25 real changes made)
+(197 observations deleted)
+(13 real changes made, 13 to missing)
+(13 real changes made, 13 to missing)
+
+Panel variable: id (strongly balanced)
+ Time variable: period, 0 to 8
+         Delta: 1 unit
+(304 missing values generated)
+(1,329 missing values generated)
+(1,331 missing values generated)
+(37 real changes made)
+  variable period was float now byte
+  variable cov_central_m1 was float now byte
+  variable exec_left_m1 was float now byte
+  variable dem_m1 was float now byte
+  variable demage_m1 was float now byte
+  variable dem_new_m1 was float now byte
+  variable cov_central_tp was float now byte
+  variable exec_left_tp was float now byte
+  variable dem_tp was float now byte
+  variable demage_tp was float now byte
+  variable dem_new_tp was float now byte
+  variable yd was int now byte
+  variable ydp was int now byte
+  variable year0 was float now int
+  variable ng was double now byte
+  variable ng_x1 was double now byte
+  (90,423 bytes saved)
+file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/p5_rv.dta saved
+
+. rv_painel 3
+(1,576 observations deleted)
+(3,405 missing values generated)
+(1,434 missing values generated)
+(6,660 missing values generated)
+(6,574 missing values generated)
+(6,671 missing values generated)
+(6,585 missing values generated)
+(6,695 missing values generated)
+(6,609 missing values generated)
+(6,670 missing values generated)
+(6,584 missing values generated)
+(6,748 missing values generated)
+(6,659 missing values generated)
+(5,077 missing values generated)
+(4,991 missing values generated)
+(4,399 missing values generated)
+(4,285 missing values generated)
+(4,350 missing values generated)
+(4,234 missing values generated)
+(6,755 missing values generated)
+(6,669 missing values generated)
+(6,711 missing values generated)
+(6,624 missing values generated)
+(6,591 missing values generated)
+(6,503 missing values generated)
+(6,724 missing values generated)
+(6,636 missing values generated)
+(6,755 missing values generated)
+(6,668 missing values generated)
+(6,722 missing values generated)
+(6,635 missing values generated)
+(7,366 missing values generated)
+(7,285 missing values generated)
+(6,920 missing values generated)
+(6,834 missing values generated)
+(7,401 missing values generated)
+(7,320 missing values generated)
+(2,664 missing values generated)
+(2,500 missing values generated)
+(2,323 missing values generated)
+(2,154 missing values generated)
+(855 missing values generated)
+(663 missing values generated)
+(212 missing values generated)
+(15 missing values generated)
+(1,505 missing values generated)
+(1,325 missing values generated)
+(2,773 missing values generated)
+(2,629 missing values generated)
+(834 missing values generated)
+(643 missing values generated)
+(1,711 missing values generated)
+(1,536 missing values generated)
+(4,466 missing values generated)
+(4,269 missing values generated)
+(1,843 missing values generated)
+(1,660 missing values generated)
+(209 missing values generated)
+(12 missing values generated)
+(7,645 missing values generated)
+(7,607 missing values generated)
+(3,939 missing values generated)
+(3,801 missing values generated)
+(5,042 missing values generated)
+(5,042 missing values generated)
+(2,751 missing values generated)
+(2,751 missing values generated)
+(2,821 missing values generated)
+(2,821 missing values generated)
+(7,793 missing values generated)
+(7,793 missing values generated)
+(1,495 missing values generated)
+(1,320 missing values generated)
+(1,495 missing values generated)
+(1,320 missing values generated)
+(1,496 missing values generated)
+(1,321 missing values generated)
+(1,496 missing values generated)
+(1,321 missing values generated)
+(1,496 missing values generated)
+(1,321 missing values generated)
+(1,496 missing values generated)
+(1,321 missing values generated)
+(2,495 missing values generated)
+(2,328 missing values generated)
+(6,671 missing values generated)
+(6,585 missing values generated)
+(1,008 missing values generated)
+(818 missing values generated)
+(1,620 real changes made, 1,620 to missing)
+(1,690 real changes made, 1,690 to missing)
+(1,612 real changes made, 1,612 to missing)
+(1,682 real changes made, 1,682 to missing)
+(1,599 real changes made, 1,599 to missing)
+(1,662 real changes made, 1,662 to missing)
+(1,613 real changes made, 1,613 to missing)
+(1,683 real changes made, 1,683 to missing)
+(1,573 real changes made, 1,573 to missing)
+(1,625 real changes made, 1,625 to missing)
+(2,665 real changes made, 2,665 to missing)
+(2,744 real changes made, 2,744 to missing)
+(3,119 real changes made, 3,119 to missing)
+(3,231 real changes made, 3,231 to missing)
+(3,153 real changes made, 3,153 to missing)
+(3,264 real changes made, 3,264 to missing)
+(1,558 real changes made, 1,558 to missing)
+(1,626 real changes made, 1,626 to missing)
+(1,587 real changes made, 1,587 to missing)
+(1,657 real changes made, 1,657 to missing)
+(1,668 real changes made, 1,668 to missing)
+(1,737 real changes made, 1,737 to missing)
+(1,580 real changes made, 1,580 to missing)
+(1,648 real changes made, 1,648 to missing)
+(1,561 real changes made, 1,561 to missing)
+(1,627 real changes made, 1,627 to missing)
+(1,581 real changes made, 1,581 to missing)
+(1,648 real changes made, 1,648 to missing)
+(1,156 real changes made, 1,156 to missing)
+(1,214 real changes made, 1,214 to missing)
+(1,450 real changes made, 1,450 to missing)
+(1,511 real changes made, 1,511 to missing)
+(1,132 real changes made, 1,132 to missing)
+(1,190 real changes made, 1,190 to missing)
+(4,287 real changes made, 4,287 to missing)
+(4,433 real changes made, 4,433 to missing)
+(4,510 real changes made, 4,510 to missing)
+(4,668 real changes made, 4,668 to missing)
+(5,494 real changes made, 5,494 to missing)
+(5,656 real changes made, 5,656 to missing)
+(5,900 real changes made, 5,900 to missing)
+(6,097 real changes made, 6,097 to missing)
+(5,046 real changes made, 5,046 to missing)
+(5,217 real changes made, 5,217 to missing)
+(4,193 real changes made, 4,193 to missing)
+(4,337 real changes made, 4,337 to missing)
+(5,495 real changes made, 5,495 to missing)
+(5,677 real changes made, 5,677 to missing)
+(4,903 real changes made, 4,903 to missing)
+(5,076 real changes made, 5,076 to missing)
+(3,070 real changes made, 3,070 to missing)
+(3,263 real changes made, 3,263 to missing)
+(4,837 real changes made, 4,837 to missing)
+(4,998 real changes made, 4,998 to missing)
+(5,902 real changes made, 5,902 to missing)
+(6,099 real changes made, 6,099 to missing)
+(974 real changes made, 974 to missing)
+(976 real changes made, 976 to missing)
+(3,430 real changes made, 3,430 to missing)
+(3,550 real changes made, 3,550 to missing)
+(2,625 real changes made, 2,625 to missing)
+(2,711 real changes made, 2,711 to missing)
+(4,120 real changes made, 4,120 to missing)
+(4,259 real changes made, 4,259 to missing)
+(4,074 real changes made, 4,074 to missing)
+(4,212 real changes made, 4,212 to missing)
+(878 real changes made, 878 to missing)
+(823 real changes made, 823 to missing)
+(5,047 real changes made, 5,047 to missing)
+(5,220 real changes made, 5,220 to missing)
+(5,047 real changes made, 5,047 to missing)
+(5,220 real changes made, 5,220 to missing)
+(5,047 real changes made, 5,047 to missing)
+(5,219 real changes made, 5,219 to missing)
+(5,047 real changes made, 5,047 to missing)
+(5,219 real changes made, 5,219 to missing)
+(5,047 real changes made, 5,047 to missing)
+(5,219 real changes made, 5,219 to missing)
+(5,047 real changes made, 5,047 to missing)
+(5,219 real changes made, 5,219 to missing)
+(4,397 real changes made, 4,397 to missing)
+(4,550 real changes made, 4,550 to missing)
+(1,612 real changes made, 1,612 to missing)
+(1,682 real changes made, 1,682 to missing)
+(5,381 real changes made, 5,381 to missing)
+(5,562 real changes made, 5,562 to missing)
+(9,062 missing values generated)
+(9,062 missing values generated)
+(9,062 missing values generated)
+(9,062 missing values generated)
+(9,062 missing values generated)
+(9,062 missing values generated)
+(9,062 missing values generated)
+(255 real changes made)
+(255 real changes made)
+(255 real changes made)
+(114 real changes made)
+(255 real changes made)
+(35 real changes made)
+(35 real changes made)
+(35 real changes made)
+(20 real changes made)
+(35 real changes made)
+(23 real changes made)
+(23 real changes made)
+(23 real changes made)
+(13 real changes made)
+(23 real changes made)
+(14 real changes made)
+(14 real changes made)
+(14 real changes made)
+(8 real changes made)
+(14 real changes made)
+(23 real changes made)
+(23 real changes made)
+(23 real changes made)
+(13 real changes made)
+(23 real changes made)
+(32 real changes made)
+(32 real changes made)
+(32 real changes made)
+(10 real changes made)
+(32 real changes made)
+(25 real changes made)
+(25 real changes made)
+(25 real changes made)
+(8 real changes made)
+(25 real changes made)
+(21 real changes made)
+(21 real changes made)
+(21 real changes made)
+(11 real changes made)
+(21 real changes made)
+(9,062 missing values generated)
+(275 real changes made)
+(236 real changes made)
+(275 real changes made)
+(62 real changes made)
+(42 real changes made)
+(62 real changes made)
+(77 real changes made)
+(61 real changes made)
+(77 real changes made)
+(54 real changes made)
+(36 real changes made)
+(54 real changes made)
+(52 real changes made)
+(34 real changes made)
+(52 real changes made)
+(51 real changes made)
+(36 real changes made)
+(51 real changes made)
+(38 real changes made)
+(23 real changes made)
+(38 real changes made)
+(40 real changes made)
+(27 real changes made)
+(40 real changes made)
+(197 observations deleted)
+(17 real changes made, 17 to missing)
+(15 real changes made, 15 to missing)
+
+Panel variable: id (strongly balanced)
+ Time variable: period, 0 to 14
+         Delta: 1 unit
+(398 missing values generated)
+(2,172 missing values generated)
+(2,188 missing values generated)
+(36 real changes made)
+  variable period was float now byte
+  variable cov_central_m1 was float now byte
+  variable exec_left_m1 was float now byte
+  variable dem_m1 was float now byte
+  variable demage_m1 was float now byte
+  variable dem_new_m1 was float now byte
+  variable cov_central_tp was float now byte
+  variable exec_left_tp was float now byte
+  variable dem_tp was float now byte
+  variable demage_tp was float now byte
+  variable dem_new_tp was float now byte
+  variable yd was int now byte
+  variable ydp was int now byte
+  variable year0 was float now int
+  variable ng was double now byte
+  variable ng_x1 was double now byte
+  (150,705 bytes saved)
+file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/p3_rv.dta saved
+
+. 
+. * =====================================================================================
+. * D. Amostras canonicas
+. * =====================================================================================
+. global X5D "lny0 hc_tp inv open infl popg ctot_g"
+
+. use "$RINT/p5_rv.dta", clear
+
+. keep if micro == 0
+(261 observations deleted)
+
+. xtset id period
+
+Panel variable: id (strongly balanced)
+ Time variable: period, 0 to 8
+         Delta: 1 unit
+
+. * S5_base: especificacao de base do draft 7 (A1), com a limpeza ampliada
+. reghdfe g wb_tp $X5D, absorb(id period) vce(cluster id)
+(dropped 15 singleton observations)
+(MWFE estimator converged in 7 iterations)
+
+HDFE Linear regression                            Number of obs   =        365
+Absorbing 2 HDFE groups                           F(   8,     71) =      15.82
+Statistics robust to heteroskedasticity           Prob > F        =     0.0000
+                                                  R-squared       =     0.7235
+                                                  Adj R-squared   =     0.6367
+                                                  Within R-sq.    =     0.3963
+Number of clusters (id)      =         72         Root MSE        =     1.3147
+
+                                    (Std. err. adjusted for 72 clusters in id)
+------------------------------------------------------------------------------
+             |               Robust
+           g | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+       wb_tp |  -.1665688   .0721191    -2.31   0.024    -.3103703   -.0227673
+        lny0 |  -5.199281   .8512838    -6.11   0.000    -6.896693    -3.50187
+       hc_tp |   2.358361   1.156752     2.04   0.045     .0518626    4.664859
+         inv |   .1598866   .0481082     3.32   0.001     .0639616    .2558115
+        open |   .0301487   .0101839     2.96   0.004     .0098426    .0504548
+        infl |  -.0187568   .0117553    -1.60   0.115    -.0421962    .0046826
+        popg |   -.727565   .2399124    -3.03   0.003    -1.205937   -.2491932
+      ctot_g |   .2258422    .085597     2.64   0.010     .0551667    .3965177
+       _cons |   40.73411    8.29687     4.91   0.000     24.19062     57.2776
+------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+          id |        72          72           0    *|
+      period |         9           1           8     |
+-----------------------------------------------------+
+* = FE nested within cluster; treated as redundant for DoF computation
+
+. gen byte S5_base = e(sample)
+
+. rv_kv S5_base_N `e(N)'
+
+. rv_kv S5_base_nc `e(N_clust)'
+
+. * o mesmo modelo com as variaveis sem a limpeza ampliada (para contar o efeito da limpeza)
+. gen byte S5_bond = 0
+
+. gen byte S5_common_GC = 0
+
+. keep id period S5_base S5_bond S5_common_GC
+
+. save "$RINT/amostras5.dta", replace
+file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/amostras5.dta saved
+
+. 
+. use "$RINT/anual_rv.dta", clear
+
+. keep if micro == 0 & inrange(year, 1996, 2023)
+(5,934 observations deleted)
+
+. xtset id year
+
+Panel variable: id (strongly balanced)
+ Time variable: year, 1996 to 2023
+         Delta: 1 unit
+
+. gen byte S1_base = !missing(wb, wb_hp2, wb_ham, L.wb, g, L.g, L.lny, hc, inv, open, infl, popg, ctot_g)
+
+. count if S1_base
+  1,593
+
+. rv_kv S1_base_N `r(N)'
+
+. keep id year S1_base
+
+. save "$RINT/amostras1.dta", replace
+file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/amostras1.dta saved
+
+. 
+. * =====================================================================================
+. * E. Inconsistencias apontadas pelo parecer [P13, P20, P22, P24]
+. * =====================================================================================
+. * E1. folha defasada 0,040 na S12 (1.594 obs.) e na S1 (1.622 obs.): dois modelos distintos?
+. use "$FINAL/painel_anual.dta", clear
+
+. keep if micro == 0 & inrange(year, 1996, 2023)
+(5,934 observations deleted)
+
+. xtset id year
+
+Panel variable: id (strongly balanced)
+ Time variable: year, 1996 to 2023
+         Delta: 1 unit
+
+. gen wb_lag = L.wagebill_gdp
+(2,893 missing values generated)
+
+. gen byte s4 = !missing(wagebill_gdp, wagebill_cyc, wagebill_cyc_ham, wb_lag, g, L.g, L.lny, hc, inv, open, infl, popg, ctot_g)
+
+. xtscc g wb_lag L.g L.lny hc inv open infl popg ctot_g i.year if s4, fe
+
+Regression with Driscoll-Kraay standard errors   Number of obs     =      1594
+Method: Fixed-effects regression                 Number of groups  =        87
+Group variable (i): id                           F( 35,    26)     =4890437.09
+maximum lag: 2                                   Prob > F          =    0.0000
+                                                 within R-squared  =    0.5608
+
+------------------------------------------------------------------------------
+             |             Drisc/Kraay
+           g | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+      wb_lag |   .0397963   .1336004     0.30   0.768    -.2348232    .3144158
+             |
+           g |
+         L1. |   .1961722   .0564139     3.48   0.002     .0802117    .3121326
+             |
+         lny |
+         L1. |   -5.50281   1.437612    -3.83   0.001    -8.457864   -2.547756
+             |
+          hc |   1.934665    .942149     2.05   0.050    -.0019505     3.87128
+         inv |   .1679391    .046097     3.64   0.001     .0731854    .2626928
+        open |   .0295678   .0079352     3.73   0.001     .0132568    .0458787
+        infl |  -.0299453   .0033871    -8.84   0.000    -.0369076   -.0229829
+        popg |  -.9044019   .3282752    -2.76   0.011    -1.579181   -.2296225
+      ctot_g |   -.024777   .0675615    -0.37   0.717    -.1636517    .1140976
+             |
+        year |
+       1996  |          0  (empty)
+       1997  |   2.035251    .109042    18.66   0.000     1.811112     2.25939
+       1998  |    .624511   .0708381     8.82   0.000     .4789012    .7701209
+       1999  |          0  (omitted)
+       2000  |   2.082412   .0811538    25.66   0.000     1.915598    2.249226
+       2001  |   .3237904   .1637297     1.98   0.059    -.0127609    .6603417
+       2002  |   1.238484   .1632925     7.58   0.000     .9028317    1.574137
+       2003  |   1.472672   .1770907     8.32   0.000     1.108657    1.836687
+       2004  |   2.429372   .2373766    10.23   0.000     1.941437    2.917307
+       2005  |   1.834344   .2877857     6.37   0.000     1.242792    2.425896
+       2006  |   2.752724   .3483754     7.90   0.000     2.036628     3.46882
+       2007  |   2.121675   .3985356     5.32   0.000     1.302473    2.940877
+       2008  |  -.1245355   .4694234    -0.27   0.793    -1.089449    .8403781
+       2009  |  -4.630649   .5051422    -9.17   0.000    -5.668983   -3.592314
+       2010  |   2.764692   .7038757     3.93   0.001     1.317855     4.21153
+       2011  |   .7585137   .5186174     1.46   0.156    -.3075196    1.824547
+       2012  |  -.0127728   .5682491    -0.02   0.982    -1.180825     1.15528
+       2013  |   .4637531    .623364     0.74   0.464      -.81759    1.745096
+       2014  |   .8741301    .651015     1.34   0.191    -.4640504    2.212311
+       2015  |   1.011984   .6912971     1.46   0.155    -.4089979    2.432965
+       2016  |   1.124122   .7108474     1.58   0.126    -.3370461    2.585289
+       2017  |   1.988466   .7449644     2.67   0.013       .45717    3.519763
+       2018  |   1.691743   .7690002     2.20   0.037     .1110408    3.272446
+       2019  |   1.049315   .8203963     1.28   0.212    -.6370342    2.735663
+       2020  |  -5.584256   .8702868    -6.42   0.000    -7.373156   -3.795356
+       2021  |   6.473246   1.060083     6.11   0.000     4.294213    8.652279
+       2022  |   1.117113   .8931699     1.25   0.222    -.7188246     2.95305
+       2023  |   .7807034   .9802017     0.80   0.433     -1.23413    2.795537
+             |
+       _cons |   40.96349   14.25451     2.87   0.008     11.66293    70.26405
+------------------------------------------------------------------------------
+
+
+. local b12 = _b[wb_lag]
+
+. local se12 = _se[wb_lag]
+
+. local n12 = e(N)
+
+. gen wagebill_gdp0 = L.wagebill_gdp
+(2,893 missing values generated)
+
+. gen L_g = L.g
+(268 missing values generated)
+
+. gen lny0 = L.lny
+(263 missing values generated)
+
+. gen hc0 = L.hc
+(978 missing values generated)
+
+. xtscc g wagebill_gdp0 L_g lny0 hc0 inv open infl popg ctot_g i.year, fe
+
+Regression with Driscoll-Kraay standard errors   Number of obs     =      1622
+Method: Fixed-effects regression                 Number of groups  =        88
+Group variable (i): id                           F( 35,    26)     =1466662.62
+maximum lag: 2                                   Prob > F          =    0.0000
+                                                 within R-squared  =    0.5546
+
+-------------------------------------------------------------------------------
+              |             Drisc/Kraay
+            g | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+--------------+----------------------------------------------------------------
+wagebill_gdp0 |   .0395246    .129122     0.31   0.762    -.2258895    .3049388
+          L_g |   .1992847   .0580538     3.43   0.002     .0799535     .318616
+         lny0 |  -5.534502   1.413988    -3.91   0.001    -8.440996   -2.628008
+          hc0 |    2.19771   1.200625     1.83   0.079    -.2702095    4.665629
+          inv |   .1513547   .0465425     3.25   0.003     .0556853    .2470241
+         open |    .028148   .0080129     3.51   0.002     .0116773    .0446188
+         infl |  -.0302739   .0034309    -8.82   0.000    -.0373263   -.0232215
+         popg |  -.8729861   .3135009    -2.78   0.010    -1.517396   -.2285757
+       ctot_g |   .0001786   .0697316     0.00   0.998    -.1431567    .1435139
+              |
+         year |
+        1996  |          0  (empty)
+        1997  |   1.419289   .0875513    16.21   0.000     1.239325    1.599254
+        1998  |          0  (omitted)
+        1999  |  -.7122573   .0909862    -7.83   0.000     -.899282   -.5252326
+        2000  |    1.46621   .1716889     8.54   0.000     1.113298    1.819122
+        2001  |  -.3506081   .1679418    -2.09   0.047    -.6958174   -.0053989
+        2002  |   .5845062   .2159367     2.71   0.012      .140642     1.02837
+        2003  |   .8297932   .2456055     3.38   0.002     .3249438    1.334643
+        2004  |   1.806962    .291162     6.21   0.000      1.20847    2.405454
+        2005  |   1.100246   .3480764     3.16   0.004     .3847647    1.815727
+        2006  |   2.123649   .4175729     5.09   0.000     1.265315    2.981982
+        2007  |   1.492566   .4616012     3.23   0.003     .5437314    2.441401
+        2008  |  -.6212893   .5356263    -1.16   0.257    -1.722285    .4797062
+        2009  |  -5.300842   .5877189    -9.02   0.000    -6.508916   -4.092769
+        2010  |   2.119647   .8293044     2.56   0.017     .4149873    3.824307
+        2011  |   .1061636   .6125907     0.17   0.864    -1.153035    1.365362
+        2012  |  -.6870228   .6711273    -1.02   0.315    -2.066545    .6924991
+        2013  |  -.1697129   .7249877    -0.23   0.817    -1.659947    1.320521
+        2014  |   .1936016   .7566191     0.26   0.800    -1.361651    1.748854
+        2015  |   .1456543   .7778322     0.19   0.853    -1.453203    1.744511
+        2016  |   .4250669   .8068412     0.53   0.603    -1.233419    2.083553
+        2017  |   1.286491   .8498792     1.51   0.142    -.4604609    3.033443
+        2018  |   1.014342   .8665556     1.17   0.252    -.7668885    2.795572
+        2019  |    .362703   .9163072     0.40   0.695    -1.520794    2.246199
+        2020  |  -6.308037   .9691207    -6.51   0.000    -8.300093   -4.315981
+        2021  |   5.756442   1.219642     4.72   0.000     3.249432    8.263451
+        2022  |   .5037651   .9688969     0.52   0.608    -1.487831    2.495361
+        2023  |   .1399919    1.07474     0.13   0.897    -2.069168    2.349151
+              |
+        _cons |   41.59776   14.34654     2.90   0.008     12.10803    71.08749
+-------------------------------------------------------------------------------
+
+
+. local b1 = _b[wagebill_gdp0]
+
+. local se1 = _se[wagebill_gdp0]
+
+. local n1 = e(N)
+
+. di "E1: S12 col. 4 = " %9.6f `b12' " (EP " %8.6f `se12' ", N = `n12'); S1 col. 3 = " %9.6f `b1' " (EP " %8.6f `se1' ", N = `n1')"
+E1: S12 col. 4 =  0.039796 (EP 0.133600, N = 1594); S1 col. 3 =  0.039525 (EP 0.129122, N = 1622)
+
+. rv_kv e1_b12 `=string(`b12', "%9.6f")'
+
+. rv_kv e1_b1 `=string(`b1', "%9.6f")'
+
+. rv_kv e1_n12 `n12'
+
+. rv_kv e1_n1 `n1'
+
+. * diferenca entre os modelos: S1 usa capital humano defasado e a amostra nao exige HP/Hamilton
+. * E2. Tabela S14: quantos paises no A1 e quantos na lista
+. use "$FINAL/painel_5anos.dta", clear
+
+. keep if micro == 0
+(261 observations deleted)
+
+. reghdfe g wagebill_gdp0 lny0 hc0 inv open infl popg ctot_g, absorb(id period) vce(cluster id)
+(dropped 15 singleton observations)
+(MWFE estimator converged in 7 iterations)
+
+HDFE Linear regression                            Number of obs   =        365
+Absorbing 2 HDFE groups                           F(   8,     71) =      17.83
+Statistics robust to heteroskedasticity           Prob > F        =     0.0000
+                                                  R-squared       =     0.7266
+                                                  Adj R-squared   =     0.6407
+                                                  Within R-sq.    =     0.4030
+Number of clusters (id)      =         72         Root MSE        =     1.3074
+
+                                     (Std. err. adjusted for 72 clusters in id)
+-------------------------------------------------------------------------------
+              |               Robust
+            g | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+--------------+----------------------------------------------------------------
+wagebill_gdp0 |  -.1817291   .0724032    -2.51   0.014    -.3260969   -.0373612
+         lny0 |  -5.229825   .8562268    -6.11   0.000    -6.937093   -3.522558
+          hc0 |   2.344566   1.138573     2.06   0.043     .0743155    4.614816
+          inv |   .1529867   .0487482     3.14   0.002     .0557856    .2501879
+         open |   .0295535    .010238     2.89   0.005     .0091395    .0499675
+         infl |  -.0171154   .0060374    -2.83   0.006    -.0291535   -.0050773
+         popg |   -.692001   .2376375    -2.91   0.005    -1.165837   -.2181653
+       ctot_g |   .2207698   .0846225     2.61   0.011     .0520374    .3895022
+        _cons |    41.4028   8.355942     4.95   0.000     24.74152    58.06408
+-------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+          id |        72          72           0    *|
+      period |         9           1           8     |
+-----------------------------------------------------+
+* = FE nested within cluster; treated as redundant for DoF computation
+
+. gen byte sA1 = e(sample)
+
+. egen tagA1 = tag(id) if sA1
+
+. count if tagA1 == 1
+  72
+
+. rv_kv e2_nA1 `r(N)'
+
+. tab income_grp if tagA1 == 1
+
+  (firstnm) |
+ income_grp |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 |          9       12.50       12.50
+          2 |         24       33.33       45.83
+          3 |         12       16.67       62.50
+          4 |         27       37.50      100.00
+------------+-----------------------------------
+      Total |         72      100.00
+
+. egen tagall = tag(id) if !missing(wagebill_gdp0)
+
+. count if tagall == 1
+  101
+
+. rv_kv e2_nlist `r(N)'
+
+. * singletons: paises com uma so observacao na amostra do A1 (antes do descarte)
+. gen byte sA1x = !missing(g, wagebill_gdp0, lny0, hc0, inv, open, infl, popg, ctot_g)
+
+. bysort id: egen nobs_i = total(sA1x)
+
+. egen tagx = tag(id) if sA1x
+
+. count if tagx == 1
+  87
+
+. rv_kv e3_nc_presingleton `r(N)'
+
+. count if tagx == 1 & nobs_i == 1
+  15
+
+. rv_kv e3_singletons `r(N)'
+
+. count if sA1x
+  380
+
+. rv_kv e3_N_presingleton `r(N)'
+
+. * subamostras por renda: observacoes sem grupo de renda na amostra do A1
+. count if sA1 & missing(income_grp)
+  0
+
+. rv_kv e5_noincome `r(N)'
+
+. forvalues k = 1/4 {
+  2.     quietly reghdfe g wagebill_gdp0 lny0 hc0 inv open infl popg ctot_g if income_grp == `k', absorb(id period) vce(cluster id)
+  3.     local ninc`k' = e(N)
+  4.     quietly count if sA1 & income_grp == `k'
+  5.     local nraw`k' = r(N)
+  6. }
+
+. rv_kv e5_inc_N_sum `=`ninc1' + `ninc2' + `ninc3' + `ninc4''
+
+. rv_kv e5_inc_raw_sum `=`nraw1' + `nraw2' + `nraw3' + `nraw4''
+
+. * E7. Hansen e diferenca-em-Hansen na S7, col. 1
+. quietly tab period, gen(pd)
+
+. drop pd1
+
+. xtabond2 g L_g wagebill_gdp0 lny0 hc0 inv open infl popg ctot_g pd*, gmm(L_g, lag(1 1) collapse) ///
+>     gmm(wagebill_gdp0 inv lny0, lag(2 2) collapse) iv(hc0 open infl popg ctot_g pd*) twostep robust small
+Favoring space over speed. To switch, type or click on mata: mata set matafavor speed, perm.
+pd8 dropped due to collinearity
+Warning: Two-step estimated covariance matrix of moments is singular.
+  Using a generalized inverse to calculate optimal weighting matrix for two-step estimation.
+  Difference-in-Sargan/Hansen statistics may be negative.
+
+Dynamic panel-data estimation, two-step system GMM
+------------------------------------------------------------------------------
+Group variable: id                              Number of obs      =       368
+Time variable : period                          Number of groups   =        87
+Number of instruments = 21                      Obs per group: min =         1
+F(16, 86)     =     31.78                                      avg =      4.23
+Prob > F      =     0.000                                      max =         8
+-------------------------------------------------------------------------------
+              |              Corrected
+            g | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+--------------+----------------------------------------------------------------
+          L_g |   .2584667   .1828447     1.41   0.161    -.1050166    .6219499
+wagebill_gdp0 |  -.1517622   .3052669    -0.50   0.620    -.7586128    .4550883
+         lny0 |  -1.670279   1.180254    -1.42   0.161    -4.016547    .6759891
+          hc0 |   2.151703   1.739129     1.24   0.219    -1.305571    5.608976
+          inv |  -.1129672   .1683664    -0.67   0.504    -.4476685    .2217342
+         open |   .0070447   .0071195     0.99   0.325    -.0071084    .0211978
+         infl |     -.0249   .0106135    -2.35   0.021    -.0459989   -.0038011
+         popg |  -.2554887   .3601611    -0.71   0.480    -.9714652    .4604879
+       ctot_g |   -.117741   .1911474    -0.62   0.540    -.4977293    .2622474
+          pd2 |   2.580706   .9412369     2.74   0.007     .7095891    4.451823
+          pd3 |   .8660184   1.034224     0.84   0.405    -1.189951    2.921988
+          pd4 |   2.144823   .7867078     2.73   0.008     .5808995    3.708746
+          pd5 |      .7947   .4857077     1.64   0.105    -.1708549    1.760255
+          pd6 |   1.710091   .4260349     4.01   0.000     .8631611     2.55702
+          pd7 |  -1.686108   .7744592    -2.18   0.032    -3.225682   -.1465342
+          pd9 |  -.8563533   .2856005    -3.00   0.004    -1.424108   -.2885983
+        _cons |   14.52983   4.498984     3.23   0.002     5.586148    23.47351
+-------------------------------------------------------------------------------
+Instruments for first differences equation
+  Standard
+    D.(hc0 open infl popg ctot_g pd2 pd3 pd4 pd5 pd6 pd7 pd8 pd9)
+  GMM-type (missing=0, separate instruments for each period unless collapsed)
+    L2.(wagebill_gdp0 inv lny0) collapsed
+    L.L_g collapsed
+Instruments for levels equation
+  Standard
+    hc0 open infl popg ctot_g pd2 pd3 pd4 pd5 pd6 pd7 pd8 pd9
+    _cons
+  GMM-type (missing=0, separate instruments for each period unless collapsed)
+    DL.(wagebill_gdp0 inv lny0) collapsed
+    D.L_g collapsed
+------------------------------------------------------------------------------
+Arellano-Bond test for AR(1) in first differences: z =  -3.44  Pr > z =  0.001
+Arellano-Bond test for AR(2) in first differences: z =   0.12  Pr > z =  0.904
+------------------------------------------------------------------------------
+Sargan test of overid. restrictions: chi2(4)    =   5.87  Prob > chi2 =  0.209
+  (Not robust, but not weakened by many instruments.)
+Hansen test of overid. restrictions: chi2(4)    =   6.55  Prob > chi2 =  0.162
+  (Robust, but weakened by many instruments.)
+
+Difference-in-Hansen tests of exogeneity of instrument subsets:
+  GMM instruments for levels
+    Hansen test excluding group:     chi2(0)    =   0.00  Prob > chi2 =      .
+    Difference (null H = exogenous): chi2(4)    =   6.55  Prob > chi2 =  0.162
+  gmm(L_g, collapse lag(1 1))
+    Hansen test excluding group:     chi2(2)    =   0.29  Prob > chi2 =  0.865
+    Difference (null H = exogenous): chi2(2)    =   6.26  Prob > chi2 =  0.044
+
+
+. matrix DH = e(diffsargan)
+
+. matrix list DH
+
+DH[5,2]
+              GMM instru~s  gmm(L_g, c~)
+Unrestrict~n     7.654e-21     .29059667
+Difference~n     6.5481539     6.2575573
+Instrument~d             4             2
+Unrestrict~p             .     .86476427
+Difference~p     .16178147     .04377123
+
+. rv_kv e7_hansen `=string(e(hansenp), "%6.4f")'
+
+. rv_kv e7_dh_levels `=string(DH[5, 1], "%6.4f")'
+
+. rv_kv e7_dh_rows `=rowsof(DH)'
+
+. * E8. ponto de inflexao da S3 com os coeficientes sem arredondamento
+. use "$FINAL/painel_5anos.dta", clear
+
+. keep if micro == 0
+(261 observations deleted)
+
+. gen pubemp_sq0 = pubemp_share0^2
+(1,087 missing values generated)
+
+. reghdfe g pubemp_share0 pubemp_sq0 relwage0 lny0 hc0 inv open infl popg ctot_g, absorb(id period) vce(cluster id)
+(dropped 12 singleton observations)
+(MWFE estimator converged in 6 iterations)
+
+HDFE Linear regression                            Number of obs   =        205
+Absorbing 2 HDFE groups                           F(  10,     56) =      13.13
+Statistics robust to heteroskedasticity           Prob > F        =     0.0000
+                                                  R-squared       =     0.7913
+                                                  Adj R-squared   =     0.6823
+                                                  Within R-sq.    =     0.5148
+Number of clusters (id)      =         57         Root MSE        =     1.3817
+
+                                     (Std. err. adjusted for 57 clusters in id)
+-------------------------------------------------------------------------------
+              |               Robust
+            g | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+--------------+----------------------------------------------------------------
+pubemp_share0 |  -.2050244   .1472005    -1.39   0.169    -.4999023    .0898536
+   pubemp_sq0 |    .003473   .0022269     1.56   0.124     -.000988     .007934
+     relwage0 |  -1.595211   .7717954    -2.07   0.043    -3.141303   -.0491188
+         lny0 |  -8.130077   1.278169    -6.36   0.000    -10.69056   -5.569597
+          hc0 |  -.5381496    2.47394    -0.22   0.829    -5.494046    4.417747
+          inv |   .1979245   .0726889     2.72   0.009     .0523111    .3435378
+         open |   .0263527   .0187625     1.40   0.166    -.0112331    .0639386
+         infl |   .0487653   .0350088     1.39   0.169    -.0213658    .1188963
+         popg |  -.8694946   .3718899    -2.34   0.023    -1.614479   -.1245096
+       ctot_g |  -.0529305   .2397472    -0.22   0.826    -.5332018    .4273407
+        _cons |   76.19778   16.41644     4.64   0.000     43.31169    109.0839
+-------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+          id |        57          57           0    *|
+      period |         5           1           4     |
+-----------------------------------------------------+
+* = FE nested within cluster; treated as redundant for DoF computation
+
+. local tp = -_b[pubemp_share0] / (2 * _b[pubemp_sq0])
+
+. rv_kv e8_b1 `=string(_b[pubemp_share0], "%9.5f")'
+
+. rv_kv e8_b2 `=string(_b[pubemp_sq0], "%9.6f")'
+
+. rv_kv e8_tp `=string(`tp', "%5.1f")'
+
+. * E6. periodos de tres anos do draft 7: inicio em 1981
+. use "$FINAL/painel_3anos.dta", clear
+
+. summ year0
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+       year0 |      2,955        2002    12.96368       1981       2023
+
+. rv_kv e6_y0min `r(min)'
+
+. rv_kv e6_y0max `r(max)'
+
+. * =====================================================================================
+. * F. Reproducao das tabelas do draft 7: compara os numeros dos .tex do commit de base com os refeitos
+. * =====================================================================================
+. mata:
+------------------------------------------------- mata (type end to exit) ------------------------------------------------------------------------------------------------------------------------------
+: void _rvcomp(string scalar f0, string scalar f1, string scalar lbl, string scalar out)
+> {
+>     string colvector a, b
+>     real colvector x0, x1
+>     real scalar nd, md, fh, i
+>     a = cat(f0)
+>     b = cat(f1)
+>     x0 = _rvnums(a)
+>     x1 = _rvnums(b)
+>     nd = .
+>     md = .
+>     if (rows(x0) == rows(x1)) {
+>         nd = 0
+>         md = 0
+>         for (i = 1; i <= rows(x0); i++) {
+>             if (abs(x0[i] - x1[i]) > 0.001) nd++
+>             if (abs(x0[i] - x1[i]) > md) md = abs(x0[i] - x1[i])
+>         }
+>     }
+>     fh = fopen(out, "a")
+>     fput(fh, lbl + "," + strofreal(rows(x0)) + "," + strofreal(rows(x1)) + "," + strofreal(nd) + "," + strofreal(md))
+>     fclose(fh)
+> }
+
+: real colvector _rvnums(string colvector s)
+> {
+>     real colvector r
+>     real scalar i
+>     string scalar t, m
+>     r = J(0, 1, .)
+>     for (i = 1; i <= rows(s); i++) {
+>         t = s[i]
+>         if (strpos(t, "%") == 1) continue
+>         while (ustrregexm(t, "-?[0-9]+(,[0-9]{3})*(\.[0-9]+)?")) {
+>             m = ustrregexs(0)
+>             r = r \ strtoreal(subinstr(m, ",", ""))
+>             t = substr(t, strpos(t, m) + strlen(m), .)
+>         }
+>     }
+>     return(r)
+> }
+
+: end
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+. * os .tex do commit de base (781942e) sao exportados para $RINT/draft7_tex por git show (ver README_REPLICACAO)
+. local tabs : dir "$ROOT/output/tables" files "*.tex"
+
+. local tabsx : dir "$ROOT/output/extensoes/tables" files "*.tex"
+
+. tempname F
+
+. file open `F' using "$RINT/reproducao.csv", write replace text
+
+. file write `F' "tabela,numeros_draft7,numeros_reproduzidos,diferencas_maiores_0001,maior_diferenca" _n
+
+. file close `F'
+
+. foreach t of local tabs {
+  2.     mata: _rvcomp("$RINT/draft7_tex/`t'", "$ROOT/output/tables/`t'", "`t'", "$RINT/reproducao.csv")
+  3. }
+
+. foreach t of local tabsx {
+  2.     mata: _rvcomp("$RINT/draft7_tex/`t'", "$ROOT/output/extensoes/tables/`t'", "`t'", "$RINT/reproducao.csv")
+  3. }
+
+. import delimited "$RINT/reproducao.csv", clear varnames(1)
+(encoding automatically selected: ISO-8859-1)
+(5 vars, 21 obs)
+
+. list, noobs
+
+  +---------------------------------------------------------------------------------+
+  |                              tabela   numero~7   numero~s   dif~0001   maior_~a |
+  |---------------------------------------------------------------------------------|
+  |             table1_descriptives.tex        193        193          0          0 |
+  |                 table2_baseline.tex        200        200          0          0 |
+  |            table3_decomposition.tex         95         95          0          0 |
+  |               table4_moderation.tex         74         74          0          0 |
+  |               table5_mechanisms.tex         74         74          0          0 |
+  |---------------------------------------------------------------------------------|
+  |        table6_political_economy.tex         74         74          0          0 |
+  |           tablea10_fiscal_rules.tex        160        160          0          0 |
+  |             tablea1_definitions.tex         25         25          0          0 |
+  |               tablea2_countries.tex         11         11          0          0 |
+  |            tablea3_correlations.tex         82         82          0          0 |
+  |---------------------------------------------------------------------------------|
+  |         tablea4_gmm_instruments.tex         69         69          0          0 |
+  |              tablea5_bond_check.tex         46         46          0          0 |
+  |               tablea6_threshold.tex         71         71          0          0 |
+  |             tablea7_denominator.tex         56         56          0          0 |
+  | tablea8a_robustness_definitions.tex         80         80          0          0 |
+  |---------------------------------------------------------------------------------|
+  |  tablea8b_robustness_subsamples.tex         62         62          0          0 |
+  |         tablea8c_robustness_cce.tex         29         29          0          0 |
+  |                     tablea9_bma.tex         42         42          0          0 |
+  |   tablel1b_frequency_robustness.tex         39         39          0          0 |
+  |  tablel1_frequency_institutions.tex        152        152          0          0 |
+  |---------------------------------------------------------------------------------|
+  |                tablel2_long_run.tex        122        122          0          0 |
+  +---------------------------------------------------------------------------------+
+
+. summ diferencas_maiores_0001 maior_diferenca
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+diferen~0001 |         21           0           0          0          0
+maior_dife~a |         21           0           0          0          0
+
+. rv_kv repro_ntab `=_N'
+
+. quietly summ diferencas_maiores_0001
+
+. rv_kv repro_ndiff `r(sum)'
+
+. quietly summ numeros_draft7
+
+. rv_kv repro_nnum `r(sum)'
+
+. 
+. * =====================================================================================
+. * G. docs/AUDITORIA_DRAFT7.md (todos os numeros lidos do registro kv.csv e de reproducao.csv)
+. * =====================================================================================
+. import delimited "$RINT/kv.csv", clear varnames(1) stringcols(_all)
+(encoding automatically selected: ISO-8859-1)
+(2 vars, 33 obs)
+
+. forvalues i = 1/`=_N' {
+  2.     local k = key[`i']
+  3.     local KV_`k' = value[`i']
+  4. }
+
+. tempname M
+
+. file open `M' using "$DOCS/AUDITORIA_DRAFT7.md", write replace text
+
+. file write `M' "# Auditoria e reprodução do draft 7" _n _n
+
+. file write `M' "Gerado por \`code/revisao/01_auditoria.do\` em `c(current_date)'. Todo número abaixo sai do código (registro \`data/interim/revisao/kv.csv\`)." _n _n
+
+. file write `M' "## 1. Reprodução das tabelas" _n _n
+
+. file write `M' "O pipeline do draft 7 (\`run_all.do\` e as extensões L1 e L2) foi rodado de novo a partir de \`data/raw/\`, e os números de cada \`.tex\` foram comparados, na ordem em que aparecem, 
+> com os do commit de base \`781942e\` (estado do draft 7). Foram comparados `KV_repro_nnum' números em `KV_repro_ntab' tabelas; `KV_repro_ndiff' diferem em mais de 0,001. As tabelas do texto principa
+> l (1 a 4) são transcrições das Tabelas S12, S1, S3 e S8a–c/S18, e por isso ficam cobertas pela comparação." _n _n
+
+. file write `M' "| Tabela (arquivo) | Números no draft 7 | Números reproduzidos | Diferenças > 0,001 | Maior diferença |" _n
+
+. file write `M' "|---|---|---|---|---|" _n
+
+. preserve
+
+. import delimited "$RINT/reproducao.csv", clear varnames(1)
+(encoding automatically selected: ISO-8859-1)
+(5 vars, 21 obs)
+
+. forvalues i = 1/`=_N' {
+  2.     file write `M' "| " (tabela[`i']) " | " (numeros_draft7[`i']) " | " (numeros_reproduzidos[`i']) " | " (diferencas_maiores_0001[`i']) " | " %5.3f (maior_diferenca[`i']) " |" _n
+  3. }
+
+. restore
+
+. file write `M' _n "Os \`.docx\` refeitos têm texto idêntico ao do commit de base; mudam só os metadados de data. Diferenças entre implementações não ocorreram porque a reprodução usou o mesmo código
+>  e os mesmos pacotes do draft 7 (\`code/ado/plus\`)." _n _n
+
+. file write `M' "## 2. Inconsistências apontadas pelo parecer" _n _n
+
+. file write `M' "| Item | Causa | Situação |" _n "|---|---|---|" _n
+
+. file write `M' "| Folha defasada 0,040 na S12 (1.594 obs.) e na S1 (1.622 obs.) [P20] | São dois modelos distintos que arredondam para o mesmo valor: S12 col. 4 = `KV_e1_b12' (N = `KV_e1_n12'); S1 c
+> ol. 3 = `KV_e1_b1' (N = `KV_e1_n1'). A S1 usa capital humano defasado e não exige as medidas HP/Hamilton, por isso tem mais observações. | Explicado; não houve cópia. As novas tabelas mostram 3 casa
+> s e N por linha. |" _n
+
+. file write `M' "| Tabela S14 com 101 países sob o título de amostra de cinco anos (72) [P13] | A lista foi feita sobre os países com folha de governo geral em algum período (`KV_e2_nlist'), não sobr
+> e a amostra de estimação do A1 (`KV_e2_nA1' países: 9 de renda baixa, 24 média-baixa, 12 média-alta e 27 alta). | Corrigida na revisão: a lista passa a ser a da amostra efetiva. |" _n
+
+. file write `M' "| S-GMM e MQO com 87 países contra 72 nos EF [P22] | Singletons: antes do descarte, a amostra do A1 tem `KV_e3_N_presingleton' obs. e `KV_e3_nc_presingleton' países; `KV_e3_singleton
+> s' países têm uma única observação e são descartados pelo \`reghdfe\` (EF), mas não pelo MQO nem pelo S-GMM. | Confirmado. A verificação de Bond é refeita na amostra comum S5_bond (bloco 4.10). |" _
+> n
+
+. file write `M' "| BMA com 370 obs. (base 365) [P22] | No draft 7 (\`11_robustez.do\`), o N da BMA foi contado depois de retirar só os ausentes (inclusive em dívida e mérito) e antes do descarte dos 
+> singletons pelo \`reghdfe\`; os resíduos dos singletons ficam ausentes, de modo que o 370 reportado não é o N efetivo da estimação. | Refeita na amostra correta no bloco 4.11. |" _n
+
+. file write `M' "| Subamostras somam 358 (S8b) e 348 (S4) [P22] | Ao estimar cada grupo separadamente, o \`reghdfe\` descarta os singletons de cada grupo: os grupos de renda somam `KV_e5_inc_raw_sum'
+>  obs. antes e `KV_e5_inc_N_sum' depois do descarte. Nenhuma observação da base está sem grupo de renda (`KV_e5_noincome'). | Explicado; as notas das novas tabelas dizem isso. |" _n
+
+. file write `M' "| Períodos de três anos “1981–2023” [P32] | O painel de três anos do draft 7 começa em `KV_e6_y0min'; o último período começa em `KV_e6_y0max' e tem um só ano. | Corrigido na revisão
+> : os períodos de três anos começam em 1979 (15 períodos, 1979–2023). |" _n
+
+. file write `M' "| Hansen e diferença-em-Hansen com o mesmo p-valor na S7, col. 1 [P22] | Não é cópia: com uma só defasagem por variável, o modelo sem os instrumentos de nível fica exatamente identif
+> icado (Hansen ≈ 0), de modo que a diferença coincide com o Hansen total (p = `KV_e7_hansen' nos dois). | Explicado na nota da nova tabela. |" _n
+
+. file write `M' "| Ponto de inflexão da S3 (29,5) não bate com os coeficientes arredondados (34,2) [P22] | Com os coeficientes sem arredondamento (b1 = `KV_e8_b1'; b2 = `KV_e8_b2'), −b1/(2 b2) = `KV_
+> e8_tp'. A tabela mostrava b2 com três casas (0,003). | Explicado; o termo quadrático passa a ter quatro casas. |" _n _n
+
+. file write `M' "## 3. Limpeza ampliada [P31]" _n _n
+
+. file write `M' "As regras foram aplicadas ao painel anual (sem microestados, 1979–2023) antes de montar os painéis da revisão. Contagens em observações país-ano:" _n _n
+
+. file write `M' "| Regra | Observações afetadas |" _n "|---|---|" _n
+
+. file write `M' "| Receita acima de 100% do PIB vira ausente | `KV_clean_rev' |" _n
+
+. file write `M' "| Saldo fiscal fora de ±50% do PIB vira ausente | `KV_clean_bal' |" _n
+
+. file write `M' "| Inflação acima de 1.000% vira ausente | `KV_clean_infl' |" _n
+
+. file write `M' "| Abertura igual a zero vira ausente | `KV_clean_open' |" _n
+
+. file write `M' "| Participações na despesa fora de [0, 100] viram ausentes | `KV_clean_shares' |" _n _n
+
+. file write `M' "A winsorização de crescimento e inflação do draft 7 foi feita na amostra sem microestados de 1980–2023, e não na amostra de estimação (limites do crescimento: `KV_wins_g_lo' e `KV_wi
+> ns_g_hi'). A revisão mantém esses limites. Com a limpeza ampliada, a amostra de base de cinco anos continua com `KV_S5_base_N' observações e `KV_S5_base_nc' países, e a amostra anual da Tabela 1 pas
+> sa de 1.594 para `KV_S1_base_N' observações. A amostra de base, portanto, não muda. As regressões de restrição orçamentária (H1) passam a usar a receita e as participações limpas." _n _n
+
+. file write `M' "## 4. Amostras canônicas" _n _n
+
+. file write `M' "Gravadas em \`data/interim/revisao/amostras5.dta\` e \`amostras1.dta\`: S5_base (especificação de base do draft 7, `KV_S5_base_N' obs.), S1_base (painel anual da Tabela 1, `KV_S1_bas
+> e_N' obs.), S5_common_GC (interseção governo geral × central, definida no bloco 4.3) e S5_bond (amostra comum de MQO, EF, S-GMM e BC-FE, definida no bloco 4.10)." _n
+
+. file close `M'
+
+. 
+. log close
+      name:  <unnamed>
+       log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/logs/01_auditoria.log
+  log type:  text
+ closed on:  17 Oct 2026, 16:13:54
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

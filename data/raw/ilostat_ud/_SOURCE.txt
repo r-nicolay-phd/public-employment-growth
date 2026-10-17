@@ -1,0 +1,3 @@
+Data de acesso: 2026-10-17
+API SDMX: https://sdmx.ilo.org/rest/data/ILO,DF_ILR_TUMT_NOC_RT/all?format=csv&startPeriod=1990
+ILR_TUMT_NOC_RT = densidade sindical (% dos empregados), ILOSTAT. Usada na revisao EJPE (bloco 4.8).

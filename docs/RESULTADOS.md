@@ -1,6 +1,6 @@
 # Resultados: folha de pagamento do setor público, burocracia e crescimento
 
-Relatório para o orientador. Gerado por `code/12_relatorio.do` em 15 Oct 2026; todos os números vêm das estimativas gravadas pelo pipeline. Coeficientes em pontos percentuais de crescimento anual do PIB per capita por ponto percentual do PIB na folha, salvo indicação. IC = intervalo de confiança de 95%.
+Relatório para o orientador. Gerado por `code/12_relatorio.do` em 17 Oct 2026; todos os números vêm das estimativas gravadas pelo pipeline. Coeficientes em pontos percentuais de crescimento anual do PIB per capita por ponto percentual do PIB na folha, salvo indicação. IC = intervalo de confiança de 95%.
 
 Regra dos vereditos, fixada antes da leitura dos números: *sustentada* = especificação preferida com o sinal previsto e p < 0,05; *rejeitada* = sinal oposto e p < 0,05; *inconclusiva* nos demais casos.
 

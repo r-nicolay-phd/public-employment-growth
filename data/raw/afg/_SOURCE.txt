@@ -1,0 +1,4 @@
+Data de acesso: 2026-10-17
+Alesina, Favero e Giavazzi (2019), Austerity: When It Works and When It Doesnt, base de planos de ajuste 1978-2014 (dataset #5, https://igier.unibocconi.eu/research/datasets/fiscal-adjustment-plans/dataset).
+Copia publica obtida do pacote de replicacao de Gale, Berlin e Thorpe (2025), Harvard Dataverse doi:10.7910/DVN/J104NQ (arquivo NewComponents1978-2014_final.xlsx), porque o site do IGIER exige navegacao manual.
+Aba GDP: medidas em % do PIB de t-1 por componente (inclui Spending - Salaries), nao antecipadas (u_t) e anunciadas (a_t ... a_t+5).

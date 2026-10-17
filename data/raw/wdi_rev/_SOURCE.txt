@@ -1,0 +1,2 @@
+Data de acesso: 2026-10-17
+API do Banco Mundial v2 (https://api.worldbank.org/v2/country/all/indicator/<codigo>?format=json): SP.POP.DPND.OL, SH.XPD.GHED.GD.ZS, SE.XPD.TOTL.GD.ZS, NE.CON.GOVT.KD, NY.GDP.MKTP.KD.
