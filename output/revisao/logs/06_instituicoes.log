@@ -1,0 +1,1782 @@
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/logs/06_instituicoes.log
+  log type:  text
+ opened on:  17 Oct 2026, 16:34:12
+
+. 
+. tempname P
+
+. postfile `P' str14 rep str10 meas str8 est double(bi sei pi bg seg) long(N nc nins) using "$RINT/replicas.dta", replace
+
+. 
+. * =====================================================================================
+. * A. Replica de Oto-Peralias e Romero-Avila (2013): paineis de cinco anos 1981-1985 a 2001-2005
+. * =====================================================================================
+. * A1. painel alinhado a 1981 (como no artigo), com o consumo do governo na media do periodo, em t_p e em t_p - 1
+. capture program drop opra_painel
+
+. program define opra_painel
+  1.     args y0 y1
+  2.     use "$RINT/anual_rv.dta", clear
+  3.     keep if micro == 0 & inrange(year, `=`y0' - 1', `y1')
+  4.     xtset id year
+  5.     gen period = floor((year - `y0') / 5)
+  6.     gen year0 = `y0' + 5 * period
+  7.     gen byte first = year == year0
+  8.     egen wgi6 = rowmean(wgi_ge wgi_rq wgi_rl wgi_cc wgi_va wgi_pv)
+  9.     foreach v in govcons_gdp lny {
+ 10.         gen `v'_tp = `v' if first
+ 11.         gen `v'_m1 = L.`v' if first
+ 12.     }
+ 13.     drop if year < `y0'
+ 14.     collapse (mean) g gc_mean = govcons_gdp icrg = icrg_qog wgi6 wgi_ge secenr inv dependency ///
+>         (firstnm) gc_tp = govcons_gdp_tp gc_m1 = govcons_gdp_m1 lny0 = lny_m1 iso3 oecd, by(id period)
+ 15.     xtset id period
+ 16. end
+
+. 
+. capture program drop opra_est
+
+. program define opra_est
+  1.     * opra_est P rotulo instituicao medida
+.     args P rep inst meas
+  2.     capture drop G
+  3.     capture drop GXI
+  4.     gen G = `meas'
+  5.     gen GXI = G * `inst'
+  6.     quietly tab period, gen(pd)
+  7.     capture drop pd1
+  8.     * System GMM (dois passos, colapsado): consumo, interacao e investimento endogenos; renda inicial e matricula
+.     * predeterminadas; dummies de periodo exogenas; razao de dependencia como instrumento excluido
+.     capture noisily xtabond2 g G GXI `inst' lny0 secenr inv pd*, gmm(G GXI inv, lag(2 .) collapse) ///
+>         gmm(lny0 secenr `inst', lag(1 .) collapse) iv(pd* dependency) twostep robust small
+  9.     if !_rc {
+ 10.         post `P' ("`rep'") ("`meas'") ("sgmm") (_b[GXI]) (_se[GXI]) (2 * ttail(e(df_r), abs(_b[GXI] / _se[GXI]))) ///
+>             (_b[G]) (_se[G]) (e(N)) (e(N_g)) (e(j))
+ 11.         estimates store R_`rep'_`meas'_sgmm
+ 12.     }
+ 13.     * efeitos fixos de pais e periodo
+.     reghdfe g G GXI `inst' lny0 secenr inv i.period, absorb(id) vce(cluster id)
+ 14.     post `P' ("`rep'") ("`meas'") ("fe") (_b[GXI]) (_se[GXI]) (2 * ttail(e(df_r), abs(_b[GXI] / _se[GXI]))) ///
+>         (_b[G]) (_se[G]) (e(N)) (e(N_clust)) (.)
+ 15.     estimates store R_`rep'_`meas'_fe
+ 16.     drop pd*
+ 17. end
+
+. 
+. * A2. janela original 1981-2005 com o indice ICRG de qualidade de governo (QoG), disponivel desde 1984
+. opra_painel 1981 2005
+(6,270 observations deleted)
+
+Panel variable: id (strongly balanced)
+ Time variable: year, 1980 to 2005
+         Delta: 1 unit
+(3,200 missing values generated)
+(3,738 missing values generated)
+(3,743 missing values generated)
+(3,617 missing values generated)
+(3,619 missing values generated)
+(168 observations deleted)
+
+Panel variable: id (strongly balanced)
+ Time variable: period, 0 to 4
+         Delta: 1 unit
+
+. * mesma amostra para as tres medidas
+. gen byte sO = !missing(g, gc_mean, gc_tp, gc_m1, icrg, lny0, secenr, inv)
+
+. keep if sO
+(511 observations deleted)
+
+. count
+  329
+
+. foreach meas in gc_mean gc_tp gc_m1 {
+  2.     opra_est `P' opra_icrg icrg `meas'
+  3. }
+Favoring space over speed. To switch, type or click on mata: mata set matafavor speed, perm.
+
+Dynamic panel-data estimation, two-step system GMM
+------------------------------------------------------------------------------
+Group variable: id                              Number of obs      =       329
+Time variable : period                          Number of groups   =       110
+Number of instruments = 33                      Obs per group: min =         1
+F(10, 109)    =     10.67                                      avg =      2.99
+Prob > F      =     0.000                                      max =         5
+------------------------------------------------------------------------------
+             |              Corrected
+           g | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+           G |  -.7551757   .4349871    -1.74   0.085    -1.617306    .1069547
+         GXI |   1.034799   .8027488     1.29   0.200    -.5562227    2.625821
+        icrg |  -13.20651     12.279    -1.08   0.285    -37.54308    11.13007
+        lny0 |   1.679683   1.913237     0.88   0.382     -2.11229    5.471656
+      secenr |  -.0363458   .0759078    -0.48   0.633    -.1867926     .114101
+         inv |   .1069255   .2674487     0.40   0.690    -.4231492    .6370001
+         pd2 |    .402967    1.10996     0.36   0.717    -1.796938    2.602872
+         pd3 |   1.205507   1.832249     0.66   0.512     -2.42595    4.836965
+         pd4 |   1.304058   1.985352     0.66   0.513    -2.630844     5.23896
+         pd5 |   1.530632   2.191684     0.70   0.486    -2.813214    5.874479
+       _cons |   -3.19478   17.68058    -0.18   0.857    -38.23712    31.84756
+------------------------------------------------------------------------------
+Instruments for first differences equation
+  Standard
+    D.(pd2 pd3 pd4 pd5 dependency)
+  GMM-type (missing=0, separate instruments for each period unless collapsed)
+    L(1/4).(lny0 secenr icrg) collapsed
+    L(2/4).(G GXI inv) collapsed
+Instruments for levels equation
+  Standard
+    pd2 pd3 pd4 pd5 dependency
+    _cons
+  GMM-type (missing=0, separate instruments for each period unless collapsed)
+    D.(lny0 secenr icrg) collapsed
+    DL.(G GXI inv) collapsed
+------------------------------------------------------------------------------
+Arellano-Bond test for AR(1) in first differences: z =  -1.42  Pr > z =  0.156
+Arellano-Bond test for AR(2) in first differences: z =   0.02  Pr > z =  0.985
+------------------------------------------------------------------------------
+Sargan test of overid. restrictions: chi2(22)   =  40.53  Prob > chi2 =  0.009
+  (Not robust, but not weakened by many instruments.)
+Hansen test of overid. restrictions: chi2(22)   =  28.69  Prob > chi2 =  0.154
+  (Robust, but weakened by many instruments.)
+
+Difference-in-Hansen tests of exogeneity of instrument subsets:
+  GMM instruments for levels
+    Hansen test excluding group:     chi2(16)   =  18.91  Prob > chi2 =  0.274
+    Difference (null H = exogenous): chi2(6)    =   9.78  Prob > chi2 =  0.134
+  gmm(G GXI inv, collapse lag(2 .))
+    Hansen test excluding group:     chi2(10)   =  13.12  Prob > chi2 =  0.217
+    Difference (null H = exogenous): chi2(12)   =  15.57  Prob > chi2 =  0.212
+  gmm(lny0 secenr icrg, collapse lag(1 .))
+    Hansen test excluding group:     chi2(7)    =  12.71  Prob > chi2 =  0.079
+    Difference (null H = exogenous): chi2(15)   =  15.97  Prob > chi2 =  0.384
+  iv(pd2 pd3 pd4 pd5 dependency)
+    Hansen test excluding group:     chi2(17)   =  27.51  Prob > chi2 =  0.051
+    Difference (null H = exogenous): chi2(5)    =   1.17  Prob > chi2 =  0.948
+
+(dropped 35 singleton observations)
+(MWFE estimator converged in 1 iterations)
+
+HDFE Linear regression                            Number of obs   =        294
+Absorbing 1 HDFE group                            F(  10,     74) =      21.60
+Statistics robust to heteroskedasticity           Prob > F        =     0.0000
+                                                  R-squared       =     0.6270
+                                                  Adj R-squared   =     0.4770
+                                                  Within R-sq.    =     0.4042
+Number of clusters (id)      =         75         Root MSE        =     2.3423
+
+                                    (Std. err. adjusted for 75 clusters in id)
+------------------------------------------------------------------------------
+             |               Robust
+           g | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+           G |  -.3527348   .1684207    -2.09   0.040    -.6883203   -.0171492
+         GXI |    .541502   .2953685     1.83   0.071    -.0470326    1.130037
+        icrg |  -5.482079   4.618644    -1.19   0.239    -14.68493     3.72077
+        lny0 |  -8.501375   1.715726    -4.95   0.000    -11.92003   -5.082716
+      secenr |  -.0164561   .0331034    -0.50   0.621     -.082416    .0495038
+         inv |   .1708468   .0447633     3.82   0.000      .081654    .2600395
+             |
+      period |
+          1  |   .9138167   .4472709     2.04   0.045     .0226099    1.805024
+          2  |   1.919508    .748973     2.56   0.012      .427147    3.411869
+          3  |   2.915564   .7470388     3.90   0.000     1.427056    4.404071
+          4  |   4.308657   .8395684     5.13   0.000     2.635781    5.981534
+             |
+       _cons |   67.01021   13.36592     5.01   0.000     40.37804    93.64238
+------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+          id |        75          75           0    *|
+-----------------------------------------------------+
+* = FE nested within cluster; treated as redundant for DoF computation
+Favoring space over speed. To switch, type or click on mata: mata set matafavor speed, perm.
+
+Dynamic panel-data estimation, two-step system GMM
+------------------------------------------------------------------------------
+Group variable: id                              Number of obs      =       329
+Time variable : period                          Number of groups   =       110
+Number of instruments = 33                      Obs per group: min =         1
+F(10, 109)    =     10.83                                      avg =      2.99
+Prob > F      =     0.000                                      max =         5
+------------------------------------------------------------------------------
+             |              Corrected
+           g | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+           G |  -.5462517   .2880367    -1.90   0.061    -1.117131    .0246277
+         GXI |   .9375221   .6182464     1.52   0.132    -.2878221    2.162866
+        icrg |  -12.76465   11.30521    -1.13   0.261    -35.17121    9.641907
+        lny0 |   .7125432   2.123028     0.34   0.738    -3.495229    4.920316
+      secenr |  -.0057008   .0820987    -0.07   0.945    -.1684177    .1570161
+         inv |   .1525372   .2034284     0.75   0.455    -.2506513    .5557256
+         pd2 |   .8626873   .9648491     0.89   0.373    -1.049612    2.774987
+         pd3 |   1.829877   1.341412     1.36   0.175    -.8287584    4.488512
+         pd4 |   1.766061   1.459615     1.21   0.229    -1.126849    4.658972
+         pd5 |   1.922132   1.563915     1.23   0.222    -1.177497     5.02176
+       _cons |  -.9895782   14.98191    -0.07   0.947    -30.68325    28.70409
+------------------------------------------------------------------------------
+Instruments for first differences equation
+  Standard
+    D.(pd2 pd3 pd4 pd5 dependency)
+  GMM-type (missing=0, separate instruments for each period unless collapsed)
+    L(1/4).(lny0 secenr icrg) collapsed
+    L(2/4).(G GXI inv) collapsed
+Instruments for levels equation
+  Standard
+    pd2 pd3 pd4 pd5 dependency
+    _cons
+  GMM-type (missing=0, separate instruments for each period unless collapsed)
+    D.(lny0 secenr icrg) collapsed
+    DL.(G GXI inv) collapsed
+------------------------------------------------------------------------------
+Arellano-Bond test for AR(1) in first differences: z =  -1.88  Pr > z =  0.060
+Arellano-Bond test for AR(2) in first differences: z =  -0.74  Pr > z =  0.457
+------------------------------------------------------------------------------
+Sargan test of overid. restrictions: chi2(22)   =  42.38  Prob > chi2 =  0.006
+  (Not robust, but not weakened by many instruments.)
+Hansen test of overid. restrictions: chi2(22)   =  31.74  Prob > chi2 =  0.082
+  (Robust, but weakened by many instruments.)
+
+Difference-in-Hansen tests of exogeneity of instrument subsets:
+  GMM instruments for levels
+    Hansen test excluding group:     chi2(16)   =  21.37  Prob > chi2 =  0.165
+    Difference (null H = exogenous): chi2(6)    =  10.37  Prob > chi2 =  0.110
+  gmm(G GXI inv, collapse lag(2 .))
+    Hansen test excluding group:     chi2(10)   =  16.03  Prob > chi2 =  0.099
+    Difference (null H = exogenous): chi2(12)   =  15.71  Prob > chi2 =  0.205
+  gmm(lny0 secenr icrg, collapse lag(1 .))
+    Hansen test excluding group:     chi2(7)    =  10.85  Prob > chi2 =  0.145
+    Difference (null H = exogenous): chi2(15)   =  20.89  Prob > chi2 =  0.140
+  iv(pd2 pd3 pd4 pd5 dependency)
+    Hansen test excluding group:     chi2(17)   =  28.73  Prob > chi2 =  0.037
+    Difference (null H = exogenous): chi2(5)    =   3.01  Prob > chi2 =  0.698
+
+(dropped 35 singleton observations)
+(MWFE estimator converged in 1 iterations)
+
+HDFE Linear regression                            Number of obs   =        294
+Absorbing 1 HDFE group                            F(  10,     74) =      22.23
+Statistics robust to heteroskedasticity           Prob > F        =     0.0000
+                                                  R-squared       =     0.6208
+                                                  Adj R-squared   =     0.4684
+                                                  Within R-sq.    =     0.3944
+Number of clusters (id)      =         75         Root MSE        =     2.3615
+
+                                    (Std. err. adjusted for 75 clusters in id)
+------------------------------------------------------------------------------
+             |               Robust
+           g | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+           G |  -.2689611   .1384492    -1.94   0.056    -.5448272    .0069049
+         GXI |    .528626   .2720836     1.94   0.056    -.0135124    1.070764
+        icrg |  -5.466445   4.441031    -1.23   0.222    -14.31539    3.382503
+        lny0 |   -8.42405     1.6897    -4.99   0.000    -11.79085   -5.057249
+      secenr |  -.0171972   .0317168    -0.54   0.589    -.0803942    .0459998
+         inv |   .1547056   .0532304     2.91   0.005     .0486417    .2607695
+             |
+      period |
+          1  |    .963064    .451916     2.13   0.036     .0626018    1.863526
+          2  |   2.009412   .7382583     2.72   0.008     .5383998    3.480423
+          3  |   2.949923    .712997     4.14   0.000     1.529246    4.370601
+          4  |    4.33777   .8168649     5.31   0.000     2.710131    5.965409
+             |
+       _cons |   65.60653   12.93979     5.07   0.000     39.82343    91.38963
+------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+          id |        75          75           0    *|
+-----------------------------------------------------+
+* = FE nested within cluster; treated as redundant for DoF computation
+Favoring space over speed. To switch, type or click on mata: mata set matafavor speed, perm.
+
+Dynamic panel-data estimation, two-step system GMM
+------------------------------------------------------------------------------
+Group variable: id                              Number of obs      =       329
+Time variable : period                          Number of groups   =       110
+Number of instruments = 33                      Obs per group: min =         1
+F(10, 109)    =      9.90                                      avg =      2.99
+Prob > F      =     0.000                                      max =         5
+------------------------------------------------------------------------------
+             |              Corrected
+           g | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+           G |    -.63512   .3997294    -1.59   0.115    -1.427371    .1571307
+         GXI |   .9268151   .7428588     1.25   0.215    -.5455069    2.399137
+        icrg |   -12.0943   13.26066    -0.91   0.364    -38.37649    14.18789
+        lny0 |   2.429059   1.947819     1.25   0.215    -1.431455    6.289574
+      secenr |  -.0633902   .0702695    -0.90   0.369     -.202662    .0758815
+         inv |   .1420565   .2446711     0.58   0.563    -.3428736    .6269867
+         pd2 |   .5125889    1.16559     0.44   0.661    -1.797573    2.822751
+         pd3 |   1.418561   1.543956     0.92   0.360    -1.641509    4.478631
+         pd4 |   1.474365   1.499162     0.98   0.328    -1.496925    4.445656
+         pd5 |   1.875631   1.560062     1.20   0.232    -1.216361    4.967623
+       _cons |  -10.19952    15.1722    -0.67   0.503    -40.27033    19.87129
+------------------------------------------------------------------------------
+Instruments for first differences equation
+  Standard
+    D.(pd2 pd3 pd4 pd5 dependency)
+  GMM-type (missing=0, separate instruments for each period unless collapsed)
+    L(1/4).(lny0 secenr icrg) collapsed
+    L(2/4).(G GXI inv) collapsed
+Instruments for levels equation
+  Standard
+    pd2 pd3 pd4 pd5 dependency
+    _cons
+  GMM-type (missing=0, separate instruments for each period unless collapsed)
+    D.(lny0 secenr icrg) collapsed
+    DL.(G GXI inv) collapsed
+------------------------------------------------------------------------------
+Arellano-Bond test for AR(1) in first differences: z =  -1.82  Pr > z =  0.069
+Arellano-Bond test for AR(2) in first differences: z =  -0.27  Pr > z =  0.785
+------------------------------------------------------------------------------
+Sargan test of overid. restrictions: chi2(22)   =  34.57  Prob > chi2 =  0.043
+  (Not robust, but not weakened by many instruments.)
+Hansen test of overid. restrictions: chi2(22)   =  24.39  Prob > chi2 =  0.327
+  (Robust, but weakened by many instruments.)
+
+Difference-in-Hansen tests of exogeneity of instrument subsets:
+  GMM instruments for levels
+    Hansen test excluding group:     chi2(16)   =  14.67  Prob > chi2 =  0.549
+    Difference (null H = exogenous): chi2(6)    =   9.72  Prob > chi2 =  0.137
+  gmm(G GXI inv, collapse lag(2 .))
+    Hansen test excluding group:     chi2(10)   =  13.69  Prob > chi2 =  0.188
+    Difference (null H = exogenous): chi2(12)   =  10.70  Prob > chi2 =  0.555
+  gmm(lny0 secenr icrg, collapse lag(1 .))
+    Hansen test excluding group:     chi2(7)    =  13.37  Prob > chi2 =  0.063
+    Difference (null H = exogenous): chi2(15)   =  11.01  Prob > chi2 =  0.752
+  iv(pd2 pd3 pd4 pd5 dependency)
+    Hansen test excluding group:     chi2(17)   =  21.87  Prob > chi2 =  0.190
+    Difference (null H = exogenous): chi2(5)    =   2.51  Prob > chi2 =  0.774
+
+(dropped 35 singleton observations)
+(MWFE estimator converged in 1 iterations)
+
+HDFE Linear regression                            Number of obs   =        294
+Absorbing 1 HDFE group                            F(  10,     74) =      20.66
+Statistics robust to heteroskedasticity           Prob > F        =     0.0000
+                                                  R-squared       =     0.6165
+                                                  Adj R-squared   =     0.4624
+                                                  Within R-sq.    =     0.3874
+Number of clusters (id)      =         75         Root MSE        =     2.3749
+
+                                    (Std. err. adjusted for 75 clusters in id)
+------------------------------------------------------------------------------
+             |               Robust
+           g | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+           G |  -.2455814   .1307452    -1.88   0.064    -.5060969    .0149342
+         GXI |   .5408995   .2730981     1.98   0.051    -.0032604    1.085059
+        icrg |  -5.071221   4.086832    -1.24   0.219    -13.21441     3.07197
+        lny0 |  -8.492486   1.723969    -4.93   0.000    -11.92757   -5.057403
+      secenr |  -.0233672   .0324558    -0.72   0.474    -.0880368    .0413025
+         inv |   .1454183   .0618515     2.35   0.021     .0221765      .26866
+             |
+      period |
+          1  |   .9141561   .4632509     1.97   0.052    -.0088914    1.837204
+          2  |   1.970273   .7521118     2.62   0.011     .4716572    3.468888
+          3  |   2.995386   .7323927     4.09   0.000     1.536061     4.45471
+          4  |   4.456463    .832546     5.35   0.000     2.797579    6.115347
+             |
+       _cons |   65.99682   13.31852     4.96   0.000     39.45909    92.53455
+------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+          id |        75          75           0    *|
+-----------------------------------------------------+
+* = FE nested within cluster; treated as redundant for DoF computation
+
+. * A3. WGI (substituto pedido pelo roteiro): disponivel desde 1996; periodos 1996-2000 a 2016-2020 (alinhados a 1981)
+. opra_painel 1981 2020
+(3,750 observations deleted)
+
+Panel variable: id (strongly balanced)
+ Time variable: year, 1980 to 2020
+         Delta: 1 unit
+(3,204 missing values generated)
+(5,806 missing values generated)
+(5,811 missing values generated)
+(5,642 missing values generated)
+(5,643 missing values generated)
+(168 observations deleted)
+
+Panel variable: id (strongly balanced)
+ Time variable: period, 0 to 7
+         Delta: 1 unit
+
+. keep if period >= 3
+(504 observations deleted)
+
+. gen byte sW = !missing(g, gc_mean, gc_tp, gc_m1, wgi_ge, lny0, secenr, inv)
+
+. keep if sW
+(244 observations deleted)
+
+. count
+  596
+
+. foreach meas in gc_mean gc_tp gc_m1 {
+  2.     opra_est `P' opra_wgi wgi_ge `meas'
+  3. }
+Favoring space over speed. To switch, type or click on mata: mata set matafavor speed, perm.
+
+Dynamic panel-data estimation, two-step system GMM
+------------------------------------------------------------------------------
+Group variable: id                              Number of obs      =       596
+Time variable : period                          Number of groups   =       147
+Number of instruments = 33                      Obs per group: min =         1
+F(10, 146)    =     31.59                                      avg =      4.05
+Prob > F      =     0.000                                      max =         5
+------------------------------------------------------------------------------
+             |              Corrected
+           g | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+           G |  -.1314128   .0884984    -1.48   0.140    -.3063163    .0434907
+         GXI |  -.0756295   .0845155    -0.89   0.372    -.2426614    .0914024
+      wgi_ge |   1.492217   1.749548     0.85   0.395    -1.965495    4.949928
+        lny0 |  -1.969591   1.056824    -1.86   0.064    -4.058239    .1190578
+      secenr |   .0898066   .0251542     3.57   0.000     .0400932    .1395199
+         inv |    .028543   .0768521     0.37   0.711    -.1233433    .1804293
+         pd2 |   .7172219   .3069434     2.34   0.021     .1105956    1.323848
+         pd3 |   .0619996   .3358327     0.18   0.854    -.6017219    .7257211
+         pd4 |  -1.020067   .3925846    -2.60   0.010     -1.79595   -.2441839
+         pd5 |  -2.078277    .387901    -5.36   0.000    -2.844904   -1.311651
+       _cons |   13.87267   8.724748     1.59   0.114    -3.370445    31.11579
+------------------------------------------------------------------------------
+Instruments for first differences equation
+  Standard
+    D.(pd2 pd3 pd4 pd5 dependency)
+  GMM-type (missing=0, separate instruments for each period unless collapsed)
+    L(1/4).(lny0 secenr wgi_ge) collapsed
+    L(2/4).(G GXI inv) collapsed
+Instruments for levels equation
+  Standard
+    pd2 pd3 pd4 pd5 dependency
+    _cons
+  GMM-type (missing=0, separate instruments for each period unless collapsed)
+    D.(lny0 secenr wgi_ge) collapsed
+    DL.(G GXI inv) collapsed
+------------------------------------------------------------------------------
+Arellano-Bond test for AR(1) in first differences: z =  -3.75  Pr > z =  0.000
+Arellano-Bond test for AR(2) in first differences: z =  -1.59  Pr > z =  0.112
+------------------------------------------------------------------------------
+Sargan test of overid. restrictions: chi2(22)   =  58.28  Prob > chi2 =  0.000
+  (Not robust, but not weakened by many instruments.)
+Hansen test of overid. restrictions: chi2(22)   =  41.28  Prob > chi2 =  0.008
+  (Robust, but weakened by many instruments.)
+
+Difference-in-Hansen tests of exogeneity of instrument subsets:
+  GMM instruments for levels
+    Hansen test excluding group:     chi2(16)   =  22.12  Prob > chi2 =  0.139
+    Difference (null H = exogenous): chi2(6)    =  19.16  Prob > chi2 =  0.004
+  gmm(G GXI inv, collapse lag(2 .))
+    Hansen test excluding group:     chi2(10)   =  26.87  Prob > chi2 =  0.003
+    Difference (null H = exogenous): chi2(12)   =  14.41  Prob > chi2 =  0.275
+  gmm(lny0 secenr wgi_ge, collapse lag(1 .))
+    Hansen test excluding group:     chi2(7)    =  14.10  Prob > chi2 =  0.049
+    Difference (null H = exogenous): chi2(15)   =  27.18  Prob > chi2 =  0.027
+  iv(pd2 pd3 pd4 pd5 dependency)
+    Hansen test excluding group:     chi2(17)   =  33.40  Prob > chi2 =  0.010
+    Difference (null H = exogenous): chi2(5)    =   7.88  Prob > chi2 =  0.163
+
+(dropped 6 singleton observations)
+(MWFE estimator converged in 1 iterations)
+
+HDFE Linear regression                            Number of obs   =        590
+Absorbing 1 HDFE group                            F(  10,    140) =      30.92
+Statistics robust to heteroskedasticity           Prob > F        =     0.0000
+                                                  R-squared       =     0.6616
+                                                  Adj R-squared   =     0.5460
+                                                  Within R-sq.    =     0.4073
+Number of clusters (id)      =        141         Root MSE        =     1.7342
+
+                                   (Std. err. adjusted for 141 clusters in id)
+------------------------------------------------------------------------------
+             |               Robust
+           g | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+           G |  -.2010145   .0368861    -5.45   0.000    -.2739404   -.1280887
+         GXI |  -.1090379   .0547795    -1.99   0.048    -.2173399   -.0007359
+      wgi_ge |   3.957806   .9297565     4.26   0.000     2.119627    5.795984
+        lny0 |  -7.082566   .8699056    -8.14   0.000    -8.802416   -5.362716
+      secenr |   .0200815   .0148596     1.35   0.179    -.0092967    .0494596
+         inv |   .0946875   .0290163     3.26   0.001     .0373207    .1520543
+             |
+      period |
+          4  |   1.313909   .3219944     4.08   0.000     .6773089    1.950509
+          5  |   1.438893   .3833659     3.75   0.000     .6809582    2.196828
+          6  |   1.401315   .5307661     2.64   0.009     .3519619    2.450668
+          7  |   .7350574   .5688851     1.29   0.198    -.3896589    1.859774
+             |
+       _cons |   60.55076   7.246966     8.36   0.000     46.22312     74.8784
+------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+          id |       141         141           0    *|
+-----------------------------------------------------+
+* = FE nested within cluster; treated as redundant for DoF computation
+Favoring space over speed. To switch, type or click on mata: mata set matafavor speed, perm.
+
+Dynamic panel-data estimation, two-step system GMM
+------------------------------------------------------------------------------
+Group variable: id                              Number of obs      =       596
+Time variable : period                          Number of groups   =       147
+Number of instruments = 33                      Obs per group: min =         1
+F(10, 146)    =     34.51                                      avg =      4.05
+Prob > F      =     0.000                                      max =         5
+------------------------------------------------------------------------------
+             |              Corrected
+           g | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+           G |  -.1012298   .0813648    -1.24   0.215    -.2620347    .0595752
+         GXI |   -.055125   .0783163    -0.70   0.483     -.209905    .0996551
+      wgi_ge |   .7695431   1.669083     0.46   0.645    -2.529142    4.068228
+        lny0 |  -2.024871   .8986242    -2.25   0.026    -3.800863   -.2488789
+      secenr |   .1007707   .0227241     4.43   0.000     .0558599    .1456814
+         inv |   .0229843   .0713041     0.32   0.748    -.1179372    .1639059
+         pd2 |   .6156706   .3197142     1.93   0.056    -.0161951    1.247536
+         pd3 |  -.0460787    .347167    -0.13   0.895    -.7322007    .6400434
+         pd4 |  -1.100043    .376344    -2.92   0.004    -1.843829   -.3562569
+         pd5 |  -2.157383   .3906455    -5.52   0.000    -2.929433   -1.385332
+       _cons |    13.1761   7.460926     1.77   0.079    -1.569267    27.92147
+------------------------------------------------------------------------------
+Instruments for first differences equation
+  Standard
+    D.(pd2 pd3 pd4 pd5 dependency)
+  GMM-type (missing=0, separate instruments for each period unless collapsed)
+    L(1/4).(lny0 secenr wgi_ge) collapsed
+    L(2/4).(G GXI inv) collapsed
+Instruments for levels equation
+  Standard
+    pd2 pd3 pd4 pd5 dependency
+    _cons
+  GMM-type (missing=0, separate instruments for each period unless collapsed)
+    D.(lny0 secenr wgi_ge) collapsed
+    DL.(G GXI inv) collapsed
+------------------------------------------------------------------------------
+Arellano-Bond test for AR(1) in first differences: z =  -3.85  Pr > z =  0.000
+Arellano-Bond test for AR(2) in first differences: z =  -1.53  Pr > z =  0.125
+------------------------------------------------------------------------------
+Sargan test of overid. restrictions: chi2(22)   =  58.41  Prob > chi2 =  0.000
+  (Not robust, but not weakened by many instruments.)
+Hansen test of overid. restrictions: chi2(22)   =  41.11  Prob > chi2 =  0.008
+  (Robust, but weakened by many instruments.)
+
+Difference-in-Hansen tests of exogeneity of instrument subsets:
+  GMM instruments for levels
+    Hansen test excluding group:     chi2(16)   =  19.07  Prob > chi2 =  0.265
+    Difference (null H = exogenous): chi2(6)    =  22.04  Prob > chi2 =  0.001
+  gmm(G GXI inv, collapse lag(2 .))
+    Hansen test excluding group:     chi2(10)   =  27.41  Prob > chi2 =  0.002
+    Difference (null H = exogenous): chi2(12)   =  13.69  Prob > chi2 =  0.321
+  gmm(lny0 secenr wgi_ge, collapse lag(1 .))
+    Hansen test excluding group:     chi2(7)    =  11.35  Prob > chi2 =  0.124
+    Difference (null H = exogenous): chi2(15)   =  29.75  Prob > chi2 =  0.013
+  iv(pd2 pd3 pd4 pd5 dependency)
+    Hansen test excluding group:     chi2(17)   =  33.04  Prob > chi2 =  0.011
+    Difference (null H = exogenous): chi2(5)    =   8.06  Prob > chi2 =  0.153
+
+(dropped 6 singleton observations)
+(MWFE estimator converged in 1 iterations)
+
+HDFE Linear regression                            Number of obs   =        590
+Absorbing 1 HDFE group                            F(  10,    140) =      28.14
+Statistics robust to heteroskedasticity           Prob > F        =     0.0000
+                                                  R-squared       =     0.6606
+                                                  Adj R-squared   =     0.5447
+                                                  Within R-sq.    =     0.4055
+Number of clusters (id)      =        141         Root MSE        =     1.7367
+
+                                   (Std. err. adjusted for 141 clusters in id)
+------------------------------------------------------------------------------
+             |               Robust
+           g | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+           G |  -.0969783   .0356779    -2.72   0.007    -.1675154   -.0264413
+         GXI |   .0166712   .0629196     0.26   0.791    -.1077242    .1410667
+      wgi_ge |   2.163385   .9619144     2.25   0.026     .2616282    4.065141
+        lny0 |  -6.947273   .8401227    -8.27   0.000     -8.60824   -5.286305
+      secenr |   .0238754   .0146483     1.63   0.105     -.005085    .0528358
+         inv |   .1034254   .0281008     3.68   0.000     .0478686    .1589822
+             |
+      period |
+          4  |   1.312523   .3083655     4.26   0.000     .7028677    1.922178
+          5  |   1.294238   .3731434     3.47   0.001     .5565139    2.031963
+          6  |   1.214728   .5236865     2.32   0.022     .1793714    2.250084
+          7  |   .5094431   .5597433     0.91   0.364    -.5971995    1.616086
+             |
+       _cons |    57.1579   6.914748     8.27   0.000     43.48707    70.82872
+------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+          id |       141         141           0    *|
+-----------------------------------------------------+
+* = FE nested within cluster; treated as redundant for DoF computation
+Favoring space over speed. To switch, type or click on mata: mata set matafavor speed, perm.
+
+Dynamic panel-data estimation, two-step system GMM
+------------------------------------------------------------------------------
+Group variable: id                              Number of obs      =       596
+Time variable : period                          Number of groups   =       147
+Number of instruments = 33                      Obs per group: min =         1
+F(10, 146)    =     32.84                                      avg =      4.05
+Prob > F      =     0.000                                      max =         5
+------------------------------------------------------------------------------
+             |              Corrected
+           g | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+           G |   -.054327   .0751675    -0.72   0.471    -.2028841      .09423
+         GXI |   .0068814   .0893981     0.08   0.939    -.1698002     .183563
+      wgi_ge |   .0491807     1.8946     0.03   0.979    -3.695205    3.793566
+        lny0 |  -2.213158   .9241442    -2.39   0.018    -4.039587   -.3867301
+      secenr |   .1037925   .0248184     4.18   0.000     .0547428    .1528423
+         inv |   .0434747   .0761631     0.57   0.569      -.10705    .1939994
+         pd2 |   .5258319   .3209977     1.64   0.104    -.1085706    1.160234
+         pd3 |  -.1147162   .3544524    -0.32   0.747    -.8152367    .5858042
+         pd4 |   -1.18863   .3922035    -3.03   0.003    -1.963759   -.4134998
+         pd5 |  -2.265132   .4040245    -5.61   0.000    -3.063624    -1.46664
+       _cons |   13.33551   7.336687     1.82   0.071    -1.164321    27.83534
+------------------------------------------------------------------------------
+Instruments for first differences equation
+  Standard
+    D.(pd2 pd3 pd4 pd5 dependency)
+  GMM-type (missing=0, separate instruments for each period unless collapsed)
+    L(1/4).(lny0 secenr wgi_ge) collapsed
+    L(2/4).(G GXI inv) collapsed
+Instruments for levels equation
+  Standard
+    pd2 pd3 pd4 pd5 dependency
+    _cons
+  GMM-type (missing=0, separate instruments for each period unless collapsed)
+    D.(lny0 secenr wgi_ge) collapsed
+    DL.(G GXI inv) collapsed
+------------------------------------------------------------------------------
+Arellano-Bond test for AR(1) in first differences: z =  -3.79  Pr > z =  0.000
+Arellano-Bond test for AR(2) in first differences: z =  -1.59  Pr > z =  0.112
+------------------------------------------------------------------------------
+Sargan test of overid. restrictions: chi2(22)   =  60.57  Prob > chi2 =  0.000
+  (Not robust, but not weakened by many instruments.)
+Hansen test of overid. restrictions: chi2(22)   =  40.14  Prob > chi2 =  0.010
+  (Robust, but weakened by many instruments.)
+
+Difference-in-Hansen tests of exogeneity of instrument subsets:
+  GMM instruments for levels
+    Hansen test excluding group:     chi2(16)   =  17.52  Prob > chi2 =  0.353
+    Difference (null H = exogenous): chi2(6)    =  22.62  Prob > chi2 =  0.001
+  gmm(G GXI inv, collapse lag(2 .))
+    Hansen test excluding group:     chi2(10)   =  26.62  Prob > chi2 =  0.003
+    Difference (null H = exogenous): chi2(12)   =  13.52  Prob > chi2 =  0.333
+  gmm(lny0 secenr wgi_ge, collapse lag(1 .))
+    Hansen test excluding group:     chi2(7)    =  12.03  Prob > chi2 =  0.100
+    Difference (null H = exogenous): chi2(15)   =  28.11  Prob > chi2 =  0.021
+  iv(pd2 pd3 pd4 pd5 dependency)
+    Hansen test excluding group:     chi2(17)   =  33.15  Prob > chi2 =  0.011
+    Difference (null H = exogenous): chi2(5)    =   6.99  Prob > chi2 =  0.221
+
+(dropped 6 singleton observations)
+(MWFE estimator converged in 1 iterations)
+
+HDFE Linear regression                            Number of obs   =        590
+Absorbing 1 HDFE group                            F(  10,    140) =      24.02
+Statistics robust to heteroskedasticity           Prob > F        =     0.0000
+                                                  R-squared       =     0.6613
+                                                  Adj R-squared   =     0.5456
+                                                  Within R-sq.    =     0.4068
+Number of clusters (id)      =        141         Root MSE        =     1.7349
+
+                                   (Std. err. adjusted for 141 clusters in id)
+------------------------------------------------------------------------------
+             |               Robust
+           g | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+           G |  -.0444591   .0338845    -1.31   0.192    -.1114505    .0225323
+         GXI |   .0701616   .0526029     1.33   0.184    -.0338371    .1741603
+      wgi_ge |   1.455033   .7967352     1.83   0.070    -.1201557    3.030221
+        lny0 |   -6.89733   .8280576    -8.33   0.000    -8.534445   -5.260216
+      secenr |    .026169   .0145224     1.80   0.074    -.0025424    .0548805
+         inv |   .1120215   .0282968     3.96   0.000     .0560772    .1679658
+             |
+      period |
+          4  |   1.243298    .303052     4.10   0.000     .6441476    1.842448
+          5  |   1.230318   .3728922     3.30   0.001     .4930901    1.967546
+          6  |   1.085338   .5208213     2.08   0.039     .0556464     2.11503
+          7  |    .375278   .5522413     0.68   0.498    -.7165328    1.467089
+             |
+       _cons |   55.53794   6.830403     8.13   0.000     42.03387    69.04201
+------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+          id |       141         141           0    *|
+-----------------------------------------------------+
+* = FE nested within cluster; treated as redundant for DoF computation
+
+. 
+. * =====================================================================================
+. * B. Replica aproximada de Mollick e Vianna (2023): painel anual 1996-2019, consumo x media do WGI
+. * =====================================================================================
+. use "$RINT/anual_rv.dta", clear
+
+. keep if micro == 0 & inrange(year, 1993, 2023)
+(5,430 observations deleted)
+
+. xtset id year
+
+Panel variable: id (strongly balanced)
+ Time variable: year, 1993 to 2023
+         Delta: 1 unit
+
+. egen inst = rowmean(wgi_ge wgi_rq wgi_rl wgi_cc wgi_va wgi_pv)
+(1,020 missing values generated)
+
+. gen gc = govcons_gdp
+(622 missing values generated)
+
+. gen gc_l1 = L.govcons_gdp
+(773 missing values generated)
+
+. gen gc_ham = govcons_gdp * exp(lnY - lnY_ham)
+(644 missing values generated)
+
+. gen g_l1 = L.g
+(291 missing values generated)
+
+. gen lny_l1 = L.lny
+(284 missing values generated)
+
+. keep if inrange(year, 1996, 2023)
+(504 observations deleted)
+
+. gen byte sMV = !missing(g, gc, gc_l1, gc_ham, inst, g_l1, lny_l1, hc, inv, open, infl, popg, ctot_g) & year <= 2019
+
+. quietly summ inst if sMV
+
+. gen instc = inst - r(mean)
+(516 missing values generated)
+
+. foreach meas in gc gc_ham gc_l1 {
+  2.     capture drop G
+  3.     capture drop GXI
+  4.     gen G = `meas'
+  5.     gen GXI = G * instc
+  6.     xtscc g G instc GXI g_l1 lny_l1 hc inv open infl popg ctot_g i.year if sMV, fe lag($DKLAG)
+  7.     post `P' ("mv") ("`meas'") ("fe_dk") (_b[GXI]) (_se[GXI]) (2 * ttail(e(df_r), abs(_b[GXI] / _se[GXI]))) ///
+>         (_b[G]) (_se[G]) (e(N)) (e(N_g)) (.)
+  8.     estimates store R_mv_`meas'
+  9.     rv_kv mv_`meas'_bi `=string(_b[GXI], "%9.4f")'
+ 10.     rv_kv mv_`meas'_pi `=string(2 * ttail(e(df_r), abs(_b[GXI] / _se[GXI])), "%9.4f")'
+ 11. }
+(528 missing values generated)
+(957 missing values generated)
+
+Regression with Driscoll-Kraay standard errors   Number of obs     =      2514
+Method: Fixed-effects regression                 Number of groups  =       127
+Group variable (i): id                           F( 31,    20)     =2853735.26
+maximum lag: 3                                   Prob > F          =    0.0000
+                                                 within R-squared  =    0.3173
+
+------------------------------------------------------------------------------
+             |             Drisc/Kraay
+           g | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+           G |  -.2674079   .0676164    -3.95   0.001    -.4084532   -.1263625
+       instc |   5.851235   1.999807     2.93   0.008      1.67971    10.02276
+         GXI |  -.1844165   .0711266    -2.59   0.017     -.332784   -.0360489
+        g_l1 |   .2401992   .0254615     9.43   0.000     .1870873     .293311
+      lny_l1 |  -6.404549   2.366675    -2.71   0.014    -11.34135   -1.467751
+          hc |    .441511   .9729848     0.45   0.655      -1.5881    2.471122
+         inv |   .0818224   .0248736     3.29   0.004     .0299369    .1337078
+        open |   .0136929   .0055777     2.45   0.023      .002058    .0253278
+        infl |  -.0226551   .0049377    -4.59   0.000    -.0329549   -.0123553
+        popg |   -.573435   .1955329    -2.93   0.008    -.9813095   -.1655604
+      ctot_g |   .0275657   .0403334     0.68   0.502    -.0565684    .1116997
+             |
+        year |
+       1996  |          0  (empty)
+       1997  |          0  (omitted)
+       1998  |  -.7799291   .1871163    -4.17   0.000    -1.170247   -.3896114
+       1999  |          0  (omitted)
+       2000  |   .5974922   .2314636     2.58   0.018     .1146675    1.080317
+       2001  |          0  (omitted)
+       2002  |  -.1132226   .3563865    -0.32   0.754    -.8566318    .6301866
+       2003  |   .6706047   .4111868     1.63   0.119     -.187116    1.528325
+       2004  |   1.732453   .4197652     4.13   0.001     .8568385    2.608068
+       2005  |    .776303   .4978166     1.56   0.135    -.2621242     1.81473
+       2006  |   1.722175   .5091755     3.38   0.003     .6600538    2.784297
+       2007  |   1.274892   .5655705     2.25   0.036     .0951331    2.454652
+       2008  |  -.0774649   .6390924    -0.12   0.905    -1.410588    1.255658
+       2009  |  -3.047075   .7620543    -4.00   0.001    -4.636692   -1.457457
+       2010  |   2.677006   .6421921     4.17   0.000     1.337417    4.016595
+       2011  |   1.123543   .7894936     1.42   0.170    -.5233121    2.770397
+       2012  |   .5858772   .8429224     0.70   0.495    -1.172428    2.344183
+       2013  |   .9764623   .8819147     1.11   0.281    -.8631795    2.816104
+       2014  |   .9590856   .8898779     1.08   0.294    -.8971671    2.815338
+       2015  |   .7861469   .9266823     0.85   0.406    -1.146879    2.719172
+       2016  |   1.116289   .9617627     1.16   0.259    -.8899132    3.122491
+       2017  |   1.726343   .9959071     1.73   0.098    -.3510833    3.803768
+       2018  |   1.489845   1.061199     1.40   0.176    -.7237773    3.703468
+       2019  |   1.198993   1.124788     1.07   0.299    -1.147272    3.545259
+       2020  |          0  (omitted)
+       2021  |          0  (omitted)
+       2022  |          0  (omitted)
+       2023  |          0  (omitted)
+             |
+       _cons |   57.28532   19.08451     3.00   0.007     17.47572    97.09492
+------------------------------------------------------------------------------
+
+(545 missing values generated)
+(973 missing values generated)
+
+Regression with Driscoll-Kraay standard errors   Number of obs     =      2514
+Method: Fixed-effects regression                 Number of groups  =       127
+Group variable (i): id                           F( 31,    20)     =1192908.54
+maximum lag: 3                                   Prob > F          =    0.0000
+                                                 within R-squared  =    0.3115
+
+------------------------------------------------------------------------------
+             |             Drisc/Kraay
+           g | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+           G |   .0773008   .0540132     1.43   0.168    -.0353689    .1899704
+       instc |   5.000243   1.397236     3.58   0.002      2.08566    7.914827
+         GXI |  -.1209487   .0413196    -2.93   0.008    -.2071399   -.0347576
+        g_l1 |   .2390301   .0322479     7.41   0.000     .1717622    .3062979
+      lny_l1 |  -6.283878   2.217744    -2.83   0.010    -10.91001   -1.657744
+          hc |   .6278533   1.097901     0.57   0.574    -1.662327    2.918034
+         inv |   .0811751   .0253275     3.21   0.004     .0283429    .1340073
+        open |   .0149426   .0062691     2.38   0.027     .0018655    .0280198
+        infl |  -.0198174   .0044145    -4.49   0.000    -.0290258   -.0106089
+        popg |  -.5718459   .1773138    -3.23   0.004    -.9417159   -.2019759
+      ctot_g |   .0536599   .0407595     1.32   0.203    -.0313629    .1386828
+             |
+        year |
+       1996  |          0  (empty)
+       1997  |          0  (omitted)
+       1998  |  -.8977373   .1621133    -5.54   0.000      -1.2359   -.5595749
+       1999  |          0  (omitted)
+       2000  |   .5924861   .2190154     2.71   0.014     .1356281    1.049344
+       2001  |          0  (omitted)
+       2002  |   -.294991   .3062396    -0.96   0.347    -.9337956    .3438136
+       2003  |   .4675902   .3450704     1.36   0.191    -.2522141    1.187395
+       2004  |   1.618781   .3784047     4.28   0.000     .8294428    2.408119
+       2005  |   .7225356   .4631649     1.56   0.134    -.2436095    1.688681
+       2006  |   1.729926   .4772866     3.62   0.002     .7343241    2.725529
+       2007  |   1.314753   .5364858     2.45   0.024     .1956631    2.433843
+       2008  |  -.1246376   .5830668    -0.21   0.833    -1.340894    1.091618
+       2009  |  -3.505135   .6326097    -5.54   0.000    -4.824736   -2.185535
+       2010  |   2.365736   .5301705     4.46   0.000      1.25982    3.471653
+       2011  |    .816968   .6589385     1.24   0.229    -.5575537     2.19149
+       2012  |   .2769071   .7123981     0.39   0.702    -1.209129    1.762943
+       2013  |   .6025011   .7437421     0.81   0.427    -.9489178     2.15392
+       2014  |   .5989633   .7592613     0.79   0.439    -.9848281    2.182755
+       2015  |   .4095267   .7945528     0.52   0.612    -1.247881    2.066935
+       2016  |   .7314878   .8370373     0.87   0.393    -1.014541    2.477517
+       2017  |   1.430016   .8847974     1.62   0.122    -.4156393    3.275671
+       2018  |   1.279785   .9588672     1.33   0.197    -.7203769    3.279947
+       2019  |    .878957   .9938193     0.88   0.387    -1.194114    2.952028
+       2020  |          0  (omitted)
+       2021  |          0  (omitted)
+       2022  |          0  (omitted)
+       2023  |          0  (omitted)
+             |
+       _cons |     50.408   16.31436     3.09   0.006     16.37685    84.43916
+------------------------------------------------------------------------------
+
+(537 missing values generated)
+(965 missing values generated)
+
+Regression with Driscoll-Kraay standard errors   Number of obs     =      2514
+Method: Fixed-effects regression                 Number of groups  =       127
+Group variable (i): id                           F( 31,    20)     =1112595.66
+maximum lag: 3                                   Prob > F          =    0.0000
+                                                 within R-squared  =    0.3052
+
+------------------------------------------------------------------------------
+             |             Drisc/Kraay
+           g | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+           G |  -.1199651   .0349797    -3.43   0.003    -.1929315   -.0469987
+       instc |   2.948533   1.426196     2.07   0.052      -.02646    5.923527
+         GXI |   .0133536   .0427717     0.31   0.758    -.0758665    .1025737
+        g_l1 |   .2491244   .0227084    10.97   0.000     .2017556    .2964933
+      lny_l1 |  -6.115685   2.265153    -2.70   0.014    -10.84071    -1.39066
+          hc |   .6001915    1.00598     0.60   0.557    -1.498245    2.698628
+         inv |   .0911276    .024403     3.73   0.001     .0402238    .1420314
+        open |   .0167185    .005988     2.79   0.011     .0042277    .0292092
+        infl |  -.0245338   .0045753    -5.36   0.000    -.0340777   -.0149898
+        popg |  -.6093577   .1951789    -3.12   0.005    -1.016494   -.2022217
+      ctot_g |   .0371638   .0384735     0.97   0.346    -.0430906    .1174183
+             |
+        year |
+       1996  |          0  (empty)
+       1997  |          0  (omitted)
+       1998  |  -.8596453   .1727861    -4.98   0.000    -1.220071   -.4992198
+       1999  |          0  (omitted)
+       2000  |    .585985   .2206144     2.66   0.015     .1257915    1.046179
+       2001  |          0  (omitted)
+       2002  |  -.2849331   .3097805    -0.92   0.369     -.931124    .3612578
+       2003  |   .4765194   .3446935     1.38   0.182    -.2424986    1.195538
+       2004  |   1.639952   .3809815     4.30   0.000      .845239    2.434666
+       2005  |   .6615352    .445529     1.48   0.153    -.2678219    1.590892
+       2006  |    1.57626   .4567968     3.45   0.003     .6233985    2.529121
+       2007  |   1.121515   .5144672     2.18   0.041     .0483551    2.194675
+       2008  |  -.3426049   .5600171    -0.61   0.548     -1.51078    .8255704
+       2009  |  -3.623695   .6351562    -5.71   0.000    -4.948608   -2.298783
+       2010  |   2.407591   .5526136     4.36   0.000     1.254859    3.560323
+       2011  |   .7791572   .6849774     1.14   0.269    -.6496807    2.207995
+       2012  |   .2149784   .7313259     0.29   0.772    -1.310541    1.740498
+       2013  |    .601163   .7741269     0.78   0.447    -1.013637    2.215963
+       2014  |   .6295795   .7842823     0.80   0.432    -1.006405    2.265564
+       2015  |   .4435352   .8191173     0.54   0.594    -1.265114    2.152184
+       2016  |   .7948187   .8543961     0.93   0.363    -.9874203    2.577058
+       2017  |   1.454482   .8941602     1.63   0.119    -.4107039    3.319667
+       2018  |   1.191254   .9565711     1.25   0.227    -.8041185    3.186626
+       2019  |   .7670274   1.004739     0.76   0.454    -1.328821    2.862875
+       2020  |          0  (omitted)
+       2021  |          0  (omitted)
+       2022  |          0  (omitted)
+       2023  |          0  (omitted)
+             |
+       _cons |   51.50594   17.21171     2.99   0.007     15.60295    87.40893
+------------------------------------------------------------------------------
+
+
+. 
+. * =====================================================================================
+. * C. Mecanismo: ciclicidade fiscal (Frankel-Vegh-Vuletin) medida antes da amostra (1970-1995)
+. * =====================================================================================
+. * ciclicidade estimada no proprio periodo 1996-2023 (robustez exploratoria do mecanismo, prevista no plano)
+. gen double cyc_in = .
+(4,704 missing values generated)
+
+. levelsof id, local(ids)
+1 2 3 5 6 7 9 10 11 12 13 14 15 16 17 18 20 21 23 24 27 28 29 30 31 32 33 34 35 36 37 38 39 41 42 43 44 45 46 48 49 50 51 52 53 54 55 56 57 58 59 61 62 63 64 65 66 67 68 69 71 72 73 74 75 76 77 78 79 
+> 80 81 82 84 85 86 87 88 89 90 91 92 95 96 97 98 99 100 103 104 105 106 107 108 109 111 112 114 116 117 119 120 121 122 123 124 125 126 127 128 129 130 131 132 133 135 136 137 138 139 140 142 143 144
+>  145 146 147 148 149 150 151 152 153 154 155 156 157 158 160 161 162 164 165 166 167 168 170 171 172 173 174 175 176 178 179 180 182 183 184 185 186 187 189 190 193 194 195 196 197
+
+. foreach i of local ids {
+  2.     capture quietly regress dlgc gap_hp if id == `i' & inrange(year, 1996, 2023)
+  3.     if !_rc & e(N) >= 12 quietly replace cyc_in = _b[gap_hp] if id == `i'
+  4. }
+
+. bysort id: egen inst_m = mean(inst)
+
+. egen tg = tag(id) if sMV
+
+. corr cyc_pre inst_m if tg
+(obs=74)
+
+             |  cyc_pre   inst_m
+-------------+------------------
+     cyc_pre |   1.0000
+      inst_m |  -0.1386   1.0000
+
+
+. rv_kv cyc_corr_pre `=string(r(rho), "%5.3f")'
+
+. rv_kv cyc_corr_pre_n `r(N)'
+
+. corr cyc_in inst_m if tg
+(obs=119)
+
+             |   cyc_in   inst_m
+-------------+------------------
+      cyc_in |   1.0000
+      inst_m |  -0.1200   1.0000
+
+
+. rv_kv cyc_corr_in `=string(r(rho), "%5.3f")'
+
+. tempname C
+
+. postfile `C' str12 spec double(bi sei pi bc sec pc) long(N nc) using "$RINT/ciclicidade.dta", replace
+
+. foreach cv in cyc_pre cyc_in {
+  2.     capture drop G
+  3.     capture drop GXI
+  4.     capture drop GXC
+  5.     gen G = gc
+  6.     gen GXI = G * instc
+  7.     quietly summ `cv' if sMV
+  8.     gen GXC = G * (`cv' - r(mean))
+  9.     * mesma amostra: com e sem a interacao com a ciclicidade
+.     gen byte sC_`cv' = sMV & !missing(`cv')
+ 10.     xtscc g G instc GXI g_l1 lny_l1 hc inv open infl popg ctot_g i.year if sC_`cv', fe lag($DKLAG)
+ 11.     estimates store CY_base_`cv'
+ 12.     post `C' ("base_`cv'") (_b[GXI]) (_se[GXI]) (2 * ttail(e(df_r), abs(_b[GXI] / _se[GXI]))) (.) (.) (.) (e(N)) (e(N_g))
+ 13.     xtscc g G instc GXI GXC g_l1 lny_l1 hc inv open infl popg ctot_g i.year if sC_`cv', fe lag($DKLAG)
+ 14.     estimates store CY_with_`cv'
+ 15.     post `C' ("with_`cv'") (_b[GXI]) (_se[GXI]) (2 * ttail(e(df_r), abs(_b[GXI] / _se[GXI]))) ///
+>         (_b[GXC]) (_se[GXC]) (2 * ttail(e(df_r), abs(_b[GXC] / _se[GXC]))) (e(N)) (e(N_g))
+ 16.     rv_kv cyc_`cv'_bi_base `=string(_b[GXI], "%9.4f")'
+ 17. }
+(528 missing values generated)
+(957 missing values generated)
+(2,560 missing values generated)
+
+Regression with Driscoll-Kraay standard errors   Number of obs     =      1529
+Method: Fixed-effects regression                 Number of groups  =        74
+Group variable (i): id                           F( 31,    20)     = 439235.54
+maximum lag: 3                                   Prob > F          =    0.0000
+                                                 within R-squared  =    0.3005
+
+------------------------------------------------------------------------------
+             |             Drisc/Kraay
+           g | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+           G |  -.2781843   .0977794    -2.85   0.010    -.4821486   -.0742199
+       instc |   5.357803   1.184486     4.52   0.000     2.887009    7.828597
+         GXI |  -.1136498   .0470732    -2.41   0.025    -.2118428   -.0154567
+        g_l1 |   .1644413    .044825     3.67   0.002      .070938    .2579446
+      lny_l1 |   -6.48007    1.83553    -3.53   0.002    -10.30892   -2.651221
+          hc |   .7431301   1.004783     0.74   0.468    -1.352812    2.839072
+         inv |   .0342133   .0311997     1.10   0.286    -.0308682    .0992948
+        open |   .0171082   .0044493     3.85   0.001     .0078271    .0263893
+        infl |  -.0676097   .0344716    -1.96   0.064    -.1395162    .0042969
+        popg |  -.4410486   .2556256    -1.73   0.100    -.9742742    .0921771
+      ctot_g |   -.027162   .0524102    -0.52   0.610    -.1364878    .0821638
+             |
+        year |
+       1996  |          0  (empty)
+       1997  |          0  (omitted)
+       1998  |  -1.256907   .1942835    -6.47   0.000    -1.662175   -.8516383
+       1999  |          0  (omitted)
+       2000  |  -.0641441   .2258715    -0.28   0.779    -.5353037    .4070156
+       2001  |          0  (omitted)
+       2002  |  -.6160802   .2988912    -2.06   0.053    -1.239556     .007396
+       2003  |  -.1165293   .3524707    -0.33   0.744    -.8517703    .6187116
+       2004  |   .6723759   .3460876     1.94   0.066    -.0495501    1.394302
+       2005  |  -.0188141   .3532371    -0.05   0.958    -.7556538    .7180256
+       2006  |   1.027721   .3480556     2.95   0.008     .3016893    1.753752
+       2007  |   .3658087   .3814811     0.96   0.349    -.4299468    1.161564
+       2008  |   -.787427    .430763    -1.83   0.083    -1.685983    .1111289
+       2009  |  -3.263622   .5381697    -6.06   0.000    -4.386224   -2.141019
+       2010  |   1.780577   .5109513     3.48   0.002      .714751    2.846402
+       2011  |   .1685847   .5750443     0.29   0.772    -1.030937    1.368106
+       2012  |  -.5512619   .6063885    -0.91   0.374    -1.816166    .7136423
+       2013  |    .140823   .6619937     0.21   0.834    -1.240072    1.521718
+       2014  |   .4168958    .672215     0.62   0.542    -.9853202    1.819112
+       2015  |   .2778466   .6998843     0.40   0.696    -1.182086     1.73778
+       2016  |   .4759362   .7376799     0.65   0.526    -1.062837    2.014709
+       2017  |   .7407767    .757753     0.98   0.340    -.8398683    2.321422
+       2018  |   .5576795   .7760787     0.72   0.481    -1.061192    2.176551
+       2019  |   .2887502   .8239872     0.35   0.730    -1.430057    2.007557
+       2020  |          0  (omitted)
+       2021  |          0  (omitted)
+       2022  |          0  (omitted)
+       2023  |          0  (omitted)
+             |
+       _cons |   59.56202   15.18564     3.92   0.001     27.88533    91.23871
+------------------------------------------------------------------------------
+
+
+Regression with Driscoll-Kraay standard errors   Number of obs     =      1529
+Method: Fixed-effects regression                 Number of groups  =        74
+Group variable (i): id                           F( 32,    20)     = 108744.84
+maximum lag: 3                                   Prob > F          =    0.0000
+                                                 within R-squared  =    0.3097
+
+------------------------------------------------------------------------------
+             |             Drisc/Kraay
+           g | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+           G |  -.2902035   .0948553    -3.06   0.006    -.4880682   -.0923389
+       instc |   5.070907   1.108538     4.57   0.000     2.758537    7.383276
+         GXI |  -.0915698   .0386548    -2.37   0.028    -.1722023   -.0109372
+         GXC |   .1859767   .0743181     2.50   0.021     .0309517    .3410016
+        g_l1 |   .1676655   .0444713     3.77   0.001     .0748999    .2604311
+      lny_l1 |  -6.720593   1.849182    -3.63   0.002    -10.57792   -2.863266
+          hc |   .6740214   .9304083     0.72   0.477    -1.266776    2.614819
+         inv |   .0334678   .0324851     1.03   0.315    -.0342949    .1012305
+        open |   .0179932   .0046864     3.84   0.001     .0082175     .027769
+        infl |  -.0690785   .0343242    -2.01   0.058    -.1406775    .0025205
+        popg |  -.4738678   .2303866    -2.06   0.053    -.9544458    .0067103
+      ctot_g |  -.0217127   .0509418    -0.43   0.674    -.1279755    .0845501
+             |
+        year |
+       1996  |          0  (empty)
+       1997  |          0  (omitted)
+       1998  |  -1.316275   .1818896    -7.24   0.000     -1.69569   -.9368596
+       1999  |          0  (omitted)
+       2000  |  -.1425655   .2135638    -0.67   0.512    -.5880517    .3029207
+       2001  |          0  (omitted)
+       2002  |  -.6913052   .2773685    -2.49   0.022    -1.269886   -.1127247
+       2003  |  -.1795481   .3287473    -0.55   0.591     -.865303    .5062067
+       2004  |   .6280403    .322925     1.94   0.066    -.0455694     1.30165
+       2005  |  -.0386761   .3342724    -0.12   0.909    -.7359561    .6586038
+       2006  |   1.084795   .3372078     3.22   0.004     .3813921    1.788198
+       2007  |   .4122977   .3690584     1.12   0.277    -.3575447     1.18214
+       2008  |  -.6807084   .4188647    -1.63   0.120    -1.554445     .193028
+       2009  |  -3.114326   .5387073    -5.78   0.000     -4.23805   -1.990602
+       2010  |   1.916322   .5040519     3.80   0.001     .8648885    2.967756
+       2011  |   .2977533   .5615604     0.53   0.602    -.8736413    1.469148
+       2012  |  -.4223057   .5884324    -0.72   0.481    -1.649754    .8051427
+       2013  |   .2756749    .639774     0.43   0.671     -1.05887     1.61022
+       2014  |   .5229388   .6453854     0.81   0.427    -.8233115    1.869189
+       2015  |   .3814343   .6720901     0.57   0.577    -1.020521     1.78339
+       2016  |   .5771051   .7084151     0.81   0.425    -.9006228    2.054833
+       2017  |    .851664   .7282782     1.17   0.256    -.6674977    2.370826
+       2018  |   .6794466   .7476344     0.91   0.374    -.8800915    2.238985
+       2019  |    .407273   .7930814     0.51   0.613    -1.247066    2.061612
+       2020  |          0  (omitted)
+       2021  |          0  (omitted)
+       2022  |          0  (omitted)
+       2023  |          0  (omitted)
+             |
+       _cons |   61.99103   15.28072     4.06   0.001       30.116    93.86606
+------------------------------------------------------------------------------
+
+(528 missing values generated)
+(957 missing values generated)
+(818 missing values generated)
+
+Regression with Driscoll-Kraay standard errors   Number of obs     =      2405
+Method: Fixed-effects regression                 Number of groups  =       119
+Group variable (i): id                           F( 31,    20)     =3034932.18
+maximum lag: 3                                   Prob > F          =    0.0000
+                                                 within R-squared  =    0.3216
+
+------------------------------------------------------------------------------
+             |             Drisc/Kraay
+           g | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+           G |  -.2780231   .0723335    -3.84   0.001    -.4289081   -.1271382
+       instc |   6.174736    2.09353     2.95   0.008     1.807708    10.54176
+         GXI |  -.1886691   .0732883    -2.57   0.018    -.3415457   -.0357925
+        g_l1 |   .2364636   .0273904     8.63   0.000     .1793283     .293599
+      lny_l1 |  -6.905465   2.589966    -2.67   0.015    -12.30804    -1.50289
+          hc |   .7225719   1.120366     0.64   0.526     -1.61447    3.059614
+         inv |   .0827188    .025513     3.24   0.004     .0294996    .1359379
+        open |   .0146222    .005611     2.61   0.017     .0029178    .0263265
+        infl |  -.0229074   .0049223    -4.65   0.000    -.0331751   -.0126397
+        popg |  -.5485694   .2008056    -2.73   0.013    -.9674425   -.1296962
+      ctot_g |   .0271141   .0416862     0.65   0.523    -.0598418      .11407
+             |
+        year |
+       1996  |          0  (empty)
+       1997  |          0  (omitted)
+       1998  |  -.6782877    .191243    -3.55   0.002    -1.077214   -.2793617
+       1999  |          0  (omitted)
+       2000  |   .7480701   .2192157     3.41   0.003     .2907942    1.205346
+       2001  |          0  (omitted)
+       2002  |  -.0481183   .3526304    -0.14   0.893    -.7836924    .6874558
+       2003  |   .7355555   .4077802     1.80   0.086     -.115059     1.58617
+       2004  |   1.747699   .4141485     4.22   0.000     .8838005    2.611598
+       2005  |    .810322   .4932886     1.64   0.116    -.2186601    1.839304
+       2006  |     1.7487   .4952049     3.53   0.002     .7157206    2.781679
+       2007  |   1.259299   .5524558     2.28   0.034     .1068966    2.411702
+       2008  |  -.1077672   .6215647    -0.17   0.864    -1.404329    1.188794
+       2009  |  -3.111054   .7478411    -4.16   0.000    -4.671023   -1.551084
+       2010  |   2.668714   .6082408     4.39   0.000     1.399946    3.937482
+       2011  |   1.152705   .7661807     1.50   0.148    -.4455199     2.75093
+       2012  |   .5865498   .8173754     0.72   0.481    -1.118465    2.291565
+       2013  |    .976076   .8579785     1.14   0.269    -.8136357    2.765788
+       2014  |   .9770977   .8609605     1.13   0.270    -.8188345     2.77303
+       2015  |   .8389552   .8960374     0.94   0.360    -1.030146    2.708056
+       2016  |   1.136057   .9334562     1.22   0.238    -.8110983    3.083213
+       2017  |   1.733452   .9639979     1.80   0.087    -.2774127    3.744316
+       2018  |   1.566634   1.025477     1.53   0.142    -.5724738    3.705742
+       2019  |   1.263887   1.093706     1.16   0.261    -1.017544    3.545318
+       2020  |          0  (omitted)
+       2021  |          0  (omitted)
+       2022  |          0  (omitted)
+       2023  |          0  (omitted)
+             |
+       _cons |   60.92304   20.50544     2.97   0.008     18.14943    103.6966
+------------------------------------------------------------------------------
+
+
+Regression with Driscoll-Kraay standard errors   Number of obs     =      2405
+Method: Fixed-effects regression                 Number of groups  =       119
+Group variable (i): id                           F( 32,    20)     =1397525.74
+maximum lag: 3                                   Prob > F          =    0.0000
+                                                 within R-squared  =    0.3236
+
+------------------------------------------------------------------------------
+             |             Drisc/Kraay
+           g | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+           G |  -.2799038    .071976    -3.89   0.001     -.430043   -.1297645
+       instc |   6.141485   2.035178     3.02   0.007     1.896178    10.38679
+         GXI |  -.1915926   .0704807    -2.72   0.013    -.3386127   -.0445725
+         GXC |  -.0578334   .0221065    -2.62   0.017    -.1039467   -.0117202
+        g_l1 |   .2346845   .0275013     8.53   0.000     .1773177    .2920513
+      lny_l1 |  -6.894317   2.613136    -2.64   0.016    -12.34522   -1.443411
+          hc |   .7156332   1.141429     0.63   0.538    -1.665345    3.096612
+         inv |   .0839486   .0254981     3.29   0.004     .0307605    .1371367
+        open |   .0145195    .005551     2.62   0.017     .0029403    .0260987
+        infl |  -.0225998   .0049369    -4.58   0.000    -.0328981   -.0123016
+        popg |  -.5448911   .2003319    -2.72   0.013    -.9627762    -.127006
+      ctot_g |    .021864   .0423394     0.52   0.611    -.0664543    .1101824
+             |
+        year |
+       1996  |          0  (empty)
+       1997  |          0  (omitted)
+       1998  |  -.6571483   .1916203    -3.43   0.003    -1.056861   -.2574354
+       1999  |          0  (omitted)
+       2000  |   .7467445   .2192624     3.41   0.003     .2893711    1.204118
+       2001  |          0  (omitted)
+       2002  |  -.0156956   .3529841    -0.04   0.965    -.7520075    .7206163
+       2003  |   .7607151   .4076283     1.87   0.077    -.0895825    1.611013
+       2004  |   1.780596   .4151831     4.29   0.000     .9145396    2.646653
+       2005  |   .8379736   .4936878     1.70   0.105     -.191841    1.867788
+       2006  |   1.779068   .4954044     3.59   0.002     .7456728    2.812464
+       2007  |   1.296237   .5535352     2.34   0.030     .1415824    2.450891
+       2008  |   -.076798   .6230275    -0.12   0.903    -1.376411    1.222814
+       2009  |  -3.096101   .7493431    -4.13   0.001    -4.659203   -1.532999
+       2010  |   2.678112   .6082012     4.40   0.000     1.409426    3.946797
+       2011  |   1.172507   .7682375     1.53   0.143     -.430008    2.775023
+       2012  |   .5817815   .8219424     0.71   0.487     -1.13276    2.296323
+       2013  |   .9557487    .863015     1.11   0.281    -.8444691    2.755966
+       2014  |   .9731743   .8658952     1.12   0.274    -.8330514      2.7794
+       2015  |   .8299895    .902032     0.92   0.368    -1.051616    2.711595
+       2016  |   1.141033   .9376836     1.22   0.238    -.8149404    3.097007
+       2017  |   1.758226   .9668865     1.82   0.084    -.2586643    3.775115
+       2018  |    1.57218   1.028919     1.53   0.142    -.5741067    3.718467
+       2019  |   1.270506   1.097811     1.16   0.261    -1.019487    3.560498
+       2020  |          0  (omitted)
+       2021  |          0  (omitted)
+       2022  |          0  (omitted)
+       2023  |          0  (omitted)
+             |
+       _cons |     60.842   20.66336     2.94   0.008     17.73898     103.945
+------------------------------------------------------------------------------
+
+
+. * resposta contemporanea do consumo ao hiato por nivel institucional (exploratorio do mecanismo)
+. gen gapXinst = gap_hp * instc
+(592 missing values generated)
+
+. xtscc dlgc gap_hp gapXinst instc i.year if sMV, fe lag($DKLAG)
+
+Regression with Driscoll-Kraay standard errors   Number of obs     =      2335
+Method: Fixed-effects regression                 Number of groups  =       121
+Group variable (i): id                           F( 23,    20)     = 153064.15
+maximum lag: 3                                   Prob > F          =    0.0000
+                                                 within R-squared  =    0.0450
+
+------------------------------------------------------------------------------
+             |             Drisc/Kraay
+        dlgc | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+      gap_hp |   .3881654    .109604     3.54   0.002     .1595354    .6167954
+    gapXinst |  -.0750087   .0962201    -0.78   0.445    -.2757203     .125703
+       instc |   4.265626   1.325511     3.22   0.004     1.500659    7.030593
+             |
+        year |
+       1996  |          0  (empty)
+       1997  |          0  (omitted)
+       1998  |    2.48005   .0638123    38.86   0.000      2.34694     2.61316
+       1999  |          0  (omitted)
+       2000  |   3.082035   .0818689    37.65   0.000      2.91126     3.25281
+       2001  |          0  (omitted)
+       2002  |   5.353564   .2117523    25.28   0.000     4.911857    5.795272
+       2003  |   3.077175    .207963    14.80   0.000     2.643371    3.510978
+       2004  |   2.648729   .1846267    14.35   0.000     2.263605    3.033854
+       2005  |   3.367737   .2140177    15.74   0.000     2.921304     3.81417
+       2006  |   3.475939   .2277781    15.26   0.000     3.000802    3.951076
+       2007  |    3.34319   .3062172    10.92   0.000     2.704432    3.981948
+       2008  |   2.779458   .2939481     9.46   0.000     2.166293    3.392623
+       2009  |   4.638957    .416942    11.13   0.000     3.769231    5.508683
+       2010  |   2.626131   .2811995     9.34   0.000      2.03956    3.212703
+       2011  |   3.916193   .2708587    14.46   0.000     3.351191    4.481194
+       2012  |   2.189032   .2586826     8.46   0.000     1.649429    2.728634
+       2013  |   2.209718   .2714155     8.14   0.000     1.643555     2.77588
+       2014  |   2.075226   .2827611     7.34   0.000     1.485397    2.665055
+       2015  |   1.514178   .3307281     4.58   0.000     .8242909    2.204064
+       2016  |      1.213   .3166985     3.83   0.001     .5523783    1.873621
+       2017  |   .9160345   .2579496     3.55   0.002     .3779611    1.454108
+       2018  |   .4369514   .2223182     1.97   0.063    -.0267963     .900699
+       2019  |   1.877527   .2382668     7.88   0.000     1.380511    2.374543
+       2020  |          0  (omitted)
+       2021  |          0  (omitted)
+       2022  |          0  (omitted)
+       2023  |          0  (omitted)
+             |
+       _cons |   .5146109   .1915712     2.69   0.014     .1150004    .9142214
+------------------------------------------------------------------------------
+
+
+. estimates store CY_resp
+
+. rv_kv cyc_resp_inter `=string(_b[gapXinst], "%9.4f")'
+
+. rv_kv cyc_resp_inter_p `=string(2 * ttail(e(df_r), abs(_b[gapXinst] / _se[gapXinst])), "%9.4f")'
+
+. 
+. * =====================================================================================
+. * D. Consumo (WDI) x despesa total (GFS): composicao da amostra x conceito de gasto
+. * =====================================================================================
+. gen ex = exp_gdp
+(2,810 missing values generated)
+
+. gen byte sCE = sMV & !missing(ex)
+
+. foreach k in "gc sMV own" "gc sCE common" "ex sCE common" {
+  2.     gettoken meas rest : k
+  3.     gettoken smp lab : rest
+  4.     local lab = strtrim("`lab'")
+  5.     capture drop G
+  6.     capture drop GXI
+  7.     gen G = `meas'
+  8.     gen GXI = G * instc
+  9.     xtscc g G instc GXI g_l1 lny_l1 hc inv open infl popg ctot_g i.year if `smp', fe lag($DKLAG)
+ 10.     estimates store CE_`meas'_`lab'
+ 11.     post `C' ("`meas'_`lab'") (_b[GXI]) (_se[GXI]) (2 * ttail(e(df_r), abs(_b[GXI] / _se[GXI]))) (.) (.) (.) (e(N)) (e(N_g))
+ 12.     rv_kv ce_`meas'_`lab'_bi `=string(_b[GXI], "%9.4f")'
+ 13.     rv_kv ce_`meas'_`lab'_N `e(N)'
+ 14. }
+(528 missing values generated)
+(957 missing values generated)
+
+Regression with Driscoll-Kraay standard errors   Number of obs     =      2514
+Method: Fixed-effects regression                 Number of groups  =       127
+Group variable (i): id                           F( 31,    20)     =2853735.26
+maximum lag: 3                                   Prob > F          =    0.0000
+                                                 within R-squared  =    0.3173
+
+------------------------------------------------------------------------------
+             |             Drisc/Kraay
+           g | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+           G |  -.2674079   .0676164    -3.95   0.001    -.4084532   -.1263625
+       instc |   5.851235   1.999807     2.93   0.008      1.67971    10.02276
+         GXI |  -.1844165   .0711266    -2.59   0.017     -.332784   -.0360489
+        g_l1 |   .2401992   .0254615     9.43   0.000     .1870873     .293311
+      lny_l1 |  -6.404549   2.366675    -2.71   0.014    -11.34135   -1.467751
+          hc |    .441511   .9729848     0.45   0.655      -1.5881    2.471122
+         inv |   .0818224   .0248736     3.29   0.004     .0299369    .1337078
+        open |   .0136929   .0055777     2.45   0.023      .002058    .0253278
+        infl |  -.0226551   .0049377    -4.59   0.000    -.0329549   -.0123553
+        popg |   -.573435   .1955329    -2.93   0.008    -.9813095   -.1655604
+      ctot_g |   .0275657   .0403334     0.68   0.502    -.0565684    .1116997
+             |
+        year |
+       1996  |          0  (empty)
+       1997  |          0  (omitted)
+       1998  |  -.7799291   .1871163    -4.17   0.000    -1.170247   -.3896114
+       1999  |          0  (omitted)
+       2000  |   .5974922   .2314636     2.58   0.018     .1146675    1.080317
+       2001  |          0  (omitted)
+       2002  |  -.1132226   .3563865    -0.32   0.754    -.8566318    .6301866
+       2003  |   .6706047   .4111868     1.63   0.119     -.187116    1.528325
+       2004  |   1.732453   .4197652     4.13   0.001     .8568385    2.608068
+       2005  |    .776303   .4978166     1.56   0.135    -.2621242     1.81473
+       2006  |   1.722175   .5091755     3.38   0.003     .6600538    2.784297
+       2007  |   1.274892   .5655705     2.25   0.036     .0951331    2.454652
+       2008  |  -.0774649   .6390924    -0.12   0.905    -1.410588    1.255658
+       2009  |  -3.047075   .7620543    -4.00   0.001    -4.636692   -1.457457
+       2010  |   2.677006   .6421921     4.17   0.000     1.337417    4.016595
+       2011  |   1.123543   .7894936     1.42   0.170    -.5233121    2.770397
+       2012  |   .5858772   .8429224     0.70   0.495    -1.172428    2.344183
+       2013  |   .9764623   .8819147     1.11   0.281    -.8631795    2.816104
+       2014  |   .9590856   .8898779     1.08   0.294    -.8971671    2.815338
+       2015  |   .7861469   .9266823     0.85   0.406    -1.146879    2.719172
+       2016  |   1.116289   .9617627     1.16   0.259    -.8899132    3.122491
+       2017  |   1.726343   .9959071     1.73   0.098    -.3510833    3.803768
+       2018  |   1.489845   1.061199     1.40   0.176    -.7237773    3.703468
+       2019  |   1.198993   1.124788     1.07   0.299    -1.147272    3.545259
+       2020  |          0  (omitted)
+       2021  |          0  (omitted)
+       2022  |          0  (omitted)
+       2023  |          0  (omitted)
+             |
+       _cons |   57.28532   19.08451     3.00   0.007     17.47572    97.09492
+------------------------------------------------------------------------------
+
+(528 missing values generated)
+(957 missing values generated)
+
+Regression with Driscoll-Kraay standard errors   Number of obs     =      1270
+Method: Fixed-effects regression                 Number of groups  =        87
+Group variable (i): id                           F( 31,    20)     = 638422.29
+maximum lag: 3                                   Prob > F          =    0.0000
+                                                 within R-squared  =    0.5280
+
+------------------------------------------------------------------------------
+             |             Drisc/Kraay
+           g | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+           G |  -.4684827   .1400399    -3.35   0.003    -.7606007   -.1763646
+       instc |   1.712462   1.219277     1.40   0.176    -.8309042    4.255828
+         GXI |   .0080367   .0618845     0.13   0.898    -.1210522    .1371256
+        g_l1 |   .2527717   .0469924     5.38   0.000     .1547472    .3507962
+      lny_l1 |  -8.497222   2.730175    -3.11   0.005    -14.19227   -2.802176
+          hc |   1.018618   .7822814     1.30   0.208    -.6131928    2.650428
+         inv |   .1187402   .0568779     2.09   0.050      .000095    .2373854
+        open |   .0173565   .0073838     2.35   0.029     .0019542    .0327587
+        infl |   -.067836   .0343203    -1.98   0.062    -.1394268    .0037548
+        popg |  -.9879607   .1346923    -7.33   0.000    -1.268924   -.7069975
+      ctot_g |  -.0869473   .0807595    -1.08   0.294    -.2554087    .0815141
+             |
+        year |
+       1996  |          0  (empty)
+       1997  |          0  (omitted)
+       1998  |  -.6730806    .213039    -3.16   0.005    -1.117472   -.2286891
+       1999  |          0  (omitted)
+       2000  |   1.478138   .2134729     6.92   0.000     1.032841    1.923434
+       2001  |          0  (omitted)
+       2002  |   .1874249   .3852232     0.49   0.632    -.6161367    .9909864
+       2003  |   1.098194   .4452091     2.47   0.023     .1695042    2.026884
+       2004  |    2.12028   .5051495     4.20   0.000     1.066556    3.174003
+       2005  |   1.318658   .5377379     2.45   0.024     .1969567     2.44036
+       2006  |   2.519997   .5613053     4.49   0.000     1.349135     3.69086
+       2007  |   2.058144   .5825797     3.53   0.002     .8429042    3.273384
+       2008  |   .1088042   .6986249     0.16   0.878    -1.348502     1.56611
+       2009  |  -3.799569   .9774371    -3.89   0.001    -5.838467   -1.760671
+       2010  |   3.651652   .7205087     5.07   0.000     2.148697    5.154607
+       2011  |   1.261677   .8630643     1.46   0.159    -.5386441    3.061997
+       2012  |   .6179698   .9000934     0.69   0.500    -1.259592    2.495532
+       2013  |   1.234949   .9458765     1.31   0.207    -.7381144    3.208013
+       2014  |   1.542547   .9838129     1.57   0.133    -.5096504    3.594745
+       2015  |   1.774437   1.102335     1.61   0.123     -.524993    4.073867
+       2016  |   1.842925   1.142384     1.61   0.122    -.5400468    4.225896
+       2017  |   2.681976   1.123029     2.39   0.027     .3393778    5.024575
+       2018  |   2.498791   1.186733     2.11   0.048     .0233088    4.974274
+       2019  |   2.127488   1.264463     1.68   0.108    -.5101353     4.76511
+       2020  |          0  (omitted)
+       2021  |          0  (omitted)
+       2022  |          0  (omitted)
+       2023  |          0  (omitted)
+             |
+       _cons |    81.3559    25.2062     3.23   0.004     28.77669    133.9351
+------------------------------------------------------------------------------
+
+(2,810 missing values generated)
+(2,941 missing values generated)
+
+Regression with Driscoll-Kraay standard errors   Number of obs     =      1270
+Method: Fixed-effects regression                 Number of groups  =        87
+Group variable (i): id                           F( 31,    20)     = 101788.39
+maximum lag: 3                                   Prob > F          =    0.0000
+                                                 within R-squared  =    0.5228
+
+------------------------------------------------------------------------------
+             |             Drisc/Kraay
+           g | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+           G |  -.1598594   .0716779    -2.23   0.037    -.3093769   -.0103419
+       instc |   3.044931   1.131339     2.69   0.014     .6849983    5.404864
+         GXI |  -.0296098   .0287998    -1.03   0.316    -.0896851    .0304656
+        g_l1 |   .2412823   .0520179     4.64   0.000     .1327749    .3497897
+      lny_l1 |  -7.698271   2.674701    -2.88   0.009     -13.2776   -2.118943
+          hc |   1.893383    .860797     2.20   0.040     .0977918    3.688974
+         inv |   .1216887   .0594481     2.05   0.054    -.0023179    .2456953
+        open |   .0211834   .0082786     2.56   0.019     .0039146    .0384523
+        infl |  -.0653001    .036997    -1.77   0.093    -.1424746    .0118743
+        popg |  -1.200831   .1245508    -9.64   0.000     -1.46064    -.941023
+      ctot_g |  -.0738542   .0827558    -0.89   0.383    -.2464797    .0987713
+             |
+        year |
+       1996  |          0  (empty)
+       1997  |          0  (omitted)
+       1998  |  -1.018098   .1839685    -5.53   0.000     -1.40185   -.6343466
+       1999  |          0  (omitted)
+       2000  |   1.001645   .2205786     4.54   0.000     .5415263    1.461764
+       2001  |          0  (omitted)
+       2002  |  -.4218588   .2992303    -1.41   0.174    -1.046042    .2023248
+       2003  |   .3411986   .3181397     1.07   0.296    -.3224292    1.004826
+       2004  |    1.45611   .3723656     3.91   0.001     .6793691    2.232851
+       2005  |   .6333007   .3940575     1.61   0.124    -.1886888     1.45529
+       2006  |   1.767881   .4124521     4.29   0.000     .9075209    2.628241
+       2007  |   1.281062   .4474189     2.86   0.010     .3477622    2.214361
+       2008  |  -.6247009   .5891678    -1.06   0.302    -1.853683    .6042817
+       2009  |  -4.657851   .8035584    -5.80   0.000    -6.334045   -2.981658
+       2010  |   2.794588   .5446629     5.13   0.000     1.658441    3.930735
+       2011  |   .4209501   .6863256     0.61   0.547      -1.0107      1.8526
+       2012  |  -.2468068   .7172124    -0.34   0.734    -1.742886    1.249272
+       2013  |   .3678961   .7716813     0.48   0.639    -1.241803    1.977595
+       2014  |   .6186378    .806649     0.77   0.452    -1.064003    2.301278
+       2015  |   .7188712   .8929935     0.81   0.430    -1.143881    2.581623
+       2016  |   .6302424   .8956274     0.70   0.490    -1.238004    2.498488
+       2017  |    1.43128   .8679484     1.65   0.115    -.3792284    3.241789
+       2018  |   1.251221   .9315816     1.34   0.194    -.6920241    3.194466
+       2019  |   .7723597   .9911595     0.78   0.445    -1.295163    2.839882
+       2020  |          0  (omitted)
+       2021  |          0  (omitted)
+       2022  |          0  (omitted)
+       2023  |          0  (omitted)
+             |
+       _cons |    69.6817   24.43408     2.85   0.010      18.7131    120.6503
+------------------------------------------------------------------------------
+
+
+. postclose `C'
+
+. postclose `P'
+
+. 
+. * =====================================================================================
+. * Tabela 6 (texto principal): replicas
+. * =====================================================================================
+. use "$RINT/replicas.dta", clear
+
+. list, noobs sep(0)
+
+  +---------------------------------------------------------------------------------------------------------------+
+  |       rep      meas     est           bi         sei          pi           bg         seg      N    nc   nins |
+  |---------------------------------------------------------------------------------------------------------------|
+  | opra_icrg   gc_mean    sgmm    1.0347993   .80274879   .20010276   -.75517571   .43498715    329   110     33 |
+  | opra_icrg   gc_mean      fe    .54150195   .29536849   .07077815   -.35273479   .16842069    294    75      . |
+  | opra_icrg     gc_tp    sgmm    .93752209   .61824637   .13230765   -.54625173   .28803673    329   110     33 |
+  | opra_icrg     gc_tp      fe    .52862595   .27208358   .05583496   -.26896115    .1384492    294    75      . |
+  | opra_icrg     gc_m1    sgmm    .92681509   .74285881   .21483929   -.63512004   .39972941    329   110     33 |
+  | opra_icrg     gc_m1      fe    .54089948   .27309811   .05135285   -.24558135   .13074521    294    75      . |
+  |  opra_wgi   gc_mean    sgmm   -.07562952   .08451552   .37233504   -.13141281   .08849842    596   147     33 |
+  |  opra_wgi   gc_mean      fe   -.10903787   .05477949   .04848442   -.20101453   .03688613    590   141      . |
+  |  opra_wgi     gc_tp    sgmm   -.05512495   .07831627   .48263103   -.10122976   .08136477    596   147     33 |
+  |  opra_wgi     gc_tp      fe    .01667124   .06291962   .79142926   -.09697833   .03567785    590   141      . |
+  |  opra_wgi     gc_m1    sgmm    .00688143   .08939813   .93874876   -.05432704   .07516755    596   147     33 |
+  |  opra_wgi     gc_m1      fe    .07016163   .05260287    .1844357   -.04445906   .03388446    590   141      . |
+  |        mv        gc   fe_dk   -.18441646   .07112663   .01739599   -.26740788   .06761641   2514   127      . |
+  |        mv    gc_ham   fe_dk   -.12094873   .04131959   .00833271    .07730078   .05401324   2514   127      . |
+  |        mv     gc_l1   fe_dk     .0133536   .04277166   .75811511   -.11996511    .0349797   2514   127      . |
+  +---------------------------------------------------------------------------------------------------------------+
+
+. rv_new, ncol(6) head1("Period mean (contemporaneous)" "" "First year (t_p)" "" "t_p − 1" "") ///
+>     head2("System GMM" "Fixed effects" "System GMM" "Fixed effects" "System GMM" "Fixed effects")
+
+. foreach rep in opra_icrg opra_wgi {
+  2.     local ttl = cond("`rep'" == "opra_icrg", "A. Oto-Peralías and Romero-Ávila (2013): five-year averages 1981–2005, ICRG quality of government (QoG)", ///
+>         "B. Same specification, WGI government effectiveness, five-year averages 1996–2020")
+  3.     rv_row "`ttl'" "" "" "" "" "" ""
+  4.     foreach row in i g {
+  5.         local cb ""
+  6.         local cs ""
+  7.         foreach meas in gc_mean gc_tp gc_m1 {
+  8.             foreach est in sgmm fe {
+  9.                 quietly summ b`row' if rep == "`rep'" & meas == "`meas'" & est == "`est'"
+ 10.                 if r(N) == 0 {
+ 11.                     local cb `"`cb' """'
+ 12.                     local cs `"`cs' """'
+ 13.                     continue
+ 14.                 }
+ 15.                 local b = r(mean)
+ 16.                 quietly summ se`row' if rep == "`rep'" & meas == "`meas'" & est == "`est'"
+ 17.                 local se = r(mean)
+ 18.                 rv_fmt `b' %12.3f `=2 * normal(-abs(`b' / `se'))'
+ 19.                 local cb `"`cb' "`r(s)'""'
+ 20.                 rv_fmt `se' %12.3f
+ 21.                 local cs `"`cs' "(`r(s)')""'
+ 22.             }
+ 23.         }
+ 24.         local lab = cond("`row'" == "i", "Government consumption × institutions", "Government consumption (% of GDP)")
+ 25.         rv_row "`lab'" `cb'
+ 26.         rv_row "" `cs'
+ 27.     }
+ 28.     local cn ""
+ 29.     local cc ""
+ 30.     foreach meas in gc_mean gc_tp gc_m1 {
+ 31.         foreach est in sgmm fe {
+ 32.             quietly summ N if rep == "`rep'" & meas == "`meas'" & est == "`est'"
+ 33.             rv_fmt `=r(mean)' %12.0fc
+ 34.             local cn `"`cn' "`r(s)'""'
+ 35.             quietly summ nc if rep == "`rep'" & meas == "`meas'" & est == "`est'"
+ 36.             rv_fmt `=r(mean)' %12.0fc
+ 37.             local cc `"`cc' "`r(s)'""'
+ 38.         }
+ 39.     }
+ 40.     rv_row "Observations" `cn'
+ 41.     rv_row "Countries" `cc'
+ 42.     rv_mid
+ 43. }
+
+. rv_row "C. Approximate replication of Mollick and Vianna (2023): annual 1996–2019, mean of six WGI indicators" "" "" "" "" "" ""
+
+. local cb ""
+
+. local cs ""
+
+. local cg ""
+
+. local cgs ""
+
+. foreach meas in gc gc_ham gc_l1 {
+  2.     quietly summ bi if rep == "mv" & meas == "`meas'"
+  3.     local b = r(mean)
+  4.     quietly summ pi if rep == "mv" & meas == "`meas'"
+  5.     rv_fmt `b' %12.3f `=r(mean)'
+  6.     local cb `"`cb' "`r(s)'" """'
+  7.     quietly summ sei if rep == "mv" & meas == "`meas'"
+  8.     rv_fmt `=r(mean)' %12.3f
+  9.     local cs `"`cs' "(`r(s)')" """'
+ 10. }
+
+. rv_row "Government consumption × institutions: contemporaneous / % of trend GDP (Hamilton) / lagged" `cb'
+
+. rv_row "" `cs'
+
+. quietly summ N if rep == "mv"
+
+. rv_row "Observations (each measure)" "`=string(r(mean), "%9.0fc")'" "" "" "" "" ""
+
+. rv_out Tab6_replications, landscape ///
+>     title("Table 6. Institutions and government size: replications with contemporaneous and predetermined measures") ///
+>     notes("Dependent variable: growth of real GDP per capita (%). Panels A and B follow the panel specification of Oto-Peralías and Romero-Ávila (2013, working-paper version INFER 2012/3): five-year
+>  averages, growth on government final consumption (% of GDP, WDI), institutional quality and their interaction, with initial log GDP per capita, secondary school enrolment and investment, and period
+>  effects. Their ICRG bureaucracy-quality index is proprietary; panel A uses the public ICRG quality-of-government index distributed by QoG (0–1, from 1984) and panel B the WGI government effectivene
+> ss estimate (from 1996), as required by the revision protocol; legal origin, one of their excluded instruments, is not available and is dropped. System GMM: two-step, collapsed instruments, consumpt
+> ion, interaction and investment endogenous (lags 2 and deeper), income, enrolment and institutions predetermined (lags 1 and deeper), period dummies and the population dependency ratio as standard i
+> nstruments; Windmeijer-corrected standard errors. Fixed effects: country and period fixed effects, standard errors clustered by country. Only the timing of government consumption changes across colu
+> mn pairs (period mean, first year of the period, last year of the previous period); each panel uses the same sample for all measures. A positive interaction means that better institutions mitigate t
+> he growth cost of government size. Panel C: annual panel 1996–2019 (the window of Mollick and Vianna, 2023), government consumption interacted with the mean of the six WGI indicators (centred), coun
+> try and year fixed effects, lagged growth and the controls of Table 1, Driscoll-Kraay standard errors (maximum lag 3); the published text was not available, so the specification follows the descript
+> ion in the draft and is an approximate replication only. * p<0.10, ** p<0.05, *** p<0.01.")
+successfully created "C:/Users/Usuario/Dropbox/Papers/Emprego Público e Crescimento/Estimações/output/revisao/tables/Tab6_replications.docx"
+(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/logs/captions/Tab6_replications.txt not found)
+tabela gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/tables/Tab6_replications.{tex,docx}
+
+. 
+. * =====================================================================================
+. * Tabela suplementar: ciclicidade fiscal e consumo x despesa total
+. * =====================================================================================
+. use "$RINT/ciclicidade.dta", clear
+
+. list, noobs sep(0)
+
+  +-----------------------------------------------------------------------------------------------------+
+  |         spec           bi         sei          pi           bc         sec          pc      N    nc |
+  |-----------------------------------------------------------------------------------------------------|
+  | base_cyc_pre   -.11364977   .04707323   .02546863            .           .           .   1529    74 |
+  | with_cyc_pre   -.09156975   .03865483   .02802015    .18597666   .07431815   .02112321   1529    74 |
+  |  base_cyc_in    -.1886691   .07328826   .01810269            .           .           .   2405   119 |
+  |  with_cyc_in   -.19159263   .07048067   .01323454   -.05783345   .02210647   .01653908   2405   119 |
+  |       gc_own   -.18441646   .07112663   .01739599            .           .           .   2514   127 |
+  |    gc_common    .00803671   .06188453    .8979696            .           .           .   1270    87 |
+  |    ex_common   -.02960975   .02879981   .31616638            .           .           .   1270    87 |
+  +-----------------------------------------------------------------------------------------------------+
+
+. rv_new, ncol(4) head1("Interaction with institutions" "" "Consumption × cyclicality" "") head2("Coefficient" "SE" "Coefficient" "SE")
+
+. foreach s in base_cyc_pre with_cyc_pre base_cyc_in with_cyc_in gc_own gc_common ex_common {
+  2.     quietly summ bi if spec == "`s'"
+  3.     local b = r(mean)
+  4.     quietly summ pi if spec == "`s'"
+  5.     rv_fmt `b' %12.3f `=r(mean)'
+  6.     local c1 "`r(s)'"
+  7.     quietly summ sei if spec == "`s'"
+  8.     rv_fmt `=r(mean)' %12.3f
+  9.     local c2 "(`r(s)')"
+ 10.     quietly summ bc if spec == "`s'"
+ 11.     local bc = r(mean)
+ 12.     quietly summ pc if spec == "`s'"
+ 13.     rv_fmt `bc' %12.3f `=r(mean)'
+ 14.     local c3 "`r(s)'"
+ 15.     quietly summ sec if spec == "`s'"
+ 16.     rv_fmt `=r(mean)' %12.3f
+ 17.     local c4 = cond("`r(s)'" == "", "", "(`r(s)')")
+ 18.     quietly summ N if spec == "`s'"
+ 19.     local n = r(mean)
+ 20.     local lab = cond("`s'" == "base_cyc_pre", "Consumption, sample with pre-1996 cyclicality", cond("`s'" == "with_cyc_pre", "+ consumption × cyclicality 1970–1995", ///
+>         cond("`s'" == "base_cyc_in", "Consumption, sample with 1996–2023 cyclicality", cond("`s'" == "with_cyc_in", "+ consumption × cyclicality 1996–2023", ///
+>         cond("`s'" == "gc_own", "Consumption (WDI), own sample", cond("`s'" == "gc_common", "Consumption (WDI), common sample with expenditure", "Total expenditure (GFS), common sample"))))))
+ 21.     rv_row "`lab' (N = `=string(`n', "%9.0fc")')" "`c1'" "`c2'" "`c3'" "`c4'"
+ 22.     if inlist("`s'", "with_cyc_pre", "with_cyc_in") rv_mid
+ 23. }
+
+. import delimited "$RINT/kv.csv", clear varnames(1) stringcols(_all)
+(encoding automatically selected: ISO-8859-1)
+(2 vars, 933 obs)
+
+. foreach k in cyc_corr_pre cyc_corr_pre_n cyc_corr_in cyc_resp_inter cyc_resp_inter_p {
+  2.     quietly levelsof value if key == "`k'", local(`k') clean
+  3.     local `k' : word 1 of ``k''
+  4. }
+
+. rv_out TabS_cyclicality, landscape ///
+>     title("Table S7. Institutions, fiscal cyclicality and the measure of government size") ///
+>     notes("Annual panel 1996–2019, growth of real GDP per capita on government size, institutions (mean of six WGI indicators, centred) and their interaction, with country and year fixed effects, la
+> gged growth and the controls of Table 1; Driscoll-Kraay standard errors (maximum lag 3). Cyclicality (Frankel, Végh and Vuletin, 2013): country-specific slope of the log change in real government co
+> nsumption on the output gap (two-sided HP), estimated over 1970–1995 (before the sample) or, as an exploratory check, over 1996–2023; entered as an interaction with consumption (centred). Correlatio
+> n between pre-1996 cyclicality and average institutions across countries: `cyc_corr_pre' (`cyc_corr_pre_n' countries); with 1996–2023 cyclicality: `cyc_corr_in'. In a regression of the change in rea
+> l government consumption on the output gap, its interaction with institutions is `cyc_resp_inter' (p = `cyc_resp_inter_p'). Last three rows: government consumption (WDI) in its own sample, consumpti
+> on and total expenditure (IMF GFS) on the same country-years. * p<0.10, ** p<0.05, *** p<0.01.")
+successfully created "C:/Users/Usuario/Dropbox/Papers/Emprego Público e Crescimento/Estimações/output/revisao/tables/TabS_cyclicality.docx"
+(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/logs/captions/TabS_cyclicality.txt not found)
+tabela gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/tables/TabS_cyclicality.{tex,docx}
+
+. 
+. * =====================================================================================
+. * Figura 4: reconciliacao institucional (interacoes por medida)
+. * =====================================================================================
+. use "$RINT/replicas.dta", clear
+
+. gen lo = bi - 1.96 * sei
+
+. gen hi = bi + 1.96 * sei
+
+. gen str60 lab = ""
+(15 missing values generated)
+
+. gen ord = .
+(15 missing values generated)
+
+. local i = 0
+
+. foreach k in "opra_icrg gc_mean sgmm" "opra_icrg gc_tp sgmm" "opra_icrg gc_m1 sgmm" "opra_icrg gc_mean fe" "opra_icrg gc_tp fe" "opra_icrg gc_m1 fe" ///
+>     "opra_wgi gc_mean fe" "opra_wgi gc_tp fe" "opra_wgi gc_m1 fe" "mv gc fe_dk" "mv gc_ham fe_dk" "mv gc_l1 fe_dk" {
+  2.     local ++i
+  3.     tokenize `k'
+  4.     replace ord = 13 - `i' if rep == "`1'" & meas == "`2'" & est == "`3'"
+  5. }
+(1 real change made)
+(1 real change made)
+(1 real change made)
+(1 real change made)
+(1 real change made)
+(1 real change made)
+(1 real change made)
+(1 real change made)
+(1 real change made)
+(1 real change made)
+(1 real change made)
+(1 real change made)
+
+. keep if !missing(ord)
+(3 observations deleted)
+
+. * intervalos padronizados por escala da instituicao nao sao comparaveis entre paineis: um painel por replica
+. gen grp = cond(rep == "mv", 3, cond(rep == "opra_wgi", 2, 1))
+
+. twoway (rcap lo hi ord if grp == 1, horizontal lcolor(black)) (scatter ord bi if grp == 1, msymbol(O) mcolor(black) msize(small)) ///
+>        (rcap lo hi ord if grp == 2, horizontal lcolor(gs7) lpattern(dash)) (scatter ord bi if grp == 2, msymbol(Dh) mcolor(gs5) msize(small)) ///
+>        (rcap lo hi ord if grp == 3, horizontal lcolor(black) lpattern(shortdash)) (scatter ord bi if grp == 3, msymbol(T) mcolor(black) msize(small)), ///
+>        $GOPT xline(0, lcolor(gs10) lpattern(shortdash)) ///
+>        ylabel(12 "OPRA, S-GMM: period mean" 11 "OPRA, S-GMM: t{sub:p}" 10 "OPRA, S-GMM: t{sub:p} − 1" 9 "OPRA, FE: period mean" 8 "OPRA, FE: t{sub:p}" 7 "OPRA, FE: t{sub:p} − 1" ///
+>               6 "OPRA (WGI), FE: period mean" 5 "OPRA (WGI), FE: t{sub:p}" 4 "OPRA (WGI), FE: t{sub:p} − 1" 3 "MV (approx.): contemporaneous" 2 "MV (approx.): % of trend GDP" 1 "MV (approx.): lagged
+> ", ///
+>               angle(0) labsize(7.5pt) nogrid) xlabel(, format(%3.1f) labsize(8pt)) ytitle("") yscale(range(0.5 12.5)) ///
+>        legend(order(2 "ICRG (QoG), 1981–2005" 4 "WGI, 1996–2020" 6 "WGI mean, annual 1996–2019") rows(1) pos(6) size(7.5pt)) ///
+>        xtitle("Interaction: government consumption × institutions (95% CI)", size(8pt))
+
+. rv_fig Fig4_reconciliation, width(190) height(110)
+file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/figures/Fig4_reconciliation.pdf saved as PDF format
+(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/figures/Fig4_reconciliation.png not found)
+file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/figures/Fig4_reconciliation.png saved as PNG format
+figura gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/figures/Fig4_reconciliation.{pdf,png} (190 x 110 mm)
+
+. 
+. log close
+      name:  <unnamed>
+       log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/logs/06_instituicoes.log
+  log type:  text
+ closed on:  17 Oct 2026, 16:34:22
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
