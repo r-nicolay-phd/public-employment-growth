@@ -1,0 +1,294 @@
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/logs/10_exogena.log
+  log type:  text
+ opened on:  17 Oct 2026, 16:57:15
+
+. 
+. use "$RINT/anual_rv.dta", clear
+
+. keep if inrange(year, 1975, 2023)
+(985 observations deleted)
+
+. xtset id year
+
+Panel variable: id (strongly balanced)
+ Time variable: year, 1975 to 2023
+         Delta: 1 unit
+
+. gen byte afgc = !missing(afg_sal)
+
+. bysort id: egen inafg = max(afgc)
+
+. keep if inafg
+(8,869 observations deleted)
+
+. replace afg_sal = 0 if missing(afg_sal) & inrange(year, 1978, 2014)
+(0 real changes made)
+
+. gen afg_nonsal = afg_spend - afg_sal
+(192 missing values generated)
+
+. * periodo do choque
+. gen byte pAFG = inrange(year, 1978, 2014)
+
+. count if pAFG & afg_sal != 0
+  87
+
+. rv_kv afg_nonzero `r(N)'
+
+. quietly levelsof iso3 if pAFG, local(cs)
+
+. rv_kv afg_countries `: word count `cs''
+
+. summ afg_sal if pAFG & afg_sal != 0
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+     afg_sal |         87    .1817423    .2615962    -.19641    1.21321
+
+. 
+. tempname Q
+
+. postfile `Q' str6 out int h double(b se lo hi p pboot) long(N nc) using "$RINT/exogena_lp.dta", replace
+(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/exogena_lp.dta not found)
+
+. foreach out in y100 ipriv {
+  2.     forvalues hh = 0/6 {
+  3.         tempvar dy
+  4.         quietly gen double `dy' = F`hh'.`out' - L.`out'
+  5.         quietly xtscc `dy' afg_sal afg_nonsal afg_tax L(1/2).g i.year if pAFG, fe lag($DKLAG)
+  6.         local b = _b[afg_sal]
+  7.         local se = _se[afg_sal]
+  8.         local df = e(df_r)
+  9.         local N = e(N)
+ 10.         local nc = e(N_g)
+ 11.         local pb = .
+ 12.         if `hh' == 4 {
+ 13.             * exploratorio: wild cluster bootstrap por pais (16 clusters) no mesmo modelo com EF de pais
+.             quietly reghdfe `dy' afg_sal afg_nonsal afg_tax L(1/2).g i.year if pAFG, absorb(id) vce(cluster id)
+ 14.             capture rv_boot afg_sal
+ 15.             if !_rc local pb = r(p)
+ 16.         }
+ 17.         post `Q' ("`out'") (`hh') (`b') (`se') (`b' - invttail(`df', 0.025) * `se') (`b' + invttail(`df', 0.025) * `se') ///
+>             (2 * ttail(`df', abs(`b' / `se'))) (`pb') (`N') (`nc')
+ 18.         if `hh' == 4 {
+ 19.             rv_kv afg_`out'_h4_b `=string(`b', "%9.4f")'
+ 20.             rv_kv afg_`out'_h4_p `=string(2 * ttail(`df', abs(`b' / `se')), "%9.4f")'
+ 21.             rv_kv afg_`out'_h4_pboot `=string(`pb', "%9.4f")'
+ 22.             rv_kv afg_`out'_h4_N `N'
+ 23.         }
+ 24.         drop `dy'
+ 25.     }
+ 26. }
+
+. postclose `Q'
+
+. 
+. * primeiro estagio: variacao real da folha (GFS, governo geral) sobre o corte narrativo de folha
+. reghdfe d_wagebill_real afg_sal afg_nonsal afg_tax L(1/2).g i.year if pAFG, absorb(id) vce(cluster id)
+(MWFE estimator converged in 1 iterations)
+warning: missing F statistic; dropped variables due to collinearity or too few clusters
+
+HDFE Linear regression                            Number of obs   =        504
+Absorbing 1 HDFE group                            F(  41,     15) =          .
+Statistics robust to heteroskedasticity           Prob > F        =          .
+                                                  R-squared       =     0.3515
+                                                  Adj R-squared   =     0.2702
+                                                  Within R-sq.    =     0.3209
+Number of clusters (id)      =         16         Root MSE        =     0.4134
+
+                                    (Std. err. adjusted for 16 clusters in id)
+------------------------------------------------------------------------------
+             |               Robust
+d_wagebill~l | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+     afg_sal |  -.4715846   .1637183    -2.88   0.011    -.8205419   -.1226272
+  afg_nonsal |  -.2174459   .0447638    -4.86   0.000    -.3128577   -.1220341
+     afg_tax |  -.0714802   .0541621    -1.32   0.207     -.186924    .0439635
+             |
+           g |
+         L1. |    .011555   .0151251     0.76   0.457    -.0206835    .0437935
+         L2. |   .0311499   .0144873     2.15   0.048      .000271    .0620288
+             |
+        year |
+       1979  |   .2376181   .1445872     1.64   0.121    -.0705623    .5457984
+       1980  |   .4140156   .2262106     1.83   0.087    -.0681409     .896172
+       1981  |   .0074314   .0878271     0.08   0.934    -.1797677    .1946304
+       1982  |    .079165   .1392201     0.57   0.578    -.2175755    .3759055
+       1983  |  -.0153342   .1562959    -0.10   0.923    -.3484711    .3178026
+       1984  |  -.0800536   .1367798    -0.59   0.567    -.3715928    .2114856
+       1985  |  -.1581433   .1725214    -0.92   0.374    -.5258639    .2095773
+       1986  |  -.1621434   .1446184    -1.12   0.280    -.4703903    .1461035
+       1987  |   .1881696   .1803578     1.04   0.313    -.1962539    .5725932
+       1988  |  -.0483834   .1479396    -0.33   0.748    -.3637092    .2669424
+       1989  |   .0327229   .2203007     0.15   0.884    -.4368368    .5022827
+       1990  |  -.3882007    .408034    -0.95   0.356    -1.257905    .4815032
+       1991  |    .019801   .1558178     0.13   0.901    -.3123167    .3519188
+       1992  |  -.0042434   .1374607    -0.03   0.976     -.297234    .2887471
+       1993  |  -.1534308   .1027143    -1.49   0.156    -.3723612    .0654995
+       1994  |  -.2147059   .1358729    -1.58   0.135    -.5043122    .0749003
+       1995  |   .8944805   .3831465     2.33   0.034     .0778231    1.711138
+       1996  |   .0404228   .1447556     0.28   0.784    -.2681164     .348962
+       1997  |   .0265054   .1598831     0.17   0.871    -.3142774    .3672882
+       1998  |  -.2025945   .1374877    -1.47   0.161    -.4956425    .0904536
+       1999  |  -.0360107    .100463    -0.36   0.725    -.2501426    .1781212
+       2000  |  -.0961108   .1376479    -0.70   0.496    -.3895003    .1972786
+       2001  |  -.0118848   .1607557    -0.07   0.942    -.3545275    .3307579
+       2002  |  -.0108516   .1085818    -0.10   0.922    -.2422881     .220585
+       2003  |   .0217439   .1332025     0.16   0.873    -.2621704    .3056583
+       2004  |  -.0233113   .1349068    -0.17   0.865    -.3108583    .2642358
+       2005  |  -.0187874   .1174568    -0.16   0.875    -.2691407    .2315659
+       2006  |  -.0884184   .1169294    -0.76   0.461    -.3376474    .1608107
+       2007  |  -.1260466   .1109918    -1.14   0.274    -.3626201    .1105269
+       2008  |  -.1098651   .1057231    -1.04   0.315    -.3352085    .1154783
+       2009  |   .0691918   .1210659     0.57   0.576    -.1888541    .3272377
+       2010  |    -.00003    .171444    -0.00   1.000    -.3654541    .3653941
+       2011  |   .0175974   .1474832     0.12   0.907    -.2967555    .3319503
+       2012  |  -.2293066   .1641965    -1.40   0.183    -.5792832      .12067
+       2013  |  -.1090605   .1711811    -0.64   0.534    -.4739243    .2558033
+       2014  |  -.0880313   .1433105    -0.61   0.548    -.3934903    .2174277
+             |
+       _cons |    .252979   .1367702     1.85   0.084    -.0385397    .5444977
+------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+          id |        16          16           0    *|
+-----------------------------------------------------+
+* = FE nested within cluster; treated as redundant for DoF computation
+
+. estimates store FS_afg
+
+. local Feff = (_b[afg_sal] / _se[afg_sal])^2
+
+. rv_kv afg_fs_b `=string(_b[afg_sal], "%9.4f")'
+
+. rv_kv afg_fs_p `=string(2 * ttail(e(df_r), abs(_b[afg_sal] / _se[afg_sal])), "%9.4f")'
+
+. rv_kv afg_fs_Feff `=string(`Feff', "%9.2f")'
+
+. rv_kv afg_fs_N `e(N)'
+
+. rv_kv afg_fs_nc `e(N_clust)'
+
+. estadd scalar Feff = `Feff'
+
+added scalar:
+               e(Feff) =  8.2970667
+
+. estimates store FS_afg
+
+. 
+. * =====================================================================================
+. * Tabela e figura suplementares: variacao exogena
+. * =====================================================================================
+. use "$RINT/exogena_lp.dta", clear
+
+. list, noobs sepby(out)
+
+  +-----------------------------------------------------------------------------------------------+
+  |   out   h            b          se           lo          hi           p      pboot     N   nc |
+  |-----------------------------------------------------------------------------------------------|
+  |  y100   0     .2232032   .75829439   -1.3146891   1.7610955   .77018186          .   592   16 |
+  |  y100   1    .59642005   1.4786098   -2.4023395   3.5951796   .68906527          .   592   16 |
+  |  y100   2    .70188142   2.3107913   -3.9846206   5.3883834   .76307408          .   592   16 |
+  |  y100   3    .91923823   3.2239162   -5.6191669   7.4576433   .77717786          .   592   16 |
+  |  y100   4    .85903647   2.8127591   -4.8455033   6.5635763   .76181512   .6059606   592   16 |
+  |  y100   5    2.7305564   1.8524824   -1.0264522   6.4875649   .14917353          .   592   16 |
+  |  y100   6    1.8671458   2.0332055    -2.256386   5.9906776   .36456019          .   592   16 |
+  |-----------------------------------------------------------------------------------------------|
+  | ipriv   0   -.44904489   .45908437   -1.3801111   .48202137   .33453696          .   592   16 |
+  | ipriv   1   -.21982072   .72644483   -1.6931191   1.2534777   .76393784          .   592   16 |
+  | ipriv   2    .68674068   .72648625   -.78664172   2.1601231   .35081228          .   592   16 |
+  | ipriv   3    .45230887   .93870891    -1.451481   2.3560988   .63283502          .   592   16 |
+  | ipriv   4   -.65590261   1.0800652   -2.8463764   1.5345712   .54747634   .3460346   592   16 |
+  | ipriv   5   -.49419242   1.1006782   -2.7264713   1.7380864   .65613088          .   592   16 |
+  | ipriv   6    1.0342358   1.1544841   -1.3094915   3.3779631   .37645717          .   576   16 |
+  +-----------------------------------------------------------------------------------------------+
+
+. rv_new, ncol(7) head1("h = 0" "h = 1" "h = 2" "h = 3" "h = 4" "h = 5" "h = 6")
+
+. foreach out in y100 ipriv {
+  2.     local cb ""
+  3.     local cs ""
+  4.     forvalues hh = 0/6 {
+  5.         quietly summ b if out == "`out'" & h == `hh'
+  6.         local b = r(mean)
+  7.         quietly summ p if out == "`out'" & h == `hh'
+  8.         rv_fmt `b' %12.3f `=r(mean)'
+  9.         local cb `"`cb' "`r(s)'""'
+ 10.         quietly summ se if out == "`out'" & h == `hh'
+ 11.         rv_fmt `=r(mean)' %12.3f
+ 12.         local cs `"`cs' "(`r(s)')""'
+ 13.     }
+ 14.     local lab = cond("`out'" == "y100", "GDP per capita (100 × log)", "Private investment (% of GDP)")
+ 15.     rv_row "`lab'" `cb'
+ 16.     rv_row "" `cs'
+ 17.     quietly summ pboot if out == "`out'" & h == 4
+ 18.     rv_row "Wild cluster bootstrap p (h = 4, exploratory)" "" "" "" "" "`=string(r(mean), "%5.3f")'" "" ""
+ 19.     quietly summ N if out == "`out'" & h == 0
+ 20.     local n0 = r(mean)
+ 21.     quietly summ N if out == "`out'" & h == 6
+ 22.     rv_row "Observations (h = 0 / h = 6)" "`=string(`n0', "%9.0fc")'" "" "" "" "" "" "`=string(r(mean), "%9.0fc")'"
+ 23.     rv_mid
+ 24. }
+
+. estimates restore FS_afg
+(results FS_afg are active now)
+
+. rv_row "First stage: real wage bill change on the narrative wage cut" "`=string(_b[afg_sal], "%6.3f")' (`=string(_se[afg_sal], "%6.3f")')" "" "" "" "" "" ""
+
+. rv_row "Effective F; observations; countries" "`=string(e(Feff), "%6.2f")'; `e(N)'; `e(N_clust)'" "" "" "" "" "" ""
+
+. rv_mid
+
+. rv_row "IMF conditionality (MONA, 2002–)" "Not executed: download blocked" "" "" "" "" "" ""
+
+. rv_row "Real-time forecast errors (OECD EO vintages)" "Not executed: no public vintage series of the wage bill" "" "" "" "" "" ""
+
+. rv_out TabS_exogenous, landscape ///
+>     title("Table S10. Narrative wage-bill consolidations: local projections and first stage") ///
+>     notes("Shock: wage-bill measures (Spending – Salaries) of the fiscal adjustment plans in Alesina, Favero and Giavazzi (2019), sum of unanticipated measures and of announced measures implemented 
+> in the year, % of previous-year GDP; positive values are cuts. 16 OECD countries, shocks 1978–2014. Cumulative change of the outcome from t − 1 to t + h on the shock, controlling for the non-wage sp
+> ending and tax measures of the same plans and two lags of growth; country and year fixed effects; Driscoll-Kraay standard errors (maximum lag 3). With 16 countries, the wild cluster bootstrap p-valu
+> e at h = 4 is exploratory. First stage: real change in the general government wage bill (IMF GFS, % of lagged GDP) on the same shock and controls, standard errors clustered by country; with one inst
+> rument the effective F equals the squared cluster-robust t statistic. * p<0.10, ** p<0.05, *** p<0.01.")
+successfully created "C:/Users/Usuario/Dropbox/Papers/Emprego Público e Crescimento/Estimações/output/revisao/tables/TabS_exogenous.docx"
+(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/logs/captions/TabS_exogenous.txt not found)
+tabela gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/tables/TabS_exogenous.{tex,docx}
+
+. 
+. use "$RINT/exogena_lp.dta", clear
+
+. sort out h
+
+. twoway (rarea lo hi h if out == "y100", fcolor(gs14) lcolor(gs8) lpattern(dash) lwidth(vthin)) ///
+>        (connected b h if out == "y100", lcolor(black) mcolor(black) msymbol(O) msize(small)), ///
+>        $GOPT yline(0, lcolor(gs10) lpattern(shortdash)) xlabel(0(1)6, labsize(8pt)) ylabel(, format(%3.1f) labsize(8pt) nogrid angle(horizontal)) ///
+>        legend(off) xtitle("Years after the shock", size(8pt)) ytitle("Cumulative response of GDP per capita (100 × log, %)", size(7.5pt)) ///
+>        title("(a) GDP per capita", size(8.5pt) color(black) pos(11)) name(e1, replace) nodraw
+
+. twoway (rarea lo hi h if out == "ipriv", fcolor(gs14) lcolor(gs8) lpattern(dash) lwidth(vthin)) ///
+>        (connected b h if out == "ipriv", lcolor(black) mcolor(black) msymbol(D) msize(small)), ///
+>        $GOPT yline(0, lcolor(gs10) lpattern(shortdash)) xlabel(0(1)6, labsize(8pt)) ylabel(, format(%3.1f) labsize(8pt) nogrid angle(horizontal)) ///
+>        legend(off) xtitle("Years after the shock", size(8pt)) ytitle("Change in private investment (p.p. of GDP)", size(7.5pt)) ///
+>        title("(b) Private investment", size(8.5pt) color(black) pos(11)) name(e2, replace) nodraw
+
+. graph combine e1 e2, cols(2) graphregion(color(white)) imargin(small)
+
+. rv_fig FigS_exogenous, width(190) height(85)
+file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/figures/FigS_exogenous.pdf saved as PDF format
+(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/figures/FigS_exogenous.png not found)
+file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/figures/FigS_exogenous.png saved as PNG format
+figura gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/figures/FigS_exogenous.{pdf,png} (190 x 85 mm)
+
+. 
+. log close
+      name:  <unnamed>
+       log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/logs/10_exogena.log
+  log type:  text
+ closed on:  17 Oct 2026, 16:57:25
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
