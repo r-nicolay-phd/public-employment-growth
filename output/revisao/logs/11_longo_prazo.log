@@ -1,0 +1,1918 @@
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/logs/11_longo_prazo.log
+  log type:  text
+ opened on:  17 Oct 2026, 17:01:04
+
+. 
+. global XD "lny0 hc_tp inv open infl popg ctot_g"
+
+. global XP "lny0 hc_m1 inv_m1 open_m1 infl_m1 popg_m1 ctot_g_m1"
+
+. 
+. * =====================================================================================
+. * A. Verificacao de Bond: MQO, EF, S-GMM e BC-FE na mesma amostra (S5_bond)
+. * =====================================================================================
+. use "$RINT/p5_rv.dta", clear
+
+. keep if micro == 0
+(261 observations deleted)
+
+. xtset id period
+
+Panel variable: id (strongly balanced)
+ Time variable: period, 0 to 8
+         Delta: 1 unit
+
+. quietly tab period, gen(pd)
+
+. drop pd1
+
+. tempname P
+
+. postfile `P' str6 tim str6 est double(rho serho b se) long(N nc) using "$RINT/bond.dta", replace
+
+. foreach tim in draft T3 {
+  2.     local w = cond("`tim'" == "draft", "wb_tp", "wb_m1")
+  3.     local X = cond("`tim'" == "draft", "$XD", "$XP")
+  4.     local exo = cond("`tim'" == "draft", "hc_tp open infl popg ctot_g", "hc_m1 open_m1 infl_m1 popg_m1 ctot_g_m1")
+  5.     local endo = cond("`tim'" == "draft", "`w' inv lny0", "`w' lny0")
+  6.     if "`tim'" == "T3" local exo "`exo' inv_m1"
+  7.     * amostras proprias e intersecao
+.     quietly regress g L_g `w' `X' pd*, vce(cluster id)
+  8.     gen byte s_ols = e(sample)
+  9.     quietly reghdfe g L_g `w' `X' i.period, absorb(id) vce(cluster id)
+ 10.     gen byte s_fe = e(sample)
+ 11.     quietly xtabond2 g L_g `w' `X' pd*, gmm(L_g, lag(1 2) collapse) gmm(`endo', lag(2 3) collapse) iv(`exo' pd*) twostep robust small
+ 12.     gen byte s_gmm = e(sample)
+ 13.     quietly xtdpdbc g `w' `X', fe lags(1) teffects vce(robust) small
+ 14.     gen byte s_bc = e(sample)
+ 15.     gen byte S5_bond_`tim' = s_ols & s_fe & s_gmm & s_bc
+ 16.     count if S5_bond_`tim'
+ 17.     rv_kv bond_`tim'_N `r(N)'
+ 18.     foreach k in ols fe gmm bc {
+ 19.         count if s_`k'
+ 20.         rv_kv bond_`tim'_own_`k' `r(N)'
+ 21.     }
+ 22.     drop s_ols s_fe s_gmm s_bc
+ 23.     * os quatro estimadores na amostra comum
+.     regress g L_g `w' `X' pd* if S5_bond_`tim', vce(cluster id)
+ 24.     post `P' ("`tim'") ("ols") (_b[L_g]) (_se[L_g]) (_b[`w']) (_se[`w']) (e(N)) (e(N_clust))
+ 25.     estimates store BD_`tim'_ols
+ 26.     reghdfe g L_g `w' `X' i.period if S5_bond_`tim', absorb(id) vce(cluster id)
+ 27.     post `P' ("`tim'") ("fe") (_b[L_g]) (_se[L_g]) (_b[`w']) (_se[`w']) (e(N)) (e(N_clust))
+ 28.     estimates store BD_`tim'_fe
+ 29.     xtabond2 g L_g `w' `X' pd* if S5_bond_`tim', gmm(L_g, lag(1 2) collapse) gmm(`endo', lag(2 3) collapse) iv(`exo' pd*) twostep robust small
+ 30.     post `P' ("`tim'") ("gmm") (_b[L_g]) (_se[L_g]) (_b[`w']) (_se[`w']) (e(N)) (e(N_g))
+ 31.     rv_kv bond_`tim'_gmm_hansen `=string(e(hansenp), "%6.3f")'
+ 32.     rv_kv bond_`tim'_gmm_ar2 `=string(e(ar2p), "%6.3f")'
+ 33.     rv_kv bond_`tim'_gmm_j `e(j)'
+ 34.     estimates store BD_`tim'_gmm
+ 35.     xtdpdbc g `w' `X' if S5_bond_`tim', fe lags(1) teffects vce(robust) small
+ 36.     post `P' ("`tim'") ("bc") (_b[L.g]) (_se[L.g]) (_b[`w']) (_se[`w']) (e(N)) (e(N_g))
+ 37.     estimates store BD_`tim'_bc
+ 38. }
+  288
+  368
+  353
+  368
+  288
+note: pd2 omitted because of collinearity.
+
+Linear regression                               Number of obs     =        288
+                                                F(16, 53)         =      22.86
+                                                Prob > F          =     0.0000
+                                                R-squared         =     0.4637
+                                                Root MSE          =     1.6552
+
+                                    (Std. err. adjusted for 54 clusters in id)
+------------------------------------------------------------------------------
+             |               Robust
+           g | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+         L_g |    .222483   .0661234     3.36   0.001     .0898564    .3551097
+       wb_tp |  -.0656036   .0401951    -1.63   0.109    -.1462249    .0150176
+        lny0 |  -.5383635    .220187    -2.45   0.018    -.9800028   -.0967242
+       hc_tp |   .1708829   .3438954     0.50   0.621    -.5188839    .8606496
+         inv |   .0246023   .0491113     0.50   0.618    -.0739024    .1231071
+        open |   .0047437   .0017457     2.72   0.009     .0012422    .0082452
+        infl |  -.0234746   .0252305    -0.93   0.356    -.0740805    .0271313
+        popg |  -.4752602   .1341397    -3.54   0.001    -.7443104   -.2062101
+      ctot_g |  -.0706013    .111039    -0.64   0.528    -.2933173    .1521146
+         pd2 |          0  (omitted)
+         pd3 |  -1.589829   .5633872    -2.82   0.007     -2.71984   -.4598171
+         pd4 |   .3062976   .3697731     0.83   0.411    -.4353734    1.047969
+         pd5 |  -.7228843   .3064234    -2.36   0.022    -1.337492   -.1082768
+         pd6 |   .1357083   .3629573     0.37   0.710    -.5922919    .8637086
+         pd7 |  -3.243213   .3935377    -8.24   0.000     -4.03255   -2.453877
+         pd8 |  -.8479944   .3881511    -2.18   0.033    -1.626527   -.0694619
+         pd9 |  -1.969045   .3480539    -5.66   0.000    -2.667153   -1.270938
+       _cons |   7.603406   1.371947     5.54   0.000     4.851629    10.35518
+------------------------------------------------------------------------------
+(MWFE estimator converged in 1 iterations)
+
+HDFE Linear regression                            Number of obs   =        288
+Absorbing 1 HDFE group                            F(  16,     53) =      17.86
+Statistics robust to heteroskedasticity           Prob > F        =     0.0000
+                                                  R-squared       =     0.7397
+                                                  Adj R-squared   =     0.6573
+                                                  Within R-sq.    =     0.6301
+Number of clusters (id)      =         54         Root MSE        =     1.2857
+
+                                    (Std. err. adjusted for 54 clusters in id)
+------------------------------------------------------------------------------
+             |               Robust
+           g | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+         L_g |  -.0441392    .062436    -0.71   0.483    -.1693699    .0810915
+       wb_tp |   -.186046   .0911713    -2.04   0.046    -.3689124   -.0031796
+        lny0 |  -6.273165   .8772185    -7.15   0.000    -8.032643   -4.513688
+       hc_tp |   2.379867   1.433227     1.66   0.103    -.4948219    5.254557
+         inv |   .1394024   .0382763     3.64   0.001     .0626298    .2161749
+        open |   .0284214   .0109345     2.60   0.012     .0064896    .0503532
+        infl |  -.0708519   .0156636    -4.52   0.000    -.1022692   -.0394347
+        popg |  -.3990759   .2519778    -1.58   0.119    -.9044793    .1063275
+      ctot_g |   .1729204   .0938697     1.84   0.071    -.0153584    .3611992
+             |
+      period |
+          2  |  -.3857183   .4239424    -0.91   0.367    -1.236039    .4646024
+          3  |    .939948   .4796473     1.96   0.055    -.0221026    1.901999
+          4  |   .6294401   .5288176     1.19   0.239    -.4312337    1.690114
+          5  |   1.389556   .5462156     2.54   0.014     .2939864    2.485126
+          6  |   -.875111   .6730715    -1.30   0.199    -2.225122    .4748995
+          7  |   .4080108   .7548545     0.54   0.591    -1.106036    1.922057
+          8  |   .3028644   .8007243     0.38   0.707    -1.303185    1.908914
+             |
+       _cons |   52.06727   7.131345     7.30   0.000      37.7636    66.37093
+------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+          id |        54          54           0    *|
+-----------------------------------------------------+
+* = FE nested within cluster; treated as redundant for DoF computation
+Favoring space over speed. To switch, type or click on mata: mata set matafavor speed, perm.
+pd8 dropped due to collinearity
+Warning: Two-step estimated covariance matrix of moments is singular.
+  Using a generalized inverse to calculate optimal weighting matrix for two-step estimation.
+  Difference-in-Sargan/Hansen statistics may be negative.
+
+Dynamic panel-data estimation, two-step system GMM
+------------------------------------------------------------------------------
+Group variable: id                              Number of obs      =       288
+Time variable : period                          Number of groups   =        54
+Number of instruments = 25                      Obs per group: min =         3
+F(16, 53)     =     14.35                                      avg =      5.33
+Prob > F      =     0.000                                      max =         8
+------------------------------------------------------------------------------
+             |              Corrected
+           g | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+         L_g |   .2764427   .2075876     1.33   0.189    -.1399254    .6928108
+       wb_tp |  -.5322469   .3336041    -1.60   0.117    -1.201372    .1368782
+        lny0 |  -1.439264   1.607727    -0.90   0.375    -4.663956    1.785427
+       hc_tp |   1.967659   2.578792     0.76   0.449    -3.204744    7.140061
+         inv |  -.1622972   .1518264    -1.07   0.290    -.4668224    .1422279
+        open |   .0025302   .0077464     0.33   0.745    -.0130072    .0180675
+        infl |  -.0691887   .0393982    -1.76   0.085    -.1482116    .0098341
+        popg |  -.2481887   .5856762    -0.42   0.673    -1.422906    .9265289
+      ctot_g |  -.3415922   .2460279    -1.39   0.171    -.8350618    .1518773
+         pd2 |   2.979494   1.394048     2.14   0.037     .1833886    5.775599
+         pd3 |   .6857186   1.290831     0.53   0.597     -1.90336    3.274797
+         pd4 |   1.670086   .9662051     1.73   0.090    -.2678763    3.608048
+         pd5 |   .5107384   .7085448     0.72   0.474    -.9104225    1.931899
+         pd6 |   1.629866   .5631418     2.89   0.006     .5003464    2.759385
+         pd7 |  -1.672313   .6679891    -2.50   0.015    -3.012129   -.3324967
+         pd9 |  -.8291624   .4317557    -1.92   0.060    -1.695155    .0368298
+       _cons |   18.36668   7.049688     2.61   0.012     4.226795    32.50656
+------------------------------------------------------------------------------
+Instruments for first differences equation
+  Standard
+    D.(hc_tp open infl popg ctot_g pd2 pd3 pd4 pd5 pd6 pd7 pd8 pd9)
+  GMM-type (missing=0, separate instruments for each period unless collapsed)
+    L(2/3).(wb_tp inv lny0) collapsed
+    L(1/2).L_g collapsed
+Instruments for levels equation
+  Standard
+    hc_tp open infl popg ctot_g pd2 pd3 pd4 pd5 pd6 pd7 pd8 pd9
+    _cons
+  GMM-type (missing=0, separate instruments for each period unless collapsed)
+    DL.(wb_tp inv lny0) collapsed
+    D.L_g collapsed
+------------------------------------------------------------------------------
+Arellano-Bond test for AR(1) in first differences: z =  -2.59  Pr > z =  0.010
+Arellano-Bond test for AR(2) in first differences: z =  -0.45  Pr > z =  0.653
+------------------------------------------------------------------------------
+Sargan test of overid. restrictions: chi2(8)    =  37.36  Prob > chi2 =  0.000
+  (Not robust, but not weakened by many instruments.)
+Hansen test of overid. restrictions: chi2(8)    =  16.88  Prob > chi2 =  0.031
+  (Robust, but weakened by many instruments.)
+
+Difference-in-Hansen tests of exogeneity of instrument subsets:
+  GMM instruments for levels
+    Hansen test excluding group:     chi2(4)    =  11.90  Prob > chi2 =  0.018
+    Difference (null H = exogenous): chi2(4)    =   4.98  Prob > chi2 =  0.289
+  gmm(L_g, collapse lag(1 2))
+    Hansen test excluding group:     chi2(5)    =   6.90  Prob > chi2 =  0.228
+    Difference (null H = exogenous): chi2(3)    =   9.98  Prob > chi2 =  0.019
+
+
+Bias-corrected estimation
+Iteration 0:   f(b) =  3.5570773  
+Iteration 1:   f(b) =  .00074956  
+Iteration 2:   f(b) =  2.784e-08  
+Iteration 3:   f(b) =  4.178e-17  
+
+Group variable: id                           Number of obs         =       288
+Time variable: period                        Number of groups      =        54
+
+Fixed-effects model                          Obs per group:    min =         3
+                                                               avg =  5.333333
+                                                               max =         8
+
+                                     (Std. err. adjusted for clustering on id)
+------------------------------------------------------------------------------
+             |               Robust
+           g | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+           g |
+         L1. |   .1526904   .0661978     2.31   0.025     .0199143    .2854664
+             |
+       wb_tp |  -.1949443   .0936679    -2.08   0.042    -.3828182   -.0070703
+        lny0 |  -7.026629   .8253347    -8.51   0.000    -8.682041   -5.371218
+       hc_tp |   2.384763   1.476831     1.61   0.112    -.5773846    5.346911
+         inv |   .0839395   .0473933     1.77   0.082    -.0111195    .1789984
+        open |   .0282463   .0113713     2.48   0.016     .0054384    .0510543
+        infl |  -.0577677   .0161862    -3.57   0.001    -.0902331   -.0253023
+        popg |  -.3832652   .2495811    -1.54   0.131    -.8838614     .117331
+      ctot_g |   .1442489   .0950979     1.52   0.135    -.0464933    .3349911
+             |
+      period |
+          2  |  -.5302638   .4337539    -1.22   0.227    -1.400264    .3397363
+          3  |   1.146019   .4773715     2.40   0.020     .1885329    2.103505
+          4  |   .5929229   .5196461     1.14   0.259    -.4493553    1.635201
+          5  |   1.589344   .5530234     2.87   0.006     .4801197    2.698569
+          6  |   -.777646   .6730923    -1.16   0.253    -2.127698    .5724062
+          7  |   1.171929   .7652893     1.53   0.132    -.3630467    2.706905
+          8  |   .7802452   .8252229     0.95   0.349    -.8749423    2.435433
+             |
+       _cons |   59.92306   7.213441     8.31   0.000     45.45473    74.39139
+------------------------------------------------------------------------------
+  306
+  356
+  342
+  356
+  306
+note: pd3 omitted because of collinearity.
+
+Linear regression                               Number of obs     =        306
+                                                F(16, 56)         =      35.98
+                                                Prob > F          =     0.0000
+                                                R-squared         =     0.4674
+                                                Root MSE          =      1.591
+
+                                    (Std. err. adjusted for 57 clusters in id)
+------------------------------------------------------------------------------
+             |               Robust
+           g | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+         L_g |   .3587292   .0563121     6.37   0.000     .2459225    .4715359
+       wb_m1 |  -.0734229   .0389474    -1.89   0.065    -.1514438     .004598
+        lny0 |  -.5469657   .2106574    -2.60   0.012    -.9689633   -.1249682
+       hc_m1 |   .3968097   .3740441     1.06   0.293    -.3524907     1.14611
+      inv_m1 |  -.0838743   .0317715    -2.64   0.011    -.1475203   -.0202282
+     open_m1 |   .0056241   .0022297     2.52   0.015     .0011575    .0100907
+     infl_m1 |  -.0046863   .0032198    -1.46   0.151    -.0111364    .0017638
+     popg_m1 |  -.4287304   .1598458    -2.68   0.010      -.74894   -.1085208
+   ctot_g_m1 |   .1472055   .0513253     2.87   0.006     .0443885    .2500224
+         pd2 |   1.632334   .3780273     4.32   0.000     .8750544    2.389614
+         pd3 |          0  (omitted)
+         pd4 |   1.802469   .4950192     3.64   0.001     .8108266    2.794112
+         pd5 |   .5436659   .3817857     1.42   0.160    -.2211428    1.308475
+         pd6 |   1.518424   .4648783     3.27   0.002     .5871609    2.449687
+         pd7 |  -1.527436   .4268655    -3.58   0.001     -2.38255   -.6723213
+         pd8 |   .6168212   .4412574     1.40   0.168    -.2671235    1.500766
+         pd9 |  -.6301753   .4486805    -1.40   0.166     -1.52899    .2686396
+       _cons |   7.623776   1.219638     6.25   0.000     5.180549      10.067
+------------------------------------------------------------------------------
+(MWFE estimator converged in 1 iterations)
+
+HDFE Linear regression                            Number of obs   =        306
+Absorbing 1 HDFE group                            F(  16,     56) =      21.12
+Statistics robust to heteroskedasticity           Prob > F        =     0.0000
+                                                  R-squared       =     0.7086
+                                                  Adj R-squared   =     0.6185
+                                                  Within R-sq.    =     0.5870
+Number of clusters (id)      =         57         Root MSE        =     1.3107
+
+                                    (Std. err. adjusted for 57 clusters in id)
+------------------------------------------------------------------------------
+             |               Robust
+           g | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+         L_g |   .2538826   .0618408     4.11   0.000     .1300007    .3777645
+       wb_m1 |  -.1025395   .0752648    -1.36   0.179     -.253313     .048234
+        lny0 |  -5.672284   .8632265    -6.57   0.000    -7.401535   -3.943034
+       hc_m1 |   1.126639   1.422371     0.79   0.432    -1.722712    3.975989
+      inv_m1 |  -.0978483   .0332938    -2.94   0.005    -.1645438   -.0311528
+     open_m1 |   .0221787   .0090177     2.46   0.017     .0041141    .0402433
+     infl_m1 |  -.0222404   .0057933    -3.84   0.000    -.0338458    -.010635
+     popg_m1 |  -.3318604   .3114043    -1.07   0.291    -.9556781    .2919574
+   ctot_g_m1 |   .2606551   .1198067     2.18   0.034     .0206534    .5006568
+             |
+      period |
+          2  |  -1.118379   .3715583    -3.01   0.004      -1.8627   -.3740586
+          3  |   .8061458   .4443275     1.81   0.075    -.0839492    1.696241
+          4  |  -.2261562   .4232771    -0.53   0.595    -1.074082    .6217697
+          5  |    1.35538   .4889003     2.77   0.008     .3759947    2.334765
+          6  |  -1.021387   .5331189    -1.92   0.060    -2.089352    .0465787
+          7  |   .7368248   .6114795     1.20   0.233    -.4881159    1.961765
+          8  |   .1687011   .6524736     0.26   0.797    -1.138361    1.475763
+             |
+       _cons |    54.1203   7.023228     7.71   0.000     40.05108    68.18951
+------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+          id |        57          57           0    *|
+-----------------------------------------------------+
+* = FE nested within cluster; treated as redundant for DoF computation
+Favoring space over speed. To switch, type or click on mata: mata set matafavor speed, perm.
+pd8 dropped due to collinearity
+Warning: Two-step estimated covariance matrix of moments is singular.
+  Using a generalized inverse to calculate optimal weighting matrix for two-step estimation.
+  Difference-in-Sargan/Hansen statistics may be negative.
+
+Dynamic panel-data estimation, two-step system GMM
+------------------------------------------------------------------------------
+Group variable: id                              Number of obs      =       306
+Time variable : period                          Number of groups   =        57
+Number of instruments = 23                      Obs per group: min =         3
+F(16, 56)     =     21.30                                      avg =      5.37
+Prob > F      =     0.000                                      max =         8
+------------------------------------------------------------------------------
+             |              Corrected
+           g | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+         L_g |   .4445699   .1078861     4.12   0.000     .2284481    .6606916
+       wb_m1 |   .1576825   .2194253     0.72   0.475    -.2818792    .5972441
+        lny0 |  -2.343896   1.061082    -2.21   0.031    -4.469499   -.2182923
+       hc_m1 |    3.32956   1.735809     1.92   0.060    -.1476834    6.806803
+      inv_m1 |  -.1432402   .0389374    -3.68   0.001    -.2212413   -.0652392
+     open_m1 |   .0141088    .005487     2.57   0.013     .0031169    .0251006
+     infl_m1 |  -.0091458   .0085363    -1.07   0.289    -.0262461    .0079544
+     popg_m1 |  -.0145073   .2037709    -0.07   0.943    -.4227095    .3936949
+   ctot_g_m1 |   .3126001   .1007163     3.10   0.003     .1108411    .5143591
+         pd2 |   2.540108   .9530421     2.67   0.010     .6309356    4.449281
+         pd3 |   .6761485   .8370958     0.81   0.423    -1.000756    2.353053
+         pd4 |   1.857538   .5936624     3.13   0.003     .6682893    3.046787
+         pd5 |   .0292443   .5168975     0.06   0.955    -1.006226    1.064714
+         pd6 |    1.14459   .4713878     2.43   0.018     .2002863    2.088893
+         pd7 |  -1.412763   .4727306    -2.99   0.004    -2.359757   -.4657702
+         pd9 |  -1.090637   .2702572    -4.04   0.000    -1.632027   -.5492467
+       _cons |   14.44035   4.588283     3.15   0.003      5.24891    23.63178
+------------------------------------------------------------------------------
+Instruments for first differences equation
+  Standard
+    D.(hc_m1 open_m1 infl_m1 popg_m1 ctot_g_m1 inv_m1 pd2 pd3 pd4 pd5 pd6 pd7
+    pd8 pd9)
+  GMM-type (missing=0, separate instruments for each period unless collapsed)
+    L(2/3).(wb_m1 lny0) collapsed
+    L(1/2).L_g collapsed
+Instruments for levels equation
+  Standard
+    hc_m1 open_m1 infl_m1 popg_m1 ctot_g_m1 inv_m1 pd2 pd3 pd4 pd5 pd6 pd7 pd8
+    pd9
+    _cons
+  GMM-type (missing=0, separate instruments for each period unless collapsed)
+    DL.(wb_m1 lny0) collapsed
+    D.L_g collapsed
+------------------------------------------------------------------------------
+Arellano-Bond test for AR(1) in first differences: z =  -3.26  Pr > z =  0.001
+Arellano-Bond test for AR(2) in first differences: z =   0.66  Pr > z =  0.506
+------------------------------------------------------------------------------
+Sargan test of overid. restrictions: chi2(6)    =  21.19  Prob > chi2 =  0.002
+  (Not robust, but not weakened by many instruments.)
+Hansen test of overid. restrictions: chi2(6)    =  11.69  Prob > chi2 =  0.069
+  (Robust, but weakened by many instruments.)
+
+Difference-in-Hansen tests of exogeneity of instrument subsets:
+  GMM instruments for levels
+    Hansen test excluding group:     chi2(3)    =  10.25  Prob > chi2 =  0.017
+    Difference (null H = exogenous): chi2(3)    =   1.44  Prob > chi2 =  0.695
+  gmm(L_g, collapse lag(1 2))
+    Hansen test excluding group:     chi2(3)    =   7.12  Prob > chi2 =  0.068
+    Difference (null H = exogenous): chi2(3)    =   4.57  Prob > chi2 =  0.206
+  gmm(wb_m1 lny0, collapse lag(2 3))
+    Hansen test excluding group:     chi2(0)    =   0.00  Prob > chi2 =      .
+    Difference (null H = exogenous): chi2(6)    =  11.69  Prob > chi2 =  0.069
+
+
+Bias-corrected estimation
+Iteration 0:   f(b) =  .74775682  
+Iteration 1:   f(b) =  .00445957  
+Iteration 2:   f(b) =  6.332e-06  
+Iteration 3:   f(b) =  1.990e-11  
+Iteration 4:   f(b) =  2.004e-22  
+
+Group variable: id                           Number of obs         =       306
+Time variable: period                        Number of groups      =        57
+
+Fixed-effects model                          Obs per group:    min =         3
+                                                               avg =  5.368421
+                                                               max =         8
+
+                                     (Std. err. adjusted for clustering on id)
+------------------------------------------------------------------------------
+             |               Robust
+           g | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+           g |
+         L1. |   .5307253   .1140154     4.65   0.000      .302325    .7591256
+             |
+       wb_m1 |  -.0988383   .0729596    -1.35   0.181     -.244994    .0473175
+        lny0 |  -6.349299   .9247877    -6.87   0.000    -8.201871   -4.496726
+       hc_m1 |   .9801848   1.625961     0.60   0.549    -2.277007    4.237377
+      inv_m1 |   -.173563   .0371894    -4.67   0.000    -.2480623   -.0990637
+     open_m1 |   .0177213    .009001     1.97   0.054    -.0003099    .0357524
+     infl_m1 |  -.0158342   .0060437    -2.62   0.011    -.0279412   -.0037273
+     popg_m1 |  -.1255787   .2595228    -0.48   0.630    -.6454654     .394308
+   ctot_g_m1 |   .2988464   .1365761     2.19   0.033     .0252516    .5724412
+             |
+      period |
+          2  |  -1.292882   .3945841    -3.28   0.002    -2.083329   -.5024349
+          3  |    .851275   .4670998     1.82   0.074    -.0844382    1.786988
+          4  |  -.3590249   .4381305    -0.82   0.416    -1.236706    .5186559
+          5  |    1.38512    .542271     2.55   0.013     .2988204    2.471419
+          6  |  -.8387125   .5990832    -1.40   0.167     -2.03882    .3613953
+          7  |   1.614218   .7756911     2.08   0.042     .0603219    3.168114
+          8  |   .7227401   .7883322     0.92   0.363    -.8564791    2.301959
+             |
+       _cons |   62.10411   7.495422     8.29   0.000     47.08898    77.11924
+------------------------------------------------------------------------------
+
+. postclose `P'
+
+. preserve
+
+. keep id period S5_bond_draft S5_bond_T3
+
+. save "$RINT/amostra_bond.dta", replace
+file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/amostra_bond.dta saved
+
+. restore
+
+. 
+. * =====================================================================================
+. * B. Longo prazo: PMG, MG, DFE, CCE-MG, CS-ARDL e CS-DL (painel anual, paises com 20 anos ou mais)
+. * =====================================================================================
+. use "$RINT/anual_rv.dta", clear
+
+. keep if micro == 0 & inrange(year, 1993, 2023)
+(5,430 observations deleted)
+
+. xtset id year
+
+Panel variable: id (strongly balanced)
+ Time variable: year, 1993 to 2023
+         Delta: 1 unit
+
+. gen wbL = L.wb
+(3,303 missing values generated)
+
+. gen wbH = L.wb_ham
+(3,303 missing values generated)
+
+. gen byte okc = !missing(g, L.g, L2.g, wbL, L.wbL, L2.wbL, wbH, L.wbH, L2.wbH, inv, open, infl, popg) & year >= 1996
+
+. bysort id: egen nyc = total(okc)
+
+. keep if nyc >= 20
+(3,875 observations deleted)
+
+. xtset id year
+
+Panel variable: id (strongly balanced)
+ Time variable: year, 1993 to 2023
+         Delta: 1 unit
+
+. tempname L
+
+. postfile `L' str4 w str10 m double(b se) long(N ng) double(hp) using "$RINT/longo.dta", replace
+
+. foreach W in wbL wbH {
+  2.     capture drop X
+  3.     gen X = `W'
+  4.     foreach est in pmg mg dfe {
+  5.         capture noisily xtpmg d.g d.X d.inv d.open d.infl d.popg if okc, lr(l.g X inv open infl popg) ec(ec) replace `est'
+  6.         if _rc continue
+  7.         estimates store LP_`W'_`est'
+  8.         quietly count if e(sample)
+  9.         local N = r(N)
+ 10.         quietly levelsof id if e(sample)
+ 11.         post `L' ("`W'") ("`est'") (_b[ec:X]) (_se[ec:X]) (`N') (r(r)) (.)
+ 12.     }
+ 13.     capture noisily hausman LP_`W'_mg LP_`W'_pmg, sigmamore
+ 14.     local hp = cond(_rc, ., r(p))
+ 15.     rv_kv lr_`W'_hausman `=string(`hp', "%6.3f")'
+ 16.     * CCE-MG estatico (folha defasada e controles, medias transversais)
+.     capture noisily xtdcce2 g X inv open infl popg if okc, cr(g X inv open infl popg) cr_lags(0)
+ 17.     if !_rc post `L' ("`W'") ("ccemg") (_b[X]) (_se[X]) (e(N)) (e(N_g)) (.)
+ 18.     capture noisily xtdcce2 g if okc, lr(L.g X L.X inv open infl popg) lr_options(ardl) cr(g X inv open infl popg) cr_lags(0)
+ 19.     if !_rc post `L' ("`W'") ("csardl") (_b[lr_X]) (_se[lr_X]) (e(N)) (e(N_g)) (.)
+ 20.     capture noisily xtdcce2 g X d.X inv if okc, cr(g X inv) cr_lags(2)
+ 21.     if !_rc post `L' ("`W'") ("csdl") (_b[X]) (_se[X]) (e(N)) (e(N_g)) (.)
+ 22. }
+(103 missing values generated)
+
+Iteration 0:   log likelihood = -2285.0974  
+Iteration 1:   log likelihood =  -2267.482  
+Iteration 2:   log likelihood =  -2241.995  
+Iteration 3:   log likelihood = -2241.2421  
+Iteration 4:   log likelihood = -2241.2407  
+Iteration 5:   log likelihood = -2241.2407  
+
+------------------------------------------------------------------------------
+Pooled Mean Group Regression                    XTPMG v2.1.1
+Pesaran, Shin & Smith (1999)
+------------------------------------------------------------------------------
+(Estimate results saved as pmg)
+
+Panel Variable (i): id                          Number of obs      =      1134
+Time Variable (t): year                         Number of groups   =        43
+                                                Obs per group: min =        20
+                                                               avg =      26.4
+                                                               max =        28
+
+                                                Log Likelihood     = -2344.724
+                                                Model order        = ARDL(2,1,1,1,1,1)
+------------------------------------------------------------------------------
+------------------------------------------------------------------------------
+         D.g | Coefficient  Std. err.      z    P>|z|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+ec           |
+           X |  -.4435266   .0841439    -5.27   0.000    -.6084456   -.2786076
+         inv |   .0874076   .0279897     3.12   0.002     .0325489    .1422663
+        open |  -.0155492   .0039292    -3.96   0.000    -.0232502   -.0078481
+        infl |  -.0653304    .024499    -2.67   0.008    -.1133475   -.0173132
+        popg |  -1.260155   .1701666    -7.41   0.000    -1.593675   -.9266345
+-------------+----------------------------------------------------------------
+SR           |
+          ec |  -.9817556   .0484987   -20.24   0.000    -1.076811      -.8867
+             |
+           X |
+         D1. |   .1366329   .3006499     0.45   0.649    -.4526301    .7258959
+             |
+         inv |
+         D1. |   .7161518   .1012223     7.08   0.000     .5177596    .9145439
+             |
+        open |
+         D1. |   .2323931   .0332432     6.99   0.000     .1672377    .2975486
+             |
+        infl |
+         D1. |   .0357254   .0775626     0.46   0.645    -.1162946    .1877454
+             |
+        popg |
+         D1. |   .7953412   1.648027     0.48   0.629    -2.434733    4.025415
+             |
+       _cons |   6.477085   .3922644    16.51   0.000      5.70826    7.245909
+------------------------------------------------------------------------------
+
+------------------------------------------------------------------------------
+Cross-Sectional Dependence Test (Residuals)                      XTPMG 2.1.1
+  Pesaran (2004, 2015) CD test   H0: cross-sectional independence
+------------------------------------------------------------------------------
+  CD statistic                   =       49.8854  ***
+  p-value                        =        0.0000
+  Mean |pairwise correlation|    =        0.3421
+------------------------------------------------------------------------------
+  Conclusion: reject H0 at 5% - evidence of cross-sectional dependence.
+  PMG/MG/DFE assume errors are independent across panels (Pesaran, Shin &
+  Smith 1999, Assumption 1). Consider CCE / common-factor models or
+  cross-sectional demeaning of the data.
+  Significance: *** p<.01, ** p<.05, * p<.10
+------------------------------------------------------------------------------
+
+
+------------------------------------------------------------------------------
+Mean Group Estimation: Error Correction Form    XTPMG v2.1.1
+(Estimate results saved as mg)
+------------------------------------------------------------------------------
+ Model order: ARDL(2,1,1,1,1,1)
+------------------------------------------------------------------------------
+         D.g | Coefficient  Std. err.      z    P>|z|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+ec           |
+           X |   1.184051   .9536273     1.24   0.214    -.6850243    3.053126
+         inv |   .1712087   .0860872     1.99   0.047      .002481    .3399365
+        open |   -.194247   .2056637    -0.94   0.345    -.5973406    .2088465
+        infl |   -1.55752   1.431978    -1.09   0.277    -4.364146    1.249106
+        popg |  -.0571388   1.936783    -0.03   0.976    -3.853163    3.738885
+-------------+----------------------------------------------------------------
+SR           |
+          ec |  -1.187615    .067472   -17.60   0.000    -1.319857   -1.055372
+             |
+           X |
+         D1. |   -.579349   .5073962    -1.14   0.254    -1.573827    .4151292
+             |
+         inv |
+         D1. |   .6497003   .1436265     4.52   0.000     .3681976     .931203
+             |
+        open |
+         D1. |   .2137211    .035903     5.95   0.000     .1433525    .2840897
+             |
+        infl |
+         D1. |   .1083107   .1115553     0.97   0.332    -.1103335     .326955
+             |
+        popg |
+         D1. |   2.438897   1.263022     1.93   0.053    -.0365811    4.914376
+             |
+       _cons |  -.8591572    4.88235    -0.18   0.860    -10.42839    8.710073
+------------------------------------------------------------------------------
+
+------------------------------------------------------------------------------
+Cross-Sectional Dependence Test (Residuals)                      XTPMG 2.1.1
+  Pesaran (2004, 2015) CD test   H0: cross-sectional independence
+------------------------------------------------------------------------------
+  CD statistic                   =       42.7924  ***
+  p-value                        =        0.0000
+  Mean |pairwise correlation|    =        0.3077
+------------------------------------------------------------------------------
+  Conclusion: reject H0 at 5% - evidence of cross-sectional dependence.
+  PMG/MG/DFE assume errors are independent across panels (Pesaran, Shin &
+  Smith 1999, Assumption 1). Consider CCE / common-factor models or
+  cross-sectional demeaning of the data.
+  Significance: *** p<.01, ** p<.05, * p<.10
+------------------------------------------------------------------------------
+
+------------------------------------------------------------------------------
+Dynamic Fixed Effects Regression: Estimated Error Correction FormXTPMG v2.1.1
+(Estimate results saved as DFE)
+------------------------------------------------------------------------------
+------------------------------------------------------------------------------
+             | Coefficient  Std. err.      z    P>|z|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+ec           |
+           X |  -.0616888   .1423884    -0.43   0.665    -.3407649    .2173874
+         inv |   .1982367   .0390464     5.08   0.000     .1217072    .2747662
+        open |   .0047706    .006471     0.74   0.461    -.0079123    .0174536
+        infl |  -.0290281   .0238842    -1.22   0.224    -.0758401     .017784
+        popg |  -1.628861    .227303    -7.17   0.000    -2.074367   -1.183355
+-------------+----------------------------------------------------------------
+SR           |
+          ec |  -.8945276   .0354919   -25.20   0.000    -.9640904   -.8249649
+             |
+           X |
+         D1. |   .4766309   .1773169     2.69   0.007     .1290963    .8241656
+             |
+         inv |
+         D1. |   .2036793   .0498057     4.09   0.000     .1060619    .3012967
+             |
+        open |
+         D1. |   .1110176   .0131871     8.42   0.000     .0851713    .1368638
+             |
+        infl |
+         D1. |   .0517944   .0234841     2.21   0.027     .0057663    .0978224
+             |
+        popg |
+         D1. |   1.188118   .2420683     4.91   0.000     .7136733    1.662563
+             |
+       _cons |  -1.316546   1.763015    -0.75   0.455    -4.771992      2.1389
+------------------------------------------------------------------------------
+
+------------------------------------------------------------------------------
+Cross-Sectional Dependence Test (Residuals)                      XTPMG 2.1.1
+  Pesaran (2004, 2015) CD test   H0: cross-sectional independence
+------------------------------------------------------------------------------
+  CD statistic                   =       70.2478  ***
+  p-value                        =        0.0000
+  Mean |pairwise correlation|    =        0.4673
+------------------------------------------------------------------------------
+  Conclusion: reject H0 at 5% - evidence of cross-sectional dependence.
+  PMG/MG/DFE assume errors are independent across panels (Pesaran, Shin &
+  Smith 1999, Assumption 1). Consider CCE / common-factor models or
+  cross-sectional demeaning of the data.
+  Significance: *** p<.01, ** p<.05, * p<.10
+------------------------------------------------------------------------------
+
+
+                 ---- Coefficients ----
+             |      (b)          (B)            (b-B)     sqrt(diag(V_b-V_B))
+             |   LP_wbL_mg    LP_wbL_pmg     Difference       Std. err.
+-------------+----------------------------------------------------------------
+           X |    1.184051    -.4435266        1.627577        1.427797
+         inv |    .1712087     .0874076        .0838011        .1260454
+        open |    -.194247    -.0155492       -.1786979        .3084346
+        infl |    -1.55752    -.0653304       -1.492189        2.147577
+        popg |   -.0571388    -1.260155        1.203016        2.899846
+------------------------------------------------------------------------------
+                          b = Consistent under H0 and Ha; obtained from xtpmg.
+           B = Inconsistent under Ha, efficient under H0; obtained from xtpmg.
+
+Test of H0: Difference in coefficients not systematic
+
+    chi2(5) = (b-B)'[(V_b-V_B)^(-1)](b-B)
+            =   2.87
+Prob > chi2 = 0.7206
+(Dynamic) Common Correlated Effects Estimator - Mean Group
+
+Panel Variable (i): id                           Number of obs     =       1135
+Time Variable (t): year                          Number of groups  =         43
+
+Degrees of freedom per group:                    Obs per group:    
+ without cross-sectional avg. min   = 14                       min =         20
+                              max   = 22                       avg =         27
+ with cross-sectional avg.    min   = 8                        max =         28
+                              max   = 16
+Number of                                        F(516, 619)       =       2.05
+ cross-sectional lags               0 to 0       Prob > F          =       0.00
+ variables in mean group regression = 215        R-squared         =       0.37
+ variables partialled out           = 301        R-squared (MG)    =       0.78
+                                                 Root MSE          =       1.87
+                                                 CD Statistic      =       2.67
+                                                    p-value        =     0.0076
+-------------------------------------------------------------------------------
+              g|     Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+---------------+---------------------------------------------------------------
+ Mean Group:   |
+              X|  1.177625   .3271273    3.60    0.000      .5364672   1.818783
+            inv|  .5225782   .1131577    4.62    0.000      .3007931   .7443633
+           open|   .122442    .037906    3.23    0.001      .0481476   .1967364
+           infl| -.2754475   .0972685   -2.83    0.005     -.4660902  -.0848048
+           popg| -1.593166   .4411374   -3.61    0.000     -2.457779  -.7285523
+-------------------------------------------------------------------------------
+Mean Group Variables: X inv open infl popg
+Cross Sectional Averaged Variables: g X inv open infl popg 
+Heterogenous constant partialled out. 
+(Dynamic) Common Correlated Effects Estimator -  (CS-ARDL)
+
+Panel Variable (i): id                           Number of obs     =       1135
+Time Variable (t): year                          Number of groups  =         43
+
+Degrees of freedom per group:                    Obs per group:    
+ without cross-sectional avg. min   = 12                       min =         20
+                              max   = 20                       avg =         27
+ with cross-sectional avg.    min   = 6                        max =         28
+                              max   = 14
+Number of                                        F(602, 533)       =       2.03
+ cross-sectional lags               0 to 0       Prob > F          =       0.00
+ variables in mean group regression = 301        R-squared         =       0.30
+ variables partialled out           = 301        R-squared (MG)    =       0.79
+                                                 Root MSE          =       1.82
+                                                 CD Statistic      =       2.30
+                                                    p-value        =     0.0214
+-------------------------------------------------------------------------------
+              g|     Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+---------------+---------------------------------------------------------------
+ Short Run Est.|
+---------------+---------------------------------------------------------------
+   Mean Group: |
+            L.g| -.1426516   .0447086   -3.19    0.001     -.2302788  -.0550243
+              X|  .3329713   .3790726    0.88    0.380     -.4099973    1.07594
+            inv|   .493135   .1100384    4.48    0.000      .2774637   .7088062
+           open|   .128376   .0416077    3.09    0.002      .0468264   .2099257
+           infl| -.2686707   .1187278   -2.26    0.024     -.5013729  -.0359686
+           popg| -2.088733   .6781954   -3.08    0.002     -3.417971   -.759494
+            L.X|    .79046   .3301964    2.39    0.017      .1432869   1.437633
+---------------+---------------------------------------------------------------
+ Adjust. Term  |
+---------------+---------------------------------------------------------------
+   Mean Group: |
+           lr_g| -1.142652   .0447086  -25.56    0.000     -1.230279  -1.055024
+---------------+---------------------------------------------------------------
+ Long Run Est. |
+---------------+---------------------------------------------------------------
+   Mean Group: |
+           lr_X|  .9971619    .308996    3.23    0.001      .3915408   1.602783
+        lr_infl| -.2554928   .1198091   -2.13    0.033     -.4903143  -.0206713
+         lr_inv|  .4235975    .091218    4.64    0.000      .2448136   .6023815
+        lr_open|  .1189084   .0363936    3.27    0.001      .0475782   .1902385
+        lr_popg| -2.117474   .8115533   -2.61    0.009     -3.708089  -.5268588
+-------------------------------------------------------------------------------
+Mean Group Variables: 
+Cross Sectional Averaged Variables: g X inv open infl popg 
+Long Run Variables:  lr_X lr_infl lr_inv lr_open lr_popg
+Adjustment variable(s): lr_g (L.g)
+Heterogenous constant partialled out. 
+(Dynamic) Common Correlated Effects Estimator - Mean Group
+
+Panel Variable (i): id                           Number of obs     =       1042
+Time Variable (t): year                          Number of groups  =         43
+
+Degrees of freedom per group:                    Obs per group:    
+ without cross-sectional avg. min   = 14                       min =         18
+                              max   = 22                       avg =         24
+ with cross-sectional avg.    min   = 5                        max =         26
+                              max   = 13
+Number of                                        F(559, 483)       =       0.60
+ cross-sectional lags               2 to 2       Prob > F          =       1.00
+ variables in mean group regression = 129        R-squared         =       0.59
+ variables partialled out           = 430        R-squared (MG)    =       0.72
+                                                 Root MSE          =       2.14
+                                                 CD Statistic      =       7.16
+                                                    p-value        =     0.0000
+-------------------------------------------------------------------------------
+              g|     Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+---------------+---------------------------------------------------------------
+ Mean Group:   |
+              X|  .4537848   .3442595    1.32    0.187     -.2209514   1.128521
+            inv|  .2239022   .0977666    2.29    0.022      .0322832   .4155212
+            D.X| -.9895104   .3771803   -2.62    0.009      -1.72877  -.2502507
+-------------------------------------------------------------------------------
+Mean Group Variables: X inv D.X
+Cross Sectional Averaged Variables: g X inv 
+Heterogenous constant partialled out. 
+(103 missing values generated)
+
+Iteration 0:   log likelihood = -2292.0685  
+Iteration 1:   log likelihood = -2252.1946  
+Iteration 2:   log likelihood = -2249.0316  
+Iteration 3:   log likelihood = -2249.0201  
+Iteration 4:   log likelihood = -2249.0201  
+
+------------------------------------------------------------------------------
+Pooled Mean Group Regression                    XTPMG v2.1.1
+Pesaran, Shin & Smith (1999)
+------------------------------------------------------------------------------
+(Estimate results saved as pmg)
+
+Panel Variable (i): id                          Number of obs      =      1134
+Time Variable (t): year                         Number of groups   =        43
+                                                Obs per group: min =        20
+                                                               avg =      26.4
+                                                               max =        28
+
+                                                Log Likelihood     = -2350.687
+                                                Model order        = ARDL(2,1,1,1,1,1)
+------------------------------------------------------------------------------
+------------------------------------------------------------------------------
+         D.g | Coefficient  Std. err.      z    P>|z|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+ec           |
+           X |  -.1740339   .0962428    -1.81   0.071    -.3626664    .0145986
+         inv |   .1341547   .0276341     4.85   0.000     .0799929    .1883165
+        open |      -.018   .0041546    -4.33   0.000    -.0261428   -.0098573
+        infl |  -.0785697   .0238168    -3.30   0.001    -.1252497   -.0318896
+        popg |  -1.342525   .1800494    -7.46   0.000    -1.695415   -.9896349
+-------------+----------------------------------------------------------------
+SR           |
+          ec |  -.9741052   .0386992   -25.17   0.000    -1.049954   -.8982562
+             |
+           X |
+         D1. |  -.1752631   .2596222    -0.68   0.500    -.6841132     .333587
+             |
+         inv |
+         D1. |   .7326271   .1044181     7.02   0.000     .5279713    .9372829
+             |
+        open |
+         D1. |   .2282857   .0293827     7.77   0.000     .1706967    .2858747
+             |
+        infl |
+         D1. |    .047434   .0766278     0.62   0.536    -.1027538    .1976218
+             |
+        popg |
+         D1. |   1.051802   1.615961     0.65   0.515    -2.115422    4.219027
+             |
+       _cons |   3.235296   .2973425    10.88   0.000     2.652516    3.818077
+------------------------------------------------------------------------------
+
+------------------------------------------------------------------------------
+Cross-Sectional Dependence Test (Residuals)                      XTPMG 2.1.1
+  Pesaran (2004, 2015) CD test   H0: cross-sectional independence
+------------------------------------------------------------------------------
+  CD statistic                   =       51.1867  ***
+  p-value                        =        0.0000
+  Mean |pairwise correlation|    =        0.3523
+------------------------------------------------------------------------------
+  Conclusion: reject H0 at 5% - evidence of cross-sectional dependence.
+  PMG/MG/DFE assume errors are independent across panels (Pesaran, Shin &
+  Smith 1999, Assumption 1). Consider CCE / common-factor models or
+  cross-sectional demeaning of the data.
+  Significance: *** p<.01, ** p<.05, * p<.10
+------------------------------------------------------------------------------
+
+
+------------------------------------------------------------------------------
+Mean Group Estimation: Error Correction Form    XTPMG v2.1.1
+(Estimate results saved as mg)
+------------------------------------------------------------------------------
+ Model order: ARDL(2,1,1,1,1,1)
+------------------------------------------------------------------------------
+         D.g | Coefficient  Std. err.      z    P>|z|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+ec           |
+           X |   .2642768   .3138426     0.84   0.400    -.3508434    .8793969
+         inv |   .1342959   .0777238     1.73   0.084    -.0180399    .2866317
+        open |   -.001368   .0202535    -0.07   0.946     -.041064    .0383281
+        infl |  -.0506264   .0713977    -0.71   0.478    -.1905634    .0893106
+        popg |  -1.898258    .668166    -2.84   0.004    -3.207839   -.5886763
+-------------+----------------------------------------------------------------
+SR           |
+          ec |  -1.170002   .0432394   -27.06   0.000    -1.254749   -1.085254
+             |
+           X |
+         D1. |  -.2911624   .2594482    -1.12   0.262    -.7996716    .2173468
+             |
+         inv |
+         D1. |   .7373799   .1362731     5.41   0.000     .4702895     1.00447
+             |
+        open |
+         D1. |   .2247127   .0329017     6.83   0.000     .1602267    .2891988
+             |
+        infl |
+         D1. |   .0685886   .0958587     0.72   0.474     -.119291    .2564682
+             |
+        popg |
+         D1. |   2.485865   1.288945     1.93   0.054    -.0404206    5.012151
+             |
+       _cons |  -1.146469   4.103915    -0.28   0.780    -9.189996    6.897057
+------------------------------------------------------------------------------
+
+------------------------------------------------------------------------------
+Cross-Sectional Dependence Test (Residuals)                      XTPMG 2.1.1
+  Pesaran (2004, 2015) CD test   H0: cross-sectional independence
+------------------------------------------------------------------------------
+  CD statistic                   =       44.8734  ***
+  p-value                        =        0.0000
+  Mean |pairwise correlation|    =        0.3178
+------------------------------------------------------------------------------
+  Conclusion: reject H0 at 5% - evidence of cross-sectional dependence.
+  PMG/MG/DFE assume errors are independent across panels (Pesaran, Shin &
+  Smith 1999, Assumption 1). Consider CCE / common-factor models or
+  cross-sectional demeaning of the data.
+  Significance: *** p<.01, ** p<.05, * p<.10
+------------------------------------------------------------------------------
+
+------------------------------------------------------------------------------
+Dynamic Fixed Effects Regression: Estimated Error Correction FormXTPMG v2.1.1
+(Estimate results saved as DFE)
+------------------------------------------------------------------------------
+------------------------------------------------------------------------------
+             | Coefficient  Std. err.      z    P>|z|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+ec           |
+           X |   .0954818   .1442769     0.66   0.508    -.1872956    .3782592
+         inv |   .2040278   .0371768     5.49   0.000     .1311625     .276893
+        open |   .0033628   .0061652     0.55   0.585    -.0087207    .0154463
+        infl |  -.0249115   .0230969    -1.08   0.281    -.0701806    .0203576
+        popg |  -1.581518   .2208677    -7.16   0.000    -2.014411   -1.148625
+-------------+----------------------------------------------------------------
+SR           |
+          ec |  -.9332754   .0306161   -30.48   0.000    -.9932819   -.8732688
+             |
+           X |
+         D1. |   .3307841    .175883     1.88   0.060    -.0139402    .6755083
+             |
+         inv |
+         D1. |   .1902525   .0496078     3.84   0.000     .0930229    .2874821
+             |
+        open |
+         D1. |   .1143893   .0133128     8.59   0.000     .0882967    .1404819
+             |
+        infl |
+         D1. |    .049456   .0234631     2.11   0.035     .0034691    .0954428
+             |
+        popg |
+         D1. |   1.183385   .2413957     4.90   0.000     .7102579    1.656512
+             |
+       _cons |  -2.834589   1.765754    -1.61   0.108    -6.295402    .6262245
+------------------------------------------------------------------------------
+
+------------------------------------------------------------------------------
+Cross-Sectional Dependence Test (Residuals)                      XTPMG 2.1.1
+  Pesaran (2004, 2015) CD test   H0: cross-sectional independence
+------------------------------------------------------------------------------
+  CD statistic                   =       69.6421  ***
+  p-value                        =        0.0000
+  Mean |pairwise correlation|    =        0.4634
+------------------------------------------------------------------------------
+  Conclusion: reject H0 at 5% - evidence of cross-sectional dependence.
+  PMG/MG/DFE assume errors are independent across panels (Pesaran, Shin &
+  Smith 1999, Assumption 1). Consider CCE / common-factor models or
+  cross-sectional demeaning of the data.
+  Significance: *** p<.01, ** p<.05, * p<.10
+------------------------------------------------------------------------------
+
+
+                 ---- Coefficients ----
+             |      (b)          (B)            (b-B)     sqrt(diag(V_b-V_B))
+             |   LP_wbH_mg    LP_wbH_pmg     Difference       Std. err.
+-------------+----------------------------------------------------------------
+           X |    .2642768    -.1740339        .4383107        .5074593
+         inv |    .1342959     .1341547        .0001412         .124893
+        open |    -.001368        -.018        .0166321        .0330721
+        infl |   -.0506264    -.0785697        .0279433        .1150635
+        popg |   -1.898258    -1.342525       -.5557324        1.084791
+------------------------------------------------------------------------------
+                          b = Consistent under H0 and Ha; obtained from xtpmg.
+           B = Inconsistent under Ha, efficient under H0; obtained from xtpmg.
+
+Test of H0: Difference in coefficients not systematic
+
+    chi2(5) = (b-B)'[(V_b-V_B)^(-1)](b-B)
+            =   1.41
+Prob > chi2 = 0.9228
+(Dynamic) Common Correlated Effects Estimator - Mean Group
+
+Panel Variable (i): id                           Number of obs     =       1135
+Time Variable (t): year                          Number of groups  =         43
+
+Degrees of freedom per group:                    Obs per group:    
+ without cross-sectional avg. min   = 14                       min =         20
+                              max   = 22                       avg =         27
+ with cross-sectional avg.    min   = 8                        max =         28
+                              max   = 16
+Number of                                        F(516, 619)       =       1.80
+ cross-sectional lags               0 to 0       Prob > F          =       0.00
+ variables in mean group regression = 215        R-squared         =       0.40
+ variables partialled out           = 301        R-squared (MG)    =       0.76
+                                                 Root MSE          =       1.94
+                                                 CD Statistic      =       4.46
+                                                    p-value        =     0.0000
+-------------------------------------------------------------------------------
+              g|     Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+---------------+---------------------------------------------------------------
+ Mean Group:   |
+              X| -.3179905   .2982132   -1.07    0.286     -.9024776   .2664965
+            inv|  .3775545   .1032832    3.66    0.000      .1751232   .5799858
+           open|  .1144264   .0299053    3.83    0.000      .0558131   .1730397
+           infl| -.1602479   .1122641   -1.43    0.153     -.3802815   .0597858
+           popg| -.7886959   .6634537   -1.19    0.235     -2.089041   .5116494
+-------------------------------------------------------------------------------
+Mean Group Variables: X inv open infl popg
+Cross Sectional Averaged Variables: g X inv open infl popg 
+Heterogenous constant partialled out. 
+(Dynamic) Common Correlated Effects Estimator -  (CS-ARDL)
+
+Panel Variable (i): id                           Number of obs     =       1135
+Time Variable (t): year                          Number of groups  =         43
+
+Degrees of freedom per group:                    Obs per group:    
+ without cross-sectional avg. min   = 12                       min =         20
+                              max   = 20                       avg =         27
+ with cross-sectional avg.    min   = 6                        max =         28
+                              max   = 14
+Number of                                        F(602, 533)       =       1.75
+ cross-sectional lags               0 to 0       Prob > F          =       0.00
+ variables in mean group regression = 301        R-squared         =       0.34
+ variables partialled out           = 301        R-squared (MG)    =       0.77
+                                                 Root MSE          =       1.92
+                                                 CD Statistic      =       2.07
+                                                    p-value        =     0.0389
+-------------------------------------------------------------------------------
+              g|     Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+---------------+---------------------------------------------------------------
+ Short Run Est.|
+---------------+---------------------------------------------------------------
+   Mean Group: |
+            L.g| -.0786231     .03486   -2.26    0.024     -.1469474  -.0102988
+              X| -.5779655   .3281885   -1.76    0.078     -1.221203   .0652721
+            inv|  .3831705   .0826985    4.63    0.000      .2210844   .5452565
+           open|  .1085332    .035077    3.09    0.002      .0397835   .1772829
+           infl| -.1439546   .1046151   -1.38    0.169     -.3489964   .0610872
+           popg| -1.199275   .6294656   -1.91    0.057     -2.433005   .0344548
+            L.X|  .2408045   .2363114    1.02    0.308     -.2223574   .7039664
+---------------+---------------------------------------------------------------
+ Adjust. Term  |
+---------------+---------------------------------------------------------------
+   Mean Group: |
+           lr_g| -1.078623     .03486  -30.94    0.000     -1.146947  -1.010299
+---------------+---------------------------------------------------------------
+ Long Run Est. |
+---------------+---------------------------------------------------------------
+   Mean Group: |
+           lr_X| -.5776417   .4001149   -1.44    0.149     -1.361852    .206569
+        lr_infl| -.1744632    .102021   -1.71    0.087     -.3744206   .0254943
+         lr_inv|  .3712136    .077481    4.79    0.000      .2193537   .5230735
+        lr_open|  .1079275   .0307977    3.50    0.000      .0475653   .1682898
+        lr_popg| -1.034261   .6020621   -1.72    0.086     -2.214281   .1457592
+-------------------------------------------------------------------------------
+Mean Group Variables: 
+Cross Sectional Averaged Variables: g X inv open infl popg 
+Long Run Variables:  lr_X lr_infl lr_inv lr_open lr_popg
+Adjustment variable(s): lr_g (L.g)
+Heterogenous constant partialled out. 
+(Dynamic) Common Correlated Effects Estimator - Mean Group
+
+Panel Variable (i): id                           Number of obs     =       1042
+Time Variable (t): year                          Number of groups  =         43
+
+Degrees of freedom per group:                    Obs per group:    
+ without cross-sectional avg. min   = 14                       min =         18
+                              max   = 22                       avg =         24
+ with cross-sectional avg.    min   = 5                        max =         26
+                              max   = 13
+Number of                                        F(559, 483)       =       0.72
+ cross-sectional lags               2 to 2       Prob > F          =       1.00
+ variables in mean group regression = 129        R-squared         =       0.55
+ variables partialled out           = 430        R-squared (MG)    =       0.73
+                                                 Root MSE          =       2.09
+                                                 CD Statistic      =       2.13
+                                                    p-value        =     0.0332
+-------------------------------------------------------------------------------
+              g|     Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+---------------+---------------------------------------------------------------
+ Mean Group:   |
+              X|  .0608587   .3306802    0.18    0.854     -.5872625   .7089799
+            inv|  .1200503   .0714269    1.68    0.093     -.0199439   .2600444
+            D.X| -.0989804   .4121841   -0.24    0.810     -.9068464   .7088855
+-------------------------------------------------------------------------------
+Mean Group Variables: X inv D.X
+Cross Sectional Averaged Variables: g X inv 
+Heterogenous constant partialled out. 
+
+. postclose `L'
+
+. mata: mata clear
+
+. do "$ROOT/code/revisao/00_setup.do"
+
+. * 00_setup.do -- revisao EJPE: caminhos, semente, pacotes, estilo grafico e rotinas comuns
+. * Chamado no topo de todo do-file de code/revisao/. Nao instala nada (ver 00_instala.do).
+. version 17
+
+. clear all
+
+. set more off
+
+. set seed 20261017
+
+. set sortseed 20261017
+
+. set maxvar 30000
+
+
+. set linesize 200
+
+. if "$ROOT" == "" global ROOT "`c(pwd)'"
+
+. global RAW     "$ROOT/data/raw"
+
+. global FINAL   "$ROOT/data/final"
+
+. global RINT    "$ROOT/data/interim/revisao"
+
+. global RTAB    "$ROOT/output/revisao/tables"
+
+. global RFIG    "$ROOT/output/revisao/figures"
+
+. global RLOG    "$ROOT/output/revisao/logs"
+
+. global RCAP    "$ROOT/output/revisao/logs/captions"
+
+. global DOCS    "$ROOT/docs"
+
+. foreach d in "$ROOT/data/interim" "$RINT" "$ROOT/output/revisao" "$RTAB" "$RFIG" "$RLOG" "$RCAP" {
+  2.     capture mkdir "`d'"
+  3. }
+
+. * pacotes comunitarios do projeto (instalados por 00_instala.do)
+. sysdir set PLUS "$ROOT/ado/plus"
+
+. adopath ++ "$ROOT/ado/plus"
+  [1]              "C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/ado/plus"
+  [2]  (BASE)      "C:\Program Files\Stata17\ado\base/"
+  [3]  (SITE)      "C:\Program Files\Stata17\ado\site/"
+  [4]              "."
+  [5]  (PERSONAL)  "C:\Users\Usuario\ado\personal/"
+  [6]  (PLUS)      "C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/ado/plus/"
+  [7]  (OLDPLACE)  "c:\ado/"
+
+. foreach c in reghdfe ftools ivreghdfe ivreg2 ranktest xtscc xtabond2 xtdpdgmm xtdpdbc boottest rwolf2 ///
+>     weakivtest weakiv twostepweakiv xthenreg xthreg interflex xtpmg xtdcce2 xtcd2 bma wals estout coefplot {
+  2.     capture which `c'
+  3.     if _rc {
+  4.         di as error "pacote ausente: `c' (rodar code/revisao/00_instala.do)"
+  5.         exit 199
+  6.     }
+  7. }
+
+. 
+. * ---------------------------------------------------------------- estilo grafico (impressao em preto e branco)
+. set scheme plotplain
+
+. graph set window fontface "Arial"
+
+. graph set ps fontface "Arial"
+
+. global GOPT "graphregion(color(white) margin(small)) plotregion(color(white) lcolor(none)) ylabel(, nogrid labsize(8pt) angle(horizontal)) xlabel(, labsize(8pt)) legend(size(8pt) region(lcolor(none)
+> ))"
+
+. * defasagem maxima de Driscoll-Kraay usada em todo o painel anual (T = 28: floor(4 (28/100)^(2/9)) = 3)
+. global DKLAG 3
+
+. 
+. * ---------------------------------------------------------------- registro chave-valor (numeros do relatorio)
+. * rv_kv chave valor  -> acrescenta "chave,valor" em $RINT/kv.csv (lido pelos relatorios; nada e digitado)
+. capture program drop rv_kv
+
+. program define rv_kv
+  1.     args key val
+  2.     tempname F
+  3.     capture confirm file "$RINT/kv.csv"
+  4.     if _rc {
+  5.         file open `F' using "$RINT/kv.csv", write text replace
+  6.         file write `F' "key,value" _n
+  7.     }
+  8.     else file open `F' using "$RINT/kv.csv", write text append
+  9.     file write `F' `"`key',`val'"' _n
+ 10.     file close `F'
+ 11. end
+
+. 
+. * ---------------------------------------------------------------- filtros de tendencia do log do PIB real
+. * Hamilton (2018): tendencia em t = projecao de y_t em y_{t-H}, ..., y_{t-H-k+1} (por pais; predeterminada)
+. capture program drop rv_hamilton
+
+. program define rv_hamilton
+  1.     syntax varname, gen(name) [H(integer 2) K(integer 2) minobs(integer 10)]
+  2.     quietly gen double `gen' = .
+  3.     quietly levelsof id, local(ids)
+  4.     local last = `h' + `k' - 1
+  5.     foreach i of local ids {
+  6.         capture quietly regress `varlist' L(`h'/`last').`varlist' if id == `i'
+  7.         if !_rc & e(N) >= `minobs' {
+  8.             tempvar p
+  9.             quietly predict double `p' if id == `i' & e(sample), xb
+ 10.             quietly replace `gen' = `p' if id == `i'
+ 11.             drop `p'
+ 12.         }
+ 13.     }
+ 14. end
+
+. 
+. * HP unilateral (recursivo): para cada t, HP(lambda) na janela [inicio, t] e guarda so o ultimo ponto
+. capture program drop rv_hp1s
+
+. program define rv_hp1s
+  1.     syntax varname, gen(name) [lambda(real 6.25) minobs(integer 8)]
+  2.     quietly gen double `gen' = .
+  3.     sort id year
+  4.     mata: _hp1s("`varlist'", "id", "`gen'", `lambda', `minobs')
+  5. end
+
+. mata:
+------------------------------------------------- mata (type end to exit) ------------------------------------------------------------------------------------------------------------------------------
+: void _hp1s(string scalar yv, string scalar idv, string scalar outv, real scalar lambda, real scalar minT)
+> {
+>     real colvector y, id, out, sel, ys, tr
+>     real scalar i, n, t, T
+>     real matrix D, A
+>     y = st_data(., yv)
+>     id = st_data(., idv)
+>     out = J(rows(y), 1, .)
+>     for (i = min(id); i <= max(id); i++) {
+>         sel = selectindex((id :== i) :& (y :< .))
+>         T = rows(sel)
+>         if (T < minT) continue
+>         for (t = minT; t <= T; t++) {
+>             ys = y[sel[1..t]]
+>             D = J(t - 2, t, 0)
+>             for (n = 1; n <= t - 2; n++) D[n, (n, n + 1, n + 2)] = (1, -2, 1)
+>             A = I(t) + lambda * D' * D
+>             tr = lusolve(A, ys)
+>             out[sel[t]] = tr[t]
+>         }
+>     }
+>     st_store(., outv, out)
+> }
+
+: end
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+. 
+. * HP bilateral (mesmo do draft 7), para comparacao
+. capture program drop rv_hp2s
+
+. program define rv_hp2s
+  1.     syntax varname, gen(name) [lambda(real 6.25) minobs(integer 8)]
+  2.     quietly gen double `gen' = .
+  3.     sort id year
+  4.     mata: _hp2s("`varlist'", "id", "`gen'", `lambda', `minobs')
+  5. end
+
+. mata:
+------------------------------------------------- mata (type end to exit) ------------------------------------------------------------------------------------------------------------------------------
+: void _hp2s(string scalar yv, string scalar idv, string scalar outv, real scalar lambda, real scalar minT)
+> {
+>     real colvector y, id, out, sel, ys
+>     real scalar i, n, T
+>     real matrix D, A
+>     y = st_data(., yv)
+>     id = st_data(., idv)
+>     out = J(rows(y), 1, .)
+>     for (i = min(id); i <= max(id); i++) {
+>         sel = selectindex((id :== i) :& (y :< .))
+>         T = rows(sel)
+>         if (T < minT) continue
+>         ys = y[sel]
+>         D = J(T - 2, T, 0)
+>         for (n = 1; n <= T - 2; n++) D[n, (n, n + 1, n + 2)] = (1, -2, 1)
+>         A = I(T) + lambda * D' * D
+>         out[sel] = lusolve(A, ys)
+>     }
+>     st_store(., outv, out)
+> }
+
+: end
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+. 
+. * ---------------------------------------------------------------- tabelas (grade em Mata -> .tex booktabs e .docx)
+. * rv_new, ncol() head1() head2()       zera a grade
+. * rv_row "rotulo" "c1" "c2" ...        linha livre
+. * rv_mid                               linha horizontal apos a ultima linha
+. * rv_bse "rotulo" b se p [b se p ...]  coeficiente com estrelas e EP abaixo (p = . -> normal)
+. * rv_estrow "rotulo", models() vars()  coeficientes de estimativas guardadas (uma variavel por modelo ou uma so)
+. * rv_stat "rotulo", models() stat() [fmt()]
+. * rv_out arquivo, title() notes() [landscape]
+. capture program drop rv_new
+
+. program define rv_new
+  1.     syntax , ncol(integer) [head1(string asis) head2(string asis) head3(string asis)]
+  2.     mata: RV = J(0, `ncol' + 1, ""); RVH = J(0, `ncol' + 1, ""); RVMID = J(0, 1, .)
+  3.     if `"`head1'"' != "" mata: RVH = RVH \ ("" , _rvuntok(tokens(`"`head1'"')))
+  4.     if `"`head2'"' != "" mata: RVH = RVH \ ("" , _rvuntok(tokens(`"`head2'"')))
+  5.     if `"`head3'"' != "" mata: RVH = RVH \ ("" , _rvuntok(tokens(`"`head3'"')))
+  6. end
+
+. 
+. capture program drop rv_row
+
+. program define rv_row
+  1.     gettoken lab rest : 0
+  2.     local cells ""
+  3.     while `"`rest'"' != "" {
+  4.         gettoken c rest : rest
+  5.         local cells `"`cells' `"`c'"'"'
+  6.     }
+  7.     mata: _rvadd(`"`lab'"', `"`cells'"')
+  8. end
+
+. 
+. capture program drop rv_mid
+
+. program define rv_mid
+  1.     mata: RVMID = RVMID \ rows(RV)
+  2. end
+
+. 
+. * formatacao de numero: sinal de menos U+2212, 3 casas (ou fmt), estrelas por p
+. capture program drop rv_fmt
+
+. program define rv_fmt, rclass
+  1.     args x fmt p
+  2.     if "`fmt'" == "" local fmt "%12.3f"
+  3.     if missing(`x') {
+  4.         return local s ""
+  5.         exit
+  6.     }
+  7.     local s : display `fmt' `x'
+  8.     local s = strtrim("`s'")
+  9.     if substr("`s'", 1, 1) == "-" local s = uchar(8722) + substr("`s'", 2, .)
+ 10.     if "`p'" != "" & "`p'" != "." {
+ 11.         if `p' < 0.01 local s "`s'***"
+ 12.         else if `p' < 0.05 local s "`s'**"
+ 13.         else if `p' < 0.10 local s "`s'*"
+ 14.     }
+ 15.     return local s "`s'"
+ 16. end
+
+. 
+. capture program drop rv_bse
+
+. program define rv_bse
+  1.     gettoken lab rest : 0
+  2.     local brow ""
+  3.     local srow ""
+  4.     while `"`rest'"' != "" {
+  5.         gettoken b rest : rest
+  6.         gettoken se rest : rest
+  7.         gettoken p rest : rest
+  8.         if "`b'" == "" | "`b'" == "." {
+  9.             local brow `"`brow' """'
+ 10.             local srow `"`srow' """'
+ 11.             continue
+ 12.         }
+ 13.         if "`p'" == "." | "`p'" == "" local p = 2 * normal(-abs(`b' / `se'))
+ 14.         rv_fmt `b' %12.3f `p'
+ 15.         local bs "`r(s)'"
+ 16.         rv_fmt `se' %12.3f
+ 17.         local ss "(`r(s)')"
+ 18.         local brow `"`brow' "`bs'""'
+ 19.         local srow `"`srow' "`ss'""'
+ 20.     }
+ 21.     mata: _rvadd(`"`lab'"', `"`brow'"')
+ 22.     mata: _rvadd("", `"`srow'"')
+ 23. end
+
+. 
+. capture program drop rv_estrow
+
+. program define rv_estrow
+  1.     * rv_estrow "rotulo", models(m1 m2) vars(v) [noserow]
+.     gettoken lab 0 : 0, parse(",")
+  2.     syntax , models(string) vars(string) [noSErow dfnormal]
+  3.     local nm : word count `models'
+  4.     local nv : word count `vars'
+  5.     local brow ""
+  6.     local srow ""
+  7.     forvalues j = 1/`nm' {
+  8.         local m : word `j' of `models'
+  9.         local v : word `=cond(`nv' == 1, 1, `j')' of `vars'
+ 10.         if "`m'" == "." | "`v'" == "." {
+ 11.             local brow `"`brow' """'
+ 12.             local srow `"`srow' """'
+ 13.             continue
+ 14.         }
+ 15.         quietly estimates restore `m'
+ 16.         local cn : colnames e(b)
+ 17.         local found : list v in cn
+ 18.         capture local b = _b[`v']
+ 19.         if _rc | !`found' {
+ 20.             local brow `"`brow' """'
+ 21.             local srow `"`srow' """'
+ 22.             continue
+ 23.         }
+ 24.         local se = _se[`v']
+ 25.         if `se' == 0 | missing(`se') {
+ 26.             local brow `"`brow' """'
+ 27.             local srow `"`srow' """'
+ 28.             continue
+ 29.         }
+ 30.         local df = e(df_r)
+ 31.         if missing(`df') | "`dfnormal'" != "" local p = 2 * normal(-abs(`b' / `se'))
+ 32.         else local p = 2 * ttail(`df', abs(`b' / `se'))
+ 33.         rv_fmt `b' %12.3f `p'
+ 34.         local brow `"`brow' "`r(s)'""'
+ 35.         rv_fmt `se' %12.3f
+ 36.         local srow `"`srow' "(`r(s)')""'
+ 37.     }
+ 38.     mata: _rvadd(`"`lab'"', `"`brow'"')
+ 39.     if "`serow'" != "noserow" mata: _rvadd("", `"`srow'"')
+ 40. end
+
+. 
+. capture program drop rv_stat
+
+. program define rv_stat
+  1.     gettoken lab 0 : 0, parse(",")
+  2.     syntax , models(string) stat(string) [fmt(string)]
+  3.     if "`fmt'" == "" local fmt "%12.0fc"
+  4.     local row ""
+  5.     foreach m of local models {
+  6.         if "`m'" == "." {
+  7.             local row `"`row' """'
+  8.             continue
+  9.         }
+ 10.         quietly estimates restore `m'
+ 11.         local x = e(`stat')
+ 12.         rv_fmt `x' `fmt'
+ 13.         local row `"`row' "`r(s)'""'
+ 14.     }
+ 15.     mata: _rvadd(`"`lab'"', `"`row'"')
+ 16. end
+
+. 
+. capture program drop rv_out
+
+. program define rv_out
+  1.     syntax anything(name=fname), title(string) [notes(string) landscape]
+  2.     local fname `fname'
+  3.     mata: _rvtex("$RTAB/`fname'.tex", `"`title'"', `"`notes'"', "`fname'")
+  4.     mata: st_local("nr", strofreal(rows(RVH) + rows(RV))); st_local("nc", strofreal(cols(RV)))
+  5.     putdocx clear
+  6.     putdocx begin, pagesize(A4) `=cond("`landscape'" != "", "landscape", "")' font("Times New Roman", 9)
+  7.     putdocx paragraph, spacing(after, 4pt)
+  8.     putdocx text (`"`title'"'), bold
+  9.     putdocx table T = (`nr', `nc'), border(all, nil) border(top, single) border(bottom, single) layout(autofitcontents)
+ 10.     mata: _rvdocx()
+ 11.     if `"`notes'"' != "" {
+ 12.         putdocx paragraph, spacing(before, 4pt)
+ 13.         putdocx text ("Notes: "), italic font("Times New Roman", 8)
+ 14.         putdocx text (`"`notes'"'), font("Times New Roman", 8)
+ 15.     }
+ 16.     putdocx save "$RTAB/`fname'.docx", replace
+ 17.     tempname C
+ 18.     file open `C' using "$RCAP/`fname'.txt", write replace text
+ 19.     file write `C' `"`title'"' _n `"`notes'"' _n
+ 20.     file close `C'
+ 21.     di as text "tabela gravada: $RTAB/`fname'.{tex,docx}"
+ 22. end
+
+. 
+. mata:
+------------------------------------------------- mata (type end to exit) ------------------------------------------------------------------------------------------------------------------------------
+: string rowvector _rvuntok(string rowvector t)
+> {
+>     real scalar i
+>     string scalar x
+>     for (i = 1; i <= cols(t); i++) {
+>         x = t[i]
+>         if (substr(x, 1, 2) == char(96) + char(34) & substr(x, -2, 2) == char(34) + char(39)) x = substr(x, 3, strlen(x) - 4)
+>         else if (substr(x, 1, 1) == char(34) & substr(x, -1, 1) == char(34)) x = substr(x, 2, strlen(x) - 2)
+>         t[i] = x
+>     }
+>     return(t)
+> }
+
+: void _rvadd(string scalar lab, string scalar cells)
+> {
+>     external string matrix RV
+>     string rowvector c
+>     real scalar k
+>     c = _rvuntok(tokens(cells))
+>     k = cols(RV) - 1
+>     if (cols(c) == 0) c = J(1, k, "")
+>     if (cols(c) < k) c = c, J(1, k - cols(c), "")
+>     RV = RV \ (lab, c[1..k])
+> }
+
+: string scalar _rvesc(string scalar s, | real scalar nostars)
+> {
+>     string scalar r
+>     r = subinstr(s, "\", "\textbackslash{}")
+>     r = subinstr(r, "%", "\%")
+>     r = subinstr(r, "&", "\&")
+>     r = subinstr(r, "_", "\_")
+>     r = subinstr(r, "#", "\#")
+>     r = subinstr(r, uchar(8722), "$-$")
+>     r = subinstr(r, uchar(215), "$\times$")
+>     r = subinstr(r, uchar(8211), "--")
+>     r = subinstr(r, "R2", "\$R^2\$")
+>     if (nostars == 1) return(r)
+>     if (strpos(r, "***")) r = subinstr(r, "***", "\sym{***}")
+>     else if (strpos(r, "**")) r = subinstr(r, "**", "\sym{**}")
+>     else if (strpos(r, "*")) r = subinstr(r, "*", "\sym{*}")
+>     return(r)
+> }
+
+: void _rvtex(string scalar fn, string scalar title, string scalar notes, string scalar lbl)
+> {
+>     external string matrix RV, RVH
+>     external real colvector RVMID
+>     real scalar fh, i, j, k
+>     string scalar line
+>     k = cols(RV)
+>     if (fileexists(fn)) unlink(fn)
+>     fh = fopen(fn, "w")
+>     fput(fh, "% generated by code/revisao (Stata 17) -- do not edit by hand")
+>     fput(fh, "\begin{table}[htbp]\centering\footnotesize")
+>     fput(fh, "\providecommand{\sym}[1]{\ensuremath{^{#1}}}")
+>     fput(fh, "\caption{" + _rvesc(title, 1) + "}\label{tab:" + lbl + "}")
+>     fput(fh, "\begin{tabular}{l*{" + strofreal(k - 1) + "}{c}}")
+>     fput(fh, "\toprule")
+>     for (i = 1; i <= rows(RVH); i++) {
+>         line = _rvesc(RVH[i, 1], 1)
+>         for (j = 2; j <= k; j++) line = line + " & " + _rvesc(RVH[i, j], 1)
+>         fput(fh, line + " \\")
+>     }
+>     if (rows(RVH) > 0) fput(fh, "\midrule")
+>     for (i = 1; i <= rows(RV); i++) {
+>         line = _rvesc(RV[i, 1], 1)
+>         for (j = 2; j <= k; j++) line = line + " & " + _rvesc(RV[i, j])
+>         fput(fh, line + " \\")
+>         if (anyof(RVMID, i)) fput(fh, "\midrule")
+>     }
+>     fput(fh, "\bottomrule")
+>     fput(fh, "\end{tabular}")
+>     if (notes != "") fput(fh, "\begin{minipage}{0.95\linewidth}\vspace{4pt}\scriptsize \textit{Notes:} " + _rvesc(notes, 1) + "\end{minipage}")
+>     fput(fh, "\end{table}")
+>     fclose(fh)
+> }
+
+: void _rvdocx()
+> {
+>     external string matrix RV, RVH
+>     external real colvector RVMID
+>     real scalar i, j, h
+>     string scalar cmd, txt
+>     h = rows(RVH)
+>     for (i = 1; i <= h + rows(RV); i++) {
+>         for (j = 1; j <= cols(RV); j++) {
+>             txt = (i <= h ? RVH[i, j] : RV[i - h, j])
+>             if (txt == "") continue
+>             txt = subinstr(txt, char(34), "'")
+>             txt = subinstr(txt, "R2", "R" + uchar(178))
+>             cmd = "putdocx table T(" + strofreal(i) + "," + strofreal(j) + ") = (" + char(96) + char(34) + txt + char(34) + char(39) + ")"
+>             if (j > 1) cmd = cmd + ", halign(center)"
+>             stata(cmd)
+>         }
+>         if (i == h & h > 0) stata("putdocx table T(" + strofreal(i) + ",.), border(bottom, single)")
+>         if (i > h) {
+>             if (anyof(RVMID, i - h)) stata("putdocx table T(" + strofreal(i) + ",.), border(bottom, single)")
+>         }
+>     }
+> }
+
+: end
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+. 
+. * ---------------------------------------------------------------- figuras
+. capture program drop rv_fig
+
+. program define rv_fig
+  1.     * rv_fig nome, width(90|190) height(mm): PDF vetorial e PNG a 600 dpi
+.     syntax anything(name=fname), width(integer) height(integer)
+  2.     local fname `fname'
+  3.     local win = `width' / 25.4
+  4.     local hin = `height' / 25.4
+  5.     graph display, xsize(`win') ysize(`hin')
+  6.     graph export "$RFIG/`fname'.pdf", replace
+  7.     graph export "$RFIG/`fname'.png", replace width(`=round(`win' * 600)')
+  8.     di as text "figura gravada: $RFIG/`fname'.{pdf,png} (`width' x `height' mm)"
+  9. end
+
+. 
+. * ---------------------------------------------------------------- wild cluster bootstrap padronizado
+. * rv_boot var [, reps(9999) weight(webb)]: depois de reghdfe/regress com vce(cluster id); devolve r(p), r(lo), r(hi)
+. capture program drop rv_boot
+
+. program define rv_boot, rclass
+  1.     syntax anything(name=v) [, reps(integer 9999) weight(string)]
+  2.     if "`weight'" == "" local weight "webb"
+  3.     quietly boottest `v', reps(`reps') weighttype(`weight') seed(20261017) nograph
+  4.     return scalar p = r(p)
+  5.     capture matrix CI = r(CI)
+  6.     if !_rc {
+  7.         return scalar lo = CI[1, 1]
+  8.         return scalar hi = CI[1, 2]
+  9.     }
+ 10. end
+
+. 
+end of do-file
+
+. capture log close
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/logs/11_longo_prazo.log
+  log type:  text
+ opened on:  17 Oct 2026, 17:03:26
+
+. 
+. * =====================================================================================
+. * C. Teste CD de Pesaran nos residuos dos modelos anuais da Tabela 1
+. * =====================================================================================
+. use "$RINT/anual_rv.dta", clear
+
+. keep if micro == 0 & inrange(year, 1995, 2023)
+(5,766 observations deleted)
+
+. xtset id year
+
+Panel variable: id (strongly balanced)
+ Time variable: year, 1995 to 2023
+         Delta: 1 unit
+
+. gen wb_l1 = L.wb
+(3,021 missing values generated)
+
+. gen g_l1 = L.g
+(275 missing values generated)
+
+. gen lny_l1 = L.lny
+(269 missing values generated)
+
+. keep if year >= 1996
+(168 observations deleted)
+
+. tempname C
+
+. postfile `C' str10 m double(cd p) long(N) using "$RINT/cdtest.dta", replace
+
+. foreach v in wb wb_ham wb_l1 {
+  2.     quietly reghdfe g `v' g_l1 lny_l1 hc inv open infl popg ctot_g, absorb(id year) resid(r_`v')
+  3.     local NN = e(N)
+  4.     capture noisily xtcd2 r_`v'
+  5.     if !_rc {
+  6.         * r(CD) e r(p) podem ser escalares ou matrizes (CD, CDw, CDw+, CD*), conforme a versao do xtcd2
+.         tempname CDm Pm
+  7.         capture matrix `CDm' = r(CD)
+  8.         if _rc matrix `CDm' = (r(CD))
+  9.         capture matrix `Pm' = r(p)
+ 10.         if _rc matrix `Pm' = (r(p))
+ 11.         local cdv = `CDm'[1, 1]
+ 12.         local cdp = `Pm'[1, 1]
+ 13.         post `C' ("`v'") (`cdv') (`cdp') (`NN')
+ 14.         rv_kv cd_`v' `=string(`cdv', "%6.2f")'
+ 15.         rv_kv cd_`v'_p `=string(`cdp', "%6.3f")'
+ 16.     }
+ 17. }
+Unbalanced panel detected, test adjusted.
+
+Testing for weak cross-sectional dependence (CSD)
+   H0: weak cross-section dependence
+   H1: strong cross-section dependence
+------------------------------------------------------------------------
+               |    CD            CDw           CDw+          CD*
+---------------+--------------------------------------------------------
+r_wb           |    -0.25       -0.04       2084.89         -0.44
+               |  (0.802)     (0.971)       (0.000)       (0.663)
+------------------------------------------------------------------------
+p-values in parenthesis.
+References
+  CD:        Pesaran (2015, 2021)
+  CDw:       Juodis, Reese (2021)
+  CDw+:      CDw with power enhancement from Fan et al. (2015)
+  CD*:       Pesaran, Xie (2021) with 4 PC(s)
+Unbalanced panel detected, test adjusted.
+
+Testing for weak cross-sectional dependence (CSD)
+   H0: weak cross-section dependence
+   H1: strong cross-section dependence
+------------------------------------------------------------------------
+               |    CD            CDw           CDw+          CD*
+---------------+--------------------------------------------------------
+r_wb_ham       |    -0.29       -0.38       2047.37         -0.23
+               |  (0.771)     (0.703)       (0.000)       (0.821)
+------------------------------------------------------------------------
+p-values in parenthesis.
+References
+  CD:        Pesaran (2015, 2021)
+  CDw:       Juodis, Reese (2021)
+  CDw+:      CDw with power enhancement from Fan et al. (2015)
+  CD*:       Pesaran, Xie (2021) with 4 PC(s)
+Unbalanced panel detected, test adjusted.
+
+Testing for weak cross-sectional dependence (CSD)
+   H0: weak cross-section dependence
+   H1: strong cross-section dependence
+------------------------------------------------------------------------
+               |    CD            CDw           CDw+          CD*
+---------------+--------------------------------------------------------
+r_wb_l1        |    -0.20       -0.53       2022.22         -0.30
+               |  (0.840)     (0.595)       (0.000)       (0.765)
+------------------------------------------------------------------------
+p-values in parenthesis.
+References
+  CD:        Pesaran (2015, 2021)
+  CDw:       Juodis, Reese (2021)
+  CDw+:      CDw with power enhancement from Fan et al. (2015)
+  CD*:       Pesaran, Xie (2021) with 4 PC(s)
+
+. postclose `C'
+
+. 
+. * =====================================================================================
+. * Tabela suplementar: Bond e longo prazo
+. * =====================================================================================
+. use "$RINT/bond.dta", clear
+
+. list, noobs sep(4)
+
+  +--------------------------------------------------------------------------+
+  |   tim   est          rho       serho            b          se     N   nc |
+  |--------------------------------------------------------------------------|
+  | draft   ols    .22248303   .06612336   -.06560364   .04019514   288   54 |
+  | draft    fe   -.04413921   .06243599   -.18604602   .09117126   288   54 |
+  | draft   gmm    .27644269   .20758763   -.53224691    .3336041   288   54 |
+  | draft    bc    .15269035   .06619782   -.19494427   .09366788   288   54 |
+  |--------------------------------------------------------------------------|
+  |    T3   ols    .35872923    .0563121   -.07342291   .03894735   306   57 |
+  |    T3    fe    .25388262   .06184075   -.10253954   .07526479   306   57 |
+  |    T3   gmm    .44456988   .10788606    .15768247   .21942529   306   57 |
+  |    T3    bc    .53072528    .1140154   -.09883827   .07295964   306   57 |
+  +--------------------------------------------------------------------------+
+
+. rv_new, ncol(8) head1("Draft-7 timing (t_p)" "" "" "" "T3 timing (t_p − 1)" "" "" "") ///
+>     head2("Pooled OLS" "Fixed effects" "System GMM" "BC-FE" "Pooled OLS" "Fixed effects" "System GMM" "BC-FE")
+
+. foreach row in rho b {
+  2.     local cb ""
+  3.     local cs ""
+  4.     foreach tim in draft T3 {
+  5.         foreach est in ols fe gmm bc {
+  6.             quietly summ `row' if tim == "`tim'" & est == "`est'"
+  7.             local b = r(mean)
+  8.             quietly summ se`=cond("`row'" == "rho", "rho", "")' if tim == "`tim'" & est == "`est'"
+  9.             local se = r(mean)
+ 10.             rv_fmt `b' %12.3f `=2 * normal(-abs(`b' / `se'))'
+ 11.             local cb `"`cb' "`r(s)'""'
+ 12.             rv_fmt `se' %12.3f
+ 13.             local cs `"`cs' "(`r(s)')""'
+ 14.         }
+ 15.     }
+ 16.     rv_row "`=cond("`row'" == "rho", "Lagged growth (previous period)", "Wage bill (% of GDP)")'" `cb'
+ 17.     rv_row "" `cs'
+ 18. }
+
+. local cok ""
+
+. foreach tim in draft T3 {
+  2.     foreach k in ols fe gmm bc {
+  3.         quietly summ rho if tim == "`tim'" & est == "`k'"
+  4.         local r_`k' = r(mean)
+  5.     }
+  6.     local ok1 = cond(`r_gmm' <= `r_ols' & `r_gmm' >= `r_fe', "Yes", "No")
+  7.     local ok2 = cond(`r_bc' <= `r_ols' & `r_bc' >= `r_fe', "Yes", "No")
+  8.     local cok `"`cok' "" "" "`ok1'" "`ok2'""'
+  9. }
+
+. rv_row "Lagged growth within the [FE, OLS] bounds" `cok'
+
+. local cn ""
+
+. local cc ""
+
+. foreach tim in draft T3 {
+  2.     foreach est in ols fe gmm bc {
+  3.         quietly summ N if tim == "`tim'" & est == "`est'"
+  4.         local cn `"`cn' "`=string(r(mean), "%9.0fc")'""'
+  5.         quietly summ nc if tim == "`tim'" & est == "`est'"
+  6.         local cc `"`cc' "`=r(mean)'""'
+  7.     }
+  8. }
+
+. rv_row "Observations (common sample)" `cn'
+
+. rv_row "Countries" `cc'
+
+. rv_mid
+
+. use "$RINT/longo.dta", clear
+
+. list, noobs sepby(w)
+
+  +--------------------------------------------------------+
+  |   w        m            b          se      N   ng   hp |
+  |--------------------------------------------------------|
+  | wbL      pmg   -.44352657   .08414389   1134   43    . |
+  | wbL       mg    1.1840509   .95362733   1134   43    . |
+  | wbL      dfe   -.06168877    .1423884   1134   43    . |
+  | wbL    ccemg     1.177625   .32712731   1135   43    . |
+  | wbL   csardl    .99716187   .30899602   1135   43    . |
+  | wbL     csdl    .45378481   .34425951   1042   43    . |
+  |--------------------------------------------------------|
+  | wbH      pmg    -.1740339   .09624283   1134   43    . |
+  | wbH       mg    .26427678   .31384258   1134   43    . |
+  | wbH      dfe    .09548182   .14427685   1134   43    . |
+  | wbH    ccemg   -.31799055   .29821316   1135   43    . |
+  | wbH   csardl   -.57764168   .40011486   1135   43    . |
+  | wbH     csdl    .06085873   .33068016   1042   43    . |
+  +--------------------------------------------------------+
+
+. rv_row "Long-run coefficient of the lagged wage bill (annual)" "PMG" "MG" "DFE" "CCE-MG" "CS-ARDL(1,1)" "CS-DL" ""
+
+. foreach W in wbL wbH {
+  2.     local cb ""
+  3.     local cs ""
+  4.     foreach m in pmg mg dfe ccemg csardl csdl {
+  5.         quietly summ b if w == "`W'" & m == "`m'"
+  6.         if r(N) == 0 {
+  7.             local cb `"`cb' "n.a.""'
+  8.             local cs `"`cs' """'
+  9.             continue
+ 10.         }
+ 11.         local b = r(mean)
+ 12.         quietly summ se if w == "`W'" & m == "`m'"
+ 13.         local se = r(mean)
+ 14.         rv_fmt `b' %12.3f `=2 * normal(-abs(`b' / `se'))'
+ 15.         local cb `"`cb' "`r(s)'""'
+ 16.         rv_fmt `se' %12.3f
+ 17.         local cs `"`cs' "(`r(s)')""'
+ 18.     }
+ 19.     rv_row "`=cond("`W'" == "wbL", "Wage bill, % of GDP, t − 1", "Wage bill, % of trend GDP (Hamilton), t − 1")'" `cb' ""
+ 20.     rv_row "" `cs' ""
+ 21. }
+
+. quietly summ ng if m == "pmg"
+
+. local ngp = r(mean)
+
+. import delimited "$RINT/kv.csv", clear varnames(1) stringcols(_all)
+(encoding automatically selected: ISO-8859-1)
+(2 vars, 1,189 obs)
+
+. foreach k in lr_wbL_hausman lr_wbH_hausman cd_wb cd_wb_p cd_wb_l1 cd_wb_l1_p bond_draft_N bond_T3_N {
+  2.     quietly levelsof value if key == "`k'", local(`k') clean
+  3.     local `k' : word 1 of ``k''
+  4. }
+
+. rv_out TabS_bond_longrun, landscape ///
+>     title("Table S11. Bond check on a common sample and long-run estimators") ///
+>     notes("Upper panel: five-year averages; the four estimators use the same country-periods (intersection of their own samples: `bond_draft_N' observations with the draft-7 timing and `bond_T3_N' w
+> ith T3). The difference in countries between system GMM and fixed effects in the draft came from 15 countries with a single observation (singletons), which fixed effects drop and pooled OLS and syst
+> em GMM keep. Pooled OLS (clustered SE), fixed effects with country and period effects (clustered SE), two-step system GMM with collapsed instruments and Windmeijer-corrected SE, and the bias-correct
+> ed fixed-effects estimator of Breitung, Kripfganz and Hayakawa (2022) with robust SE, which assumes the regressors other than lagged growth are strictly exogenous. A consistent estimator of the coef
+> ficient of lagged growth should lie between the fixed-effects (downward-biased) and pooled OLS (upward-biased) estimates. Lower panel: annual panel 1996–2023, countries with at least 20 complete ann
+> ual observations; ARDL models of growth on the lagged wage bill, investment, openness, inflation and population growth. PMG (common long run), MG and DFE estimated with xtpmg; Hausman test of PMG ag
+> ainst MG: p = `lr_wbL_hausman' (% of GDP) and `lr_wbH_hausman' (% of trend GDP). CCE-MG (static), CS-ARDL(1,1) and CS-DL (xtdcce2) add cross-sectional averages (Pesaran, 2006; Chudik et al., 2016). 
+> Pesaran CD statistic on the residuals of the annual models of Table 1: `cd_wb' (p = `cd_wb_p') with the contemporaneous ratio and `cd_wb_l1' (p = `cd_wb_l1_p') with the lagged ratio. * p<0.10, ** p<
+> 0.05, *** p<0.01.")
+successfully created "C:/Users/Usuario/Dropbox/Papers/Emprego Público e Crescimento/Estimações/output/revisao/tables/TabS_bond_longrun.docx"
+(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/logs/captions/TabS_bond_longrun.txt not found)
+tabela gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/tables/TabS_bond_longrun.{tex,docx}
+
+. 
+. log close
+      name:  <unnamed>
+       log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/logs/11_longo_prazo.log
+  log type:  text
+ closed on:  17 Oct 2026, 17:03:31
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
