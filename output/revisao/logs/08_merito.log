@@ -1,0 +1,1131 @@
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/logs/08_merito.log
+  log type:  text
+ opened on:  17 Oct 2026, 16:50:56
+
+. 
+. global XP "lny0 hc_m1 inv_m1 open_m1 infl_m1 popg_m1 ctot_g_m1"
+
+. 
+. use "$RINT/p5_rv.dta", clear
+
+. keep if micro == 0
+(261 observations deleted)
+
+. xtset id period
+
+Panel variable: id (strongly balanced)
+ Time variable: period, 0 to 8
+         Delta: 1 unit
+
+. * amostra de estimacao e centragem do merito em t_p - 1 na media dessa amostra
+. gen byte sM = !missing(g, wb_m1, merit_m1, lny0, hc_m1, inv_m1, open_m1, infl_m1, popg_m1, ctot_g_m1)
+
+. quietly reghdfe g wb_m1 merit_m1 $XP i.period if sM, absorb(id) vce(cluster id)
+
+. replace sM = e(sample)
+(14 real changes made)
+
+. quietly summ merit_m1 if sM
+
+. local mbar = r(mean)
+
+. rv_kv h3_merit_mean `=string(`mbar', "%6.3f")'
+
+. gen meritc = merit_m1 - `mbar'
+(124 missing values generated)
+
+. gen wbxm = wb_m1 * meritc
+(1,103 missing values generated)
+
+. _pctile meritc if sM, p(10 90)
+
+. local q10 = r(r1)
+
+. local q90 = r(r2)
+
+. rv_kv h3_q10 `=string(`q10' + `mbar', "%6.3f")'
+
+. rv_kv h3_q90 `=string(`q90' + `mbar', "%6.3f")'
+
+. 
+. * ---------------------------------------------------------------- interacao linear (especificacao preferida de H3)
+. reghdfe g wb_m1 meritc wbxm $XP i.period if sM, absorb(id) vce(cluster id)
+(MWFE estimator converged in 1 iterations)
+
+HDFE Linear regression                            Number of obs   =        350
+Absorbing 1 HDFE group                            F(  18,     67) =      19.71
+Statistics robust to heteroskedasticity           Prob > F        =     0.0000
+                                                  R-squared       =     0.7083
+                                                  Adj R-squared   =     0.6144
+                                                  Within R-sq.    =     0.5694
+Number of clusters (id)      =         68         Root MSE        =     1.3252
+
+                                    (Std. err. adjusted for 68 clusters in id)
+------------------------------------------------------------------------------
+             |               Robust
+           g | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+       wb_m1 |  -.1070473   .0543505    -1.97   0.053    -.2155314    .0014368
+      meritc |  -.5095351   .7002323    -0.73   0.469    -1.907205    .8881345
+        wbxm |   .0655741   .0475748     1.38   0.173    -.0293856    .1605337
+        lny0 |  -5.007453   1.030372    -4.86   0.000    -7.064084   -2.950823
+       hc_m1 |   1.357208   1.381111     0.98   0.329    -1.399502    4.113918
+      inv_m1 |  -.0370151   .0309656    -1.20   0.236    -.0988228    .0247926
+     open_m1 |   .0282898   .0096485     2.93   0.005     .0090314    .0475482
+     infl_m1 |  -.0296321   .0060037    -4.94   0.000    -.0416154   -.0176487
+     popg_m1 |  -.5419596   .3531437    -1.53   0.130    -1.246837    .1629182
+   ctot_g_m1 |   .2281587   .0945967     2.41   0.019     .0393428    .4169745
+             |
+      period |
+          1  |   1.082962   .3373256     3.21   0.002     .4096578    1.756267
+          2  |   .2120247    .418674     0.51   0.614    -.6236522    1.047702
+          3  |   1.767147   .5793831     3.05   0.003     .6106935      2.9236
+          4  |   1.054303   .5470959     1.93   0.058    -.0377054    2.146311
+          5  |   2.322357   .5886591     3.95   0.000     1.147389    3.497326
+          6  |  -.1711976   .6289182    -0.27   0.786    -1.426524    1.084128
+          7  |   .8513067   .6684708     1.27   0.207    -.4829666     2.18558
+          8  |   .6051335   .7195348     0.84   0.403     -.831064    2.041331
+             |
+       _cons |   45.34254   7.952747     5.70   0.000     29.46879    61.21629
+------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+          id |        68          68           0    *|
+-----------------------------------------------------+
+* = FE nested within cluster; treated as redundant for DoF computation
+
+. estimates store H3
+
+. local bi = _b[wbxm]
+
+. local sei = _se[wbxm]
+
+. local pi = 2 * ttail(e(df_r), abs(`bi' / `sei'))
+
+. rv_boot wbxm
+
+. local pbi = r(p)
+
+. rv_kv h3_bi `=string(`bi', "%9.4f")'
+
+. rv_kv h3_sei `=string(`sei', "%9.4f")'
+
+. rv_kv h3_pi `=string(`pi', "%9.4f")'
+
+. rv_kv h3_pboot `=string(`pbi', "%9.4f")'
+
+. rv_kv h3_bmain `=string(_b[wb_m1], "%9.4f")'
+
+. rv_kv h3_N `e(N)'
+
+. rv_kv h3_nc `e(N_clust)'
+
+. lincom wb_m1 + `q10' * wbxm
+
+ ( 1)  wb_m1 - 1.421457*wbxm = 0
+
+------------------------------------------------------------------------------
+           g | Coefficient  Std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+         (1) |   -.200258   .0915575    -2.19   0.032    -.3830075   -.0175085
+------------------------------------------------------------------------------
+
+. rv_kv h3_me10 `=string(r(estimate), "%9.4f")'
+
+. lincom wb_m1 + `q90' * wbxm
+
+ ( 1)  wb_m1 + 1.028043*wbxm = 0
+
+------------------------------------------------------------------------------
+           g | Coefficient  Std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+         (1) |  -.0396344   .0687552    -0.58   0.566    -.1768703    .0976015
+------------------------------------------------------------------------------
+
+. rv_kv h3_me90 `=string(r(estimate), "%9.4f")'
+
+. * efeito minimo detectavel (poder de 80%, alfa = 5%, bilateral): (1,96 + 0,84) x EP
+. local mde = (invnormal(0.975) + invnormal(0.80)) * `sei'
+
+. * magnitude economicamente relevante: metade do coeficiente de T3 entre os percentis 10 e 90 do merito
+. estimates use "$RINT/est_T3"
+
+. local bT3 = _b[wb_m1]
+
+. local rel = 0.5 * abs(`bT3') / (`q90' - `q10')
+
+. rv_kv h3_mde `=string(`mde', "%9.4f")'
+
+. rv_kv h3_relevant `=string(`rel', "%9.4f")'
+
+. rv_kv h3_p1090 `=string(`q90' - `q10', "%6.3f")'
+
+. 
+. * ---------------------------------------------------------------- HMX: tercis com teste de Wald de linearidade
+. _pctile meritc if sM, p(33.333 66.667)
+
+. local c1 = r(r1)
+
+. local c2 = r(r2)
+
+. gen byte bin = cond(meritc <= `c1', 1, cond(meritc <= `c2', 2, 3)) if sM
+(1,162 missing values generated)
+
+. tempname B
+
+. postfile `B' int bin double(zmed me se) long(n) using "$RINT/h3_bins.dta", replace
+
+. forvalues k = 1/3 {
+  2.     quietly summ meritc if bin == `k', detail
+  3.     local z`k' = r(p50)
+  4.     gen byte G`k' = bin == `k'
+  5.     gen DG`k' = wb_m1 * G`k'
+  6.     gen ZG`k' = (meritc - `z`k'') * G`k'
+  7.     gen DZG`k' = wb_m1 * (meritc - `z`k'') * G`k'
+  8. }
+(1,094 missing values generated)
+(124 missing values generated)
+(1,103 missing values generated)
+(1,094 missing values generated)
+(124 missing values generated)
+(1,103 missing values generated)
+(1,094 missing values generated)
+(124 missing values generated)
+(1,103 missing values generated)
+
+. * estimador por faixas (um modelo, controles e efeitos fixos comuns): efeito marginal na mediana de cada faixa
+. reghdfe g DG1 DG2 DG3 ZG1 ZG2 ZG3 DZG1 DZG2 DZG3 G2 G3 $XP i.period if sM, absorb(id) vce(cluster id)
+(MWFE estimator converged in 1 iterations)
+
+HDFE Linear regression                            Number of obs   =        350
+Absorbing 1 HDFE group                            F(  26,     67) =      22.93
+Statistics robust to heteroskedasticity           Prob > F        =     0.0000
+                                                  R-squared       =     0.7147
+                                                  Adj R-squared   =     0.6111
+                                                  Within R-sq.    =     0.5788
+Number of clusters (id)      =         68         Root MSE        =     1.3309
+
+                                    (Std. err. adjusted for 68 clusters in id)
+------------------------------------------------------------------------------
+             |               Robust
+           g | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+         DG1 |  -.1817261   .1593976    -1.14   0.258     -.499885    .1364328
+         DG2 |   -.059528     .06538    -0.91   0.366    -.1900269     .070971
+         DG3 |  -.0603299   .0882473    -0.68   0.497    -.2364722    .1158124
+         ZG1 |  -.9943622   1.753121    -0.57   0.572    -4.493605    2.504881
+         ZG2 |   1.084422   1.225476     0.88   0.379    -1.361639    3.530483
+         ZG3 |   3.683158   3.705412     0.99   0.324    -3.712875    11.07919
+        DZG1 |   .1266903   .1535324     0.83   0.412    -.1797616    .4331421
+        DZG2 |  -.0964617   .1277965    -0.75   0.453    -.3515445    .1586211
+        DZG3 |  -.4164029    .298019    -1.40   0.167    -1.011251    .1784456
+          G2 |  -1.627139   2.437564    -0.67   0.507    -6.492536    3.238259
+          G3 |  -.7430316   2.572777    -0.29   0.774    -5.878315    4.392252
+        lny0 |  -5.378495   .8793267    -6.12   0.000    -7.133639   -3.623352
+       hc_m1 |   .8310534   1.299686     0.64   0.525     -1.76313    3.425237
+      inv_m1 |  -.0327898   .0308662    -1.06   0.292    -.0943991    .0288194
+     open_m1 |   .0288701   .0086087     3.35   0.001     .0116872    .0460531
+     infl_m1 |  -.0312429   .0069819    -4.47   0.000    -.0451788   -.0173069
+     popg_m1 |  -.5271017   .3439618    -1.53   0.130    -1.213652    .1594489
+   ctot_g_m1 |   .2243765   .0955051     2.35   0.022     .0337476    .4150055
+             |
+      period |
+          1  |   1.139705   .3173126     3.59   0.001     .5063464    1.773064
+          2  |   .3051765   .4192046     0.73   0.469    -.5315593    1.141912
+          3  |   1.918856   .4604064     4.17   0.000     .9998809    2.837831
+          4  |   1.198409   .5013246     2.39   0.020     .1977611    2.199057
+          5  |   2.519562   .5779335     4.36   0.000     1.366002    3.673122
+          6  |   .1106043   .6392072     0.17   0.863    -1.165259    1.386467
+          7  |   1.237005   .6881119     1.80   0.077    -.1364722    2.610482
+          8  |   1.073921    .755429     1.42   0.160    -.4339212    2.581764
+             |
+       _cons |   50.78754   7.682409     6.61   0.000     35.45339    66.12169
+------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+          id |        68          68           0    *|
+-----------------------------------------------------+
+* = FE nested within cluster; treated as redundant for DoF computation
+
+. estimates store H3_bins
+
+. forvalues k = 1/3 {
+  2.     quietly count if bin == `k'
+  3.     post `B' (`k') (`z`k'' + `mbar') (_b[DG`k']) (_se[DG`k']) (r(N))
+  4.     rv_kv h3_bin`k' `=string(_b[DG`k'], "%9.4f")'
+  5. }
+
+. postclose `B'
+
+. * Wald (HMX): o modelo linear restrito contra o modelo por faixas (termos adicionais das faixas 2 e 3)
+. reghdfe g wb_m1 meritc wbxm G2 G3 DG2 DG3 ZG2 ZG3 DZG2 DZG3 $XP i.period if sM, absorb(id) vce(cluster id)
+(MWFE estimator converged in 1 iterations)
+
+HDFE Linear regression                            Number of obs   =        350
+Absorbing 1 HDFE group                            F(  26,     67) =      22.93
+Statistics robust to heteroskedasticity           Prob > F        =     0.0000
+                                                  R-squared       =     0.7147
+                                                  Adj R-squared   =     0.6111
+                                                  Within R-sq.    =     0.5788
+Number of clusters (id)      =         68         Root MSE        =     1.3309
+
+                                    (Std. err. adjusted for 68 clusters in id)
+------------------------------------------------------------------------------
+             |               Robust
+           g | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+       wb_m1 |  -.0461094   .3054852    -0.15   0.880    -.6558605    .5636416
+      meritc |  -.9943631    1.75312    -0.57   0.572    -4.493606     2.50488
+        wbxm |   .1266904   .1535323     0.83   0.412    -.1797615    .4331422
+          G2 |  -.4398687   3.928309    -0.11   0.911    -8.280805    7.401068
+          G3 |   1.197965    5.10611     0.23   0.815    -8.993873     11.3898
+         DG2 |  -.0290702   .3333926    -0.09   0.931    -.6945246    .6363842
+         DG3 |  -.1259034   .4431792    -0.28   0.777    -1.010493    .7586859
+         ZG2 |   2.078785   2.081924     1.00   0.322    -2.076753    6.234324
+         ZG3 |   4.677521   3.859038     1.21   0.230     -3.02515    12.38019
+        DZG2 |  -.2231521   .1934203    -1.15   0.253    -.6092206    .1629164
+        DZG3 |  -.5430933   .3101119    -1.75   0.084    -1.162079    .0758928
+        lny0 |  -5.378495   .8793267    -6.12   0.000    -7.133639   -3.623352
+       hc_m1 |   .8310533   1.299686     0.64   0.525     -1.76313    3.425237
+      inv_m1 |  -.0327898   .0308662    -1.06   0.292    -.0943991    .0288194
+     open_m1 |   .0288701   .0086087     3.35   0.001     .0116872    .0460531
+     infl_m1 |  -.0312429   .0069819    -4.47   0.000    -.0451788   -.0173069
+     popg_m1 |  -.5271017   .3439618    -1.53   0.130    -1.213652     .159449
+   ctot_g_m1 |   .2243765   .0955051     2.35   0.022     .0337476    .4150055
+             |
+      period |
+          1  |   1.139705   .3173126     3.59   0.001     .5063465    1.773064
+          2  |   .3051765   .4192046     0.73   0.469    -.5315593    1.141912
+          3  |   1.918856   .4604064     4.17   0.000     .9998809    2.837831
+          4  |   1.198409   .5013246     2.39   0.020     .1977611    2.199057
+          5  |   2.519562   .5779335     4.36   0.000     1.366002    3.673122
+          6  |   .1106044   .6392072     0.17   0.863    -1.165259    1.386467
+          7  |   1.237005   .6881119     1.80   0.077    -.1364722    2.610482
+          8  |   1.073921    .755429     1.42   0.160    -.4339212    2.581764
+             |
+       _cons |   49.72312   8.633368     5.76   0.000     32.49084    66.95539
+------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+          id |        68          68           0    *|
+-----------------------------------------------------+
+* = FE nested within cluster; treated as redundant for DoF computation
+
+. test G2 G3 DG2 DG3 ZG2 ZG3 DZG2 DZG3
+
+ ( 1)  G2 = 0
+ ( 2)  G3 = 0
+ ( 3)  DG2 = 0
+ ( 4)  DG3 = 0
+ ( 5)  ZG2 = 0
+ ( 6)  ZG3 = 0
+ ( 7)  DZG2 = 0
+ ( 8)  DZG3 = 0
+
+       F(  8,    67) =    0.89
+            Prob > F =    0.5300
+
+. rv_kv h3_wald_p `=string(r(p), "%9.4f")'
+
+. * divisao da amostra por tercis (modelos separados: efeitos fixos e controles proprios de cada faixa)
+. forvalues k = 1/3 {
+  2.     reghdfe g wb_m1 $XP i.period if sM & bin == `k', absorb(id) vce(cluster id)
+  3.     estimates store H3_split`k'
+  4.     rv_kv h3_split`k' `=string(_b[wb_m1], "%9.4f")'
+  5.     rv_kv h3_split`k'_N `e(N)'
+  6. }
+(dropped 2 singleton observations)
+(MWFE estimator converged in 1 iterations)
+warning: missing F statistic; dropped variables due to collinearity or too few clusters
+
+HDFE Linear regression                            Number of obs   =        114
+Absorbing 1 HDFE group                            F(  16,     31) =          .
+Statistics robust to heteroskedasticity           Prob > F        =          .
+                                                  R-squared       =     0.7411
+                                                  Adj R-squared   =     0.5568
+                                                  Within R-sq.    =     0.5921
+Number of clusters (id)      =         32         Root MSE        =     1.7301
+
+                                    (Std. err. adjusted for 32 clusters in id)
+------------------------------------------------------------------------------
+             |               Robust
+           g | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+       wb_m1 |  -.2358074   .1530506    -1.54   0.134    -.5479562    .0763413
+        lny0 |  -4.789007   1.206371    -3.97   0.000    -7.249417   -2.328597
+       hc_m1 |  -.2630717   3.418617    -0.08   0.939    -7.235386    6.709243
+      inv_m1 |  -.0042948   .0526008    -0.08   0.935    -.1115749    .1029853
+     open_m1 |   .0419968   .0147133     2.85   0.008     .0119888    .0720049
+     infl_m1 |  -.0232437   .0120839    -1.92   0.064     -.047889    .0014016
+     popg_m1 |  -.6421869   .5449409    -1.18   0.248    -1.753601    .4692274
+   ctot_g_m1 |   .2859746   .1212432     2.36   0.025     .0386976    .5332517
+             |
+      period |
+          1  |  -.1647067   .4869237    -0.34   0.737    -1.157794    .8283808
+          2  |   .4703244   .7863386     0.60   0.554    -1.133424    2.074072
+          3  |   .4138004   1.893707     0.22   0.828     -3.44844    4.276041
+          4  |   1.311046   1.930228     0.68   0.502    -2.625681    5.247772
+          5  |   3.442672   2.887206     1.19   0.242    -2.445824    9.331167
+          6  |    .741284   3.554511     0.21   0.836    -6.508189    7.990757
+          7  |   1.776478   3.791475     0.47   0.643    -5.956287    9.509242
+          8  |   1.775449   4.015067     0.44   0.661    -6.413333    9.964231
+             |
+       _cons |   42.06419   11.12815     3.78   0.001     19.36817    64.76022
+------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+          id |        32          32           0    *|
+-----------------------------------------------------+
+* = FE nested within cluster; treated as redundant for DoF computation
+(dropped 5 singleton observations)
+(MWFE estimator converged in 1 iterations)
+
+HDFE Linear regression                            Number of obs   =        117
+Absorbing 1 HDFE group                            F(  16,     23) =      82.97
+Statistics robust to heteroskedasticity           Prob > F        =     0.0000
+                                                  R-squared       =     0.8282
+                                                  Adj R-squared   =     0.7411
+                                                  Within R-sq.    =     0.7484
+Number of clusters (id)      =         24         Root MSE        =     0.8877
+
+                                    (Std. err. adjusted for 24 clusters in id)
+------------------------------------------------------------------------------
+             |               Robust
+           g | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+       wb_m1 |  -.2305299   .0735323    -3.14   0.005    -.3826429   -.0784168
+        lny0 |  -5.631983   1.440033    -3.91   0.001    -8.610917   -2.653049
+       hc_m1 |  -1.120198   2.196717    -0.51   0.615    -5.664452    3.424056
+      inv_m1 |  -.1192594   .0696465    -1.71   0.100    -.2633342    .0248153
+     open_m1 |    .021569   .0135912     1.59   0.126    -.0065466    .0496845
+     infl_m1 |  -.0905431   .0331001    -2.74   0.012    -.1590158   -.0220703
+     popg_m1 |  -1.041751   .2931734    -3.55   0.002    -1.648226   -.4352753
+   ctot_g_m1 |   .3813973    .214631     1.78   0.089    -.0626008    .8253954
+             |
+      period |
+          1  |   1.428056   .4063043     3.51   0.002     .5875512     2.26856
+          2  |  -.7104904    .753556    -0.94   0.356     -2.26934     .848359
+          3  |   1.818402   .5811589     3.13   0.005     .6161832    3.020621
+          4  |    .818263    .773493     1.06   0.301    -.7818291    2.418355
+          5  |   2.019194   .9544613     2.12   0.045     .0447407    3.993648
+          6  |   .4968936   1.129019     0.44   0.664    -1.838661    2.832448
+          7  |   1.481842   1.206554     1.23   0.232    -1.014106     3.97779
+          8  |   1.557828   1.367901     1.14   0.266    -1.271891    4.387548
+             |
+       _cons |   64.74148   12.15051     5.33   0.000     39.60622    89.87673
+------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+          id |        24          24           0    *|
+-----------------------------------------------------+
+* = FE nested within cluster; treated as redundant for DoF computation
+(MWFE estimator converged in 1 iterations)
+
+HDFE Linear regression                            Number of obs   =        112
+Absorbing 1 HDFE group                            F(  16,     17) =      46.42
+Statistics robust to heteroskedasticity           Prob > F        =     0.0000
+                                                  R-squared       =     0.7503
+                                                  Adj R-squared   =     0.6447
+                                                  Within R-sq.    =     0.6503
+Number of clusters (id)      =         18         Root MSE        =     1.0952
+
+                                    (Std. err. adjusted for 18 clusters in id)
+------------------------------------------------------------------------------
+             |               Robust
+           g | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+       wb_m1 |   -.085834   .1026478    -0.84   0.415    -.3024019    .1307339
+        lny0 |  -7.010119   2.171908    -3.23   0.005    -11.59244   -2.427794
+       hc_m1 |   1.622671   2.006236     0.81   0.430    -2.610116    5.855458
+      inv_m1 |  -.0888953   .0451265    -1.97   0.065    -.1841038    .0063133
+     open_m1 |   .0116239   .0116488     1.00   0.332    -.0129528    .0362006
+     infl_m1 |  -.0091112   .0035124    -2.59   0.019    -.0165216   -.0017007
+     popg_m1 |  -.0938566   .3943505    -0.24   0.815    -.9258635    .7381503
+   ctot_g_m1 |  -.0340825   .0898275    -0.38   0.709     -.223602     .155437
+             |
+      period |
+          1  |   1.239266    .276531     4.48   0.000     .6558367    1.822695
+          2  |   .9836354   .3009426     3.27   0.005     .3487021    1.618569
+          3  |   1.847231   .5297698     3.49   0.003     .7295143    2.964948
+          4  |   2.089757   .6318051     3.31   0.004     .7567648    3.422749
+          5  |   2.844618   .9577595     2.97   0.009     .8239217    4.865314
+          6  |   .8691904   1.004693     0.87   0.399    -1.250526    2.988906
+          7  |   2.306451   .8770306     2.63   0.018     .4560782    4.156824
+          8  |   1.803744   .8848835     2.04   0.057    -.0631969    3.670685
+             |
+       _cons |   69.82905   17.94712     3.89   0.001     31.96394    107.6942
+------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+          id |        18          18           0    *|
+-----------------------------------------------------+
+* = FE nested within cluster; treated as redundant for DoF computation
+
+. * divisao na mediana
+. quietly summ meritc if sM, detail
+
+. gen byte above = meritc > r(p50) if sM
+(1,162 missing values generated)
+
+. forvalues k = 0/1 {
+  2.     reghdfe g wb_m1 $XP i.period if sM & above == `k', absorb(id) vce(cluster id)
+  3.     estimates store H3_med`k'
+  4.     rv_kv h3_med`k' `=string(_b[wb_m1], "%9.4f")'
+  5. }
+(dropped 6 singleton observations)
+(MWFE estimator converged in 1 iterations)
+
+HDFE Linear regression                            Number of obs   =        169
+Absorbing 1 HDFE group                            F(  16,     41) =      25.94
+Statistics robust to heteroskedasticity           Prob > F        =     0.0000
+                                                  R-squared       =     0.7387
+                                                  Adj R-squared   =     0.6045
+                                                  Within R-sq.    =     0.6106
+Number of clusters (id)      =         42         Root MSE        =     1.5081
+
+                                    (Std. err. adjusted for 42 clusters in id)
+------------------------------------------------------------------------------
+             |               Robust
+           g | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+       wb_m1 |  -.1467488   .1196047    -1.23   0.227    -.3882954    .0947977
+        lny0 |  -5.629788   1.148326    -4.90   0.000     -7.94888   -3.310697
+       hc_m1 |   1.762103   1.987928     0.89   0.381    -2.252599    5.776804
+      inv_m1 |  -.0085919    .048419    -0.18   0.860    -.1063761    .0891922
+     open_m1 |   .0334416   .0103579     3.23   0.002     .0125235    .0543597
+     infl_m1 |  -.0331676   .0091446    -3.63   0.001    -.0516354   -.0146998
+     popg_m1 |  -.9856043   .3473273    -2.84   0.007    -1.687046   -.2841626
+   ctot_g_m1 |     .34714   .1088903     3.19   0.003     .1272317    .5670484
+             |
+      period |
+          1  |   .9996235   .6870707     1.45   0.153     -.387944    2.387191
+          2  |   1.334726   .4596588     2.90   0.006     .4064259    2.263025
+          3  |   1.569311   .6343185     2.47   0.018     .2882785    2.850343
+          4  |   .7014729   .6650713     1.05   0.298    -.6416659    2.044612
+          5  |   2.608511   .8402173     3.10   0.003     .9116576    4.305364
+          6  |  -.1850063   1.105454    -0.17   0.868    -2.417517    2.047504
+          7  |   .8178494   1.117359     0.73   0.468    -1.438703    3.074402
+          8  |   .7305564   1.245844     0.59   0.561    -1.785478     3.24659
+             |
+       _cons |   46.83065   9.575028     4.89   0.000     27.49348    66.16781
+------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+          id |        42          42           0    *|
+-----------------------------------------------------+
+* = FE nested within cluster; treated as redundant for DoF computation
+(dropped 4 singleton observations)
+(MWFE estimator converged in 1 iterations)
+
+HDFE Linear regression                            Number of obs   =        171
+Absorbing 1 HDFE group                            F(  16,     27) =      25.26
+Statistics robust to heteroskedasticity           Prob > F        =     0.0000
+                                                  R-squared       =     0.7540
+                                                  Adj R-squared   =     0.6707
+                                                  Within R-sq.    =     0.6565
+Number of clusters (id)      =         28         Root MSE        =     1.0154
+
+                                    (Std. err. adjusted for 28 clusters in id)
+------------------------------------------------------------------------------
+             |               Robust
+           g | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+       wb_m1 |  -.1158449   .0737586    -1.57   0.128    -.2671851    .0354953
+        lny0 |  -6.764779   1.654334    -4.09   0.000    -10.15919   -3.370367
+       hc_m1 |   1.262475   1.700192     0.74   0.464    -2.226031    4.750982
+      inv_m1 |   -.082491   .0472837    -1.74   0.092    -.1795091    .0145271
+     open_m1 |   .0110007   .0106403     1.03   0.310    -.0108315    .0328328
+     infl_m1 |  -.0140688    .004047    -3.48   0.002    -.0223727    -.005765
+     popg_m1 |  -.1402403   .3891527    -0.36   0.721    -.9387157    .6582351
+   ctot_g_m1 |  -.0579977   .0865876    -0.67   0.509    -.2356609    .1196654
+             |
+      period |
+          1  |   1.031317   .2876871     3.58   0.001     .4410317    1.621602
+          2  |   .1453616    .488962     0.30   0.769    -.8579056    1.148629
+          3  |   1.648266   .4915488     3.35   0.002     .6396909    2.656841
+          4  |   1.758756   .5542394     3.17   0.004     .6215509    2.895962
+          5  |   2.470943   .7809269     3.16   0.004     .8686133    4.073273
+          6  |   .5896213   .9027576     0.65   0.519    -1.262684    2.441927
+          7  |   2.013131   .8397993     2.40   0.024     .2900047    3.736257
+          8  |   1.606161   .9143867     1.76   0.090    -.2700051    3.482328
+             |
+       _cons |    68.3324    13.6863     4.99   0.000     40.25043    96.41437
+------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+          id |        28          28           0    *|
+-----------------------------------------------------+
+* = FE nested within cluster; treated as redundant for DoF computation
+
+. save "$RINT/h3_dados.dta", replace
+file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/h3_dados.dta saved
+
+. 
+. * ---------------------------------------------------------------- kernel (interflex), com bootstrap por pais
+. preserve
+
+. keep if sM
+(1,162 observations deleted)
+
+. * O kernel do interflex falha com efeitos fixos (bootstrap devolve ICs ausentes e a rotina grafica quebra) e nao
+. * converge com as dummies como covariaveis; por isso o kernel e implementado aqui: regressao local-linear com
+. * nucleo gaussiano, largura de banda escolhida pela validacao cruzada do interflex (0,49), efeitos fixos de pais e
+. * periodo, 25 pontos entre os percentis 5 e 95 do merito e bootstrap por pais (200 replicacoes).
+. local bw = 0.4897
+
+. _pctile meritc, p(5 95)
+
+. local e0 = r(r1)
+
+. local e1 = r(r2)
+
+. tempname K
+
+. postfile `K' double(zk mek lok hik) using "$RINT/h3_kernel.dta", replace
+
+. tempfile base
+
+. save `base'
+file C:\Users\Usuario\AppData\Local\Temp\ST_64e0_000002.tmp saved as .dta format
+
+. forvalues j = 1/25 {
+  2.     local z0 = `e0' + (`e1' - `e0') * (`j' - 1) / 24
+  3.     quietly use `base', clear
+  4.     quietly gen double kw = normalden((meritc - `z0') / `bw')
+  5.     quietly gen double zd = meritc - `z0'
+  6.     quietly gen double dzd = wb_m1 * zd
+  7.     quietly reghdfe g wb_m1 zd dzd $XP i.period [aw = kw], absorb(id)
+  8.     local me0 = _b[wb_m1]
+  9.     tempname R
+ 10.     tempfile rr
+ 11.     postfile `R' double me using `rr', replace
+ 12.     set seed 20261017
+ 13.     forvalues r = 1/200 {
+ 14.         quietly use `base', clear
+ 15.         quietly bsample, cluster(id) idcluster(bid)
+ 16.         quietly gen double kw = normalden((meritc - `z0') / `bw')
+ 17.         quietly gen double zd = meritc - `z0'
+ 18.         quietly gen double dzd = wb_m1 * zd
+ 19.         capture quietly reghdfe g wb_m1 zd dzd $XP i.period [aw = kw], absorb(bid)
+ 20.         if !_rc post `R' (_b[wb_m1])
+ 21.     }
+ 22.     postclose `R'
+ 23.     quietly use `rr', clear
+ 24.     quietly _pctile me, p(2.5 97.5)
+ 25.     post `K' (`z0' + `mbar') (`me0') (r(r1)) (r(r2))
+ 26. }
+(file C:\Users\Usuario\AppData\Local\Temp\ST_64e0_000003.tmp not found)
+(file C:\Users\Usuario\AppData\Local\Temp\ST_64e0_000004.tmp not found)
+(file C:\Users\Usuario\AppData\Local\Temp\ST_64e0_000005.tmp not found)
+(file C:\Users\Usuario\AppData\Local\Temp\ST_64e0_000006.tmp not found)
+(file C:\Users\Usuario\AppData\Local\Temp\ST_64e0_000007.tmp not found)
+(file C:\Users\Usuario\AppData\Local\Temp\ST_64e0_000008.tmp not found)
+(file C:\Users\Usuario\AppData\Local\Temp\ST_64e0_000009.tmp not found)
+(file C:\Users\Usuario\AppData\Local\Temp\ST_64e0_00000a.tmp not found)
+(file C:\Users\Usuario\AppData\Local\Temp\ST_64e0_00000b.tmp not found)
+(file C:\Users\Usuario\AppData\Local\Temp\ST_64e0_00000c.tmp not found)
+(file C:\Users\Usuario\AppData\Local\Temp\ST_64e0_00000d.tmp not found)
+(file C:\Users\Usuario\AppData\Local\Temp\ST_64e0_00000e.tmp not found)
+(file C:\Users\Usuario\AppData\Local\Temp\ST_64e0_00000f.tmp not found)
+(file C:\Users\Usuario\AppData\Local\Temp\ST_64e0_00000g.tmp not found)
+(file C:\Users\Usuario\AppData\Local\Temp\ST_64e0_00000h.tmp not found)
+(file C:\Users\Usuario\AppData\Local\Temp\ST_64e0_00000i.tmp not found)
+(file C:\Users\Usuario\AppData\Local\Temp\ST_64e0_00000j.tmp not found)
+(file C:\Users\Usuario\AppData\Local\Temp\ST_64e0_00000k.tmp not found)
+(file C:\Users\Usuario\AppData\Local\Temp\ST_64e0_00000l.tmp not found)
+(file C:\Users\Usuario\AppData\Local\Temp\ST_64e0_00000m.tmp not found)
+(file C:\Users\Usuario\AppData\Local\Temp\ST_64e0_00000n.tmp not found)
+(file C:\Users\Usuario\AppData\Local\Temp\ST_64e0_00000o.tmp not found)
+(file C:\Users\Usuario\AppData\Local\Temp\ST_64e0_00000p.tmp not found)
+(file C:\Users\Usuario\AppData\Local\Temp\ST_64e0_00000q.tmp not found)
+(file C:\Users\Usuario\AppData\Local\Temp\ST_64e0_00000r.tmp not found)
+
+. postclose `K'
+
+. rv_kv h3_kernel "executado (implementacao propria)"
+
+. use `base', clear
+
+. capture noisily interflex g wb_m1 meritc lny0 hc_m1 inv_m1 open_m1 infl_m1 popg_m1 ctot_g_m1, type(binning) fe(id period) ///
+>     vce(cluster) cluster(id) nbins(3) xlabel("Meritocratic recruitment in t_p − 1 (centred)") ylabel("Growth") dlabel("Wage bill")
+p value of Wald test: 0.5739
+
+. if !_rc {
+.     graph export "$RFIG/FigS_interflex_binning.png", replace width(4488)
+file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/figures/FigS_interflex_binning.png saved as PNG format
+.     graph export "$RFIG/FigS_interflex_binning.pdf", replace
+file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/figures/FigS_interflex_binning.pdf saved as PDF format
+. }
+
+. restore
+
+. 
+. * =====================================================================================
+. * Limiares: Seo e Shin (2016) e Hansen (1999), painel anual balanceado, folha e merito defasados
+. * =====================================================================================
+. capture program drop setcmd
+
+. program define setcmd, eclass
+  1.     ereturn local cmd "`1'"
+  2. end
+
+. tempname T
+
+. postfile `T' str20 m double(b_lo b_hi thr pboot) long(N T nmom) using "$RINT/h3_threshold.dta", replace
+
+. foreach win in "2015 2019" "2000 2019" {
+  2.     use "$RINT/anual_rv.dta", clear
+  3.     keep if micro == 0
+  4.     xtset id year
+  5.     gen wb_l1 = L.wb
+  6.     local y0 : word 1 of `win'
+  7.     local y1 : word 2 of `win'
+  8.     keep if inrange(year, `y0', `y1')
+  9.     gen byte ok = !missing(g, wb_l1, merit_l1)
+ 10.     bysort id: egen nok = total(ok)
+ 11.     keep if nok == `y1' - `y0' + 1
+ 12.     quietly levelsof id
+ 13.     local Nbal : word count `r(levels)'
+ 14.     local TT = `y1' - `y0' + 1
+ 15.     local L = 0
+ 16.     forvalues t = 3/`TT' {
+ 17.         local L = `L' + 1 + (`t' - 2) + 1
+ 18.     }
+ 19.     xtset id year
+ 20.     set seed 20261017
+ 21.     capture noisily xthenreg g merit_l1 wb_l1, boost(500) grid_num(100) trim_rate(0.4)
+ 22.     if !_rc {
+ 23.         local k = colnumb(e(b), "wb_l1_b")
+ 24.         local kd = colnumb(e(b), "wb_l1_d")
+ 25.         post `T' ("seoshin_`y0'") (el(e(b), 1, `k')) (el(e(b), 1, `k') + el(e(b), 1, `kd')) (el(e(b), 1, colnumb(e(b), "r"))) (e(boots_p)) (`Nbal') (`TT') (`L')
+ 26.         rv_kv thr_ss_`y0'_p `=string(e(boots_p), "%6.3f")'
+ 27.         rv_kv thr_ss_`y0'_valid `=cond(`L' < `Nbal' / 2, "yes", "no")'
+ 28.     }
+ 29.     if `y0' == 2000 {
+ 30.         quietly tab year, gen(yd)
+ 31.         drop yd1
+ 32.         capture noisily xthreg g yd*, rx(wb_l1) qx(merit_l1) thnum(1) trim(0.10) grid(300) bs(500)
+ 33.         if !_rc {
+ 34.             matrix FH = e(Fstat)
+ 35.             matrix TH = e(Thrss)
+ 36.             local hn : colnames e(b)
+ 37.             local b1 = .
+ 38.             local b2 = .
+ 39.             local kk = 0
+ 40.             foreach nm of local hn {
+ 41.                 local ++kk
+ 42.                 if strpos("`nm'", "wb_l1") == 0 continue
+ 43.                 if missing(`b1') local b1 = el(e(b), 1, `kk')
+ 44.                 else local b2 = el(e(b), 1, `kk')
+ 45.             }
+ 46.             post `T' ("hansen_2000") (`b1') (`b2') (TH[1, 1]) (FH[1, 4]) (`Nbal') (`TT') (0)
+ 47.             rv_kv thr_hansen_p `=string(FH[1, 4], "%6.3f")'
+ 48.         }
+ 49.         * P21: o mesmo painel balanceado, modelo linear sem limiar (com e sem os controles e o crescimento defasado da Tabela 1)
+.         xtreg g wb_l1 yd*, fe vce(cluster id)
+ 50.         rv_kv thr_lin_static `=string(_b[wb_l1], "%9.4f")'
+ 51.         gen g_l1 = L.g
+ 52.         gen lny_l1 = L.lny
+ 53.         xtreg g wb_l1 g_l1 lny_l1 hc inv open infl popg ctot_g yd*, fe vce(cluster id)
+ 54.         rv_kv thr_lin_controls `=string(_b[wb_l1], "%9.4f")'
+ 55.         rv_kv thr_lin_N `e(N)'
+ 56.     }
+ 57. }
+(1,566 observations deleted)
+
+Panel variable: id (strongly balanced)
+ Time variable: year, 1970 to 2023
+         Delta: 1 unit
+(6,808 missing values generated)
+(8,232 observations deleted)
+(480 observations deleted)
+
+Panel variable: id (strongly balanced)
+ Time variable: year, 2015 to 2019
+         Delta: 1 unit
+ 
+N = 72, T = 5
+Panel Var. = id
+Time Var. = year
+Number of moment conditions = 12
+Bootstrap p-value for linearity test = .912
+------------------------------------------------------------------------------
+           g | Coefficient  Std. err.      z    P>|z|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+     Lag_y_b |    .221703   .2305575     0.96   0.336    -.2301815    .6735874
+     wb_l1_b |   .1024964   1.332465     0.08   0.939    -2.509087     2.71408
+      cons_d |   46.05202   36.87771     1.25   0.212    -26.22697     118.331
+     Lag_y_d |  -.1782052   .4507944    -0.40   0.693    -1.061746    .7053356
+     wb_l1_d |  -1.255047   2.268954    -0.55   0.580    -5.702115    3.192022
+           r |   .7007576   .6596837     1.06   0.288    -.5921988    1.993714
+------------------------------------------------------------------------------
+(1,566 observations deleted)
+
+Panel variable: id (strongly balanced)
+ Time variable: year, 1970 to 2023
+         Delta: 1 unit
+(6,808 missing values generated)
+(5,712 observations deleted)
+(2,660 observations deleted)
+
+Panel variable: id (strongly balanced)
+ Time variable: year, 2000 to 2019
+         Delta: 1 unit
+ 
+N = 35, T = 20
+Panel Var. = id
+Time Var. = year
+Number of moment conditions = 207
+Bootstrap p-value for linearity test = 0
+------------------------------------------------------------------------------
+           g | Coefficient  Std. err.      z    P>|z|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+     Lag_y_b |   .1255396   .0419822     2.99   0.003     .0432561    .2078232
+     wb_l1_b |  -2.877404   .3794586    -7.58   0.000    -3.621129   -2.133679
+      cons_d |  -79.65677   6.106002   -13.05   0.000    -91.62431   -67.68923
+     Lag_y_d |   .3089934   .0788979     3.92   0.000     .1543563    .4636305
+     wb_l1_d |   5.479403    .520527    10.53   0.000     4.459189    6.499617
+           r |   1.657677   .1090056    15.21   0.000      1.44403    1.871324
+------------------------------------------------------------------------------
+Estimating  the  threshold  parameters:   1st ......  Done
+Boostrap for single threshold
+.................................................. +   50
+.................................................. +  100
+.................................................. +  150
+.................................................. +  200
+.................................................. +  250
+.................................................. +  300
+.................................................. +  350
+.................................................. +  400
+.................................................. +  450
+.................................................. +  500
+
+Threshold estimator (level = 95):
+-----------------------------------------------------
+     model |    Threshold         Lower         Upper
+-----------+-----------------------------------------
+      Th-1 |       0.7330        0.5515        0.7760
+-----------------------------------------------------
+
+Threshold effect test (bootstrap = 500):
+-------------------------------------------------------------------------------
+ Threshold |       RSS        MSE      Fstat    Prob   Crit10    Crit5    Crit1
+-----------+-------------------------------------------------------------------
+    Single | 3084.3277     4.5358       9.04  0.2860  14.3835  19.0024  26.2518
+-------------------------------------------------------------------------------
+
+Fixed-effects (within) regression               Number of obs      =       700
+Group variable: id                              Number of groups   =        35
+
+R-sq:  Within  = 0.5173                         Obs per group: min =        20
+       Between = 0.2343                                        avg =      20.0
+       Overall = 0.4062                                        max =        20
+
+                                                F(21,644)          =     32.87
+corr(u_i, Xb)  = -0.3599                        Prob > F           =    0.0000
+
+------------------------------------------------------------------------------
+           g | Coefficient  Std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+         yd2 |  -1.747445   .5247307    -3.33   0.001    -2.777835   -.7170553
+         yd3 |  -1.499638   .5245644    -2.86   0.004    -2.529701   -.4695745
+         yd4 |  -1.317694    .523653    -2.52   0.012    -2.345968    -.289421
+         yd5 |   .0510586   .5235822     0.10   0.922     -.977076    1.079193
+         yd6 |  -.3767451   .5252869    -0.72   0.473    -1.408227    .6547368
+         yd7 |   .4516608   .5255525     0.86   0.390    -.5803427    1.483664
+         yd8 |   .1067572   .5265421     0.20   0.839    -.9271894    1.140704
+         yd9 |  -3.772918    .529189    -7.13   0.000    -4.812062   -2.733773
+        yd10 |  -9.442427   .5249274   -17.99   0.000     -10.4732   -8.411651
+        yd11 |  -1.883664    .529481    -3.56   0.000    -2.923382   -.8439464
+        yd12 |  -2.091813   .5256552    -3.98   0.000    -3.124018   -1.059608
+        yd13 |  -3.952284   .5245856    -7.53   0.000    -4.982389   -2.922179
+        yd14 |  -3.606458   .5246185    -6.87   0.000    -4.636628   -2.576289
+        yd15 |  -2.269987   .5235599    -4.34   0.000    -3.298078   -1.241896
+        yd16 |  -1.767757   .5238592    -3.37   0.001    -2.796435   -.7390785
+        yd17 |  -2.257371   .5247765    -4.30   0.000     -3.28785   -1.226891
+        yd18 |  -1.160537   .5240183    -2.21   0.027    -2.189528   -.1315466
+        yd19 |   -1.62761   .5246717    -3.10   0.002    -2.657884   -.5973359
+        yd20 |  -2.261588   .5247626    -4.31   0.000     -3.29204   -1.231135
+             |
+_cat#c.wb_l1 |
+          0  |  -.6275171   .1227246    -5.11   0.000    -.8685058   -.3865283
+          1  |  -.7500354   .1186341    -6.32   0.000    -.9829917   -.5170791
+             |
+       _cons |   11.75327    1.28709     9.13   0.000     9.225865    14.28067
+-------------+----------------------------------------------------------------
+     sigma_u |   1.724907
+     sigma_e |  2.1884535
+         rho |  .38318672   (fraction of variance due to u_i)
+------------------------------------------------------------------------------
+F test that all u_i=0: F(34, 644) = 8.36                     Prob > F = 0.0000
+
+Fixed-effects (within) regression               Number of obs     =        700
+Group variable: id                              Number of groups  =         35
+
+R-squared:                                      Obs per group:
+     Within  = 0.5109                                         min =         20
+     Between = 0.1829                                         avg =       20.0
+     Overall = 0.3894                                         max =         20
+
+                                                F(20,34)          =      39.41
+corr(u_i, Xb) = -0.3366                         Prob > F          =     0.0000
+
+                                    (Std. err. adjusted for 35 clusters in id)
+------------------------------------------------------------------------------
+             |               Robust
+           g | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+       wb_l1 |  -.7232686   .1842031    -3.93   0.000    -1.097614   -.3489229
+         yd2 |  -1.754683   .4683575    -3.75   0.001      -2.7065    -.802866
+         yd3 |  -1.550056   .4245569    -3.65   0.001     -2.41286   -.6872527
+         yd4 |  -1.374245   .5140949    -2.67   0.011    -2.419012   -.3294787
+         yd5 |  -.0087315   .4211921    -0.02   0.984    -.8646968    .8472339
+         yd6 |  -.5133004   .4693952    -1.09   0.282    -1.467226    .4406255
+         yd7 |   .3177637   .4899269     0.65   0.521    -.6778875    1.313415
+         yd8 |   .0031641   .5929369     0.01   0.996    -1.201829    1.208157
+         yd9 |  -3.910845   .7846114    -4.98   0.000    -5.505367   -2.316323
+        yd10 |  -9.541584   .7912051   -12.06   0.000    -11.14951   -7.933662
+        yd11 |  -1.997654   .5333894    -3.75   0.001    -3.081632   -.9136767
+        yd12 |   -2.20276   .5319619    -4.14   0.000    -3.283837   -1.121683
+        yd13 |  -4.066112    .521596    -7.80   0.000    -5.126123   -3.006102
+        yd14 |  -3.717909   .3827607    -9.71   0.000    -4.495772   -2.940045
+        yd15 |  -2.329292   .3911807    -5.95   0.000    -3.124267   -1.534318
+        yd16 |  -1.824522   .5108831    -3.57   0.001    -2.862761   -.7862827
+        yd17 |  -2.338911   .3604279    -6.49   0.000    -3.071388   -1.606433
+        yd18 |  -1.203077    .423187    -2.84   0.008    -2.063096   -.3430571
+        yd19 |  -1.668548   .4348887    -3.84   0.001    -2.552348   -.7847478
+        yd20 |  -2.265618   .4392151    -5.16   0.000     -3.15821   -1.373025
+       _cons |    11.7741    1.98672     5.93   0.000     7.736599     15.8116
+-------------+----------------------------------------------------------------
+     sigma_u |   1.754968
+     sigma_e |  2.2012427
+         rho |  .38861376   (fraction of variance due to u_i)
+------------------------------------------------------------------------------
+(35 missing values generated)
+(35 missing values generated)
+note: yd20 omitted because of collinearity.
+
+Fixed-effects (within) regression               Number of obs     =        646
+Group variable: id                              Number of groups  =         34
+
+R-squared:                                      Obs per group:
+     Within  = 0.6599                                         min =         19
+     Between = 0.7260                                         avg =       19.0
+     Overall = 0.3473                                         max =         19
+
+                                                F(27,33)          =     306.99
+corr(u_i, Xb) = -0.9413                         Prob > F          =     0.0000
+
+                                    (Std. err. adjusted for 34 clusters in id)
+------------------------------------------------------------------------------
+             |               Robust
+           g | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+       wb_l1 |   -.404154   .1448429    -2.79   0.009    -.6988391   -.1094689
+        g_l1 |   .2937091   .0473997     6.20   0.000     .1972736    .3901445
+      lny_l1 |  -8.666711   1.169419    -7.41   0.000    -11.04591   -6.287511
+          hc |   1.938997   2.021955     0.96   0.345    -2.174701    6.052695
+         inv |   .1857016   .0629166     2.95   0.006     .0576969    .3137063
+        open |   .0292617   .0095343     3.07   0.004      .009864    .0486595
+        infl |  -.1130143   .0573816    -1.97   0.057    -.2297579    .0037294
+        popg |  -1.007248   .1771275    -5.69   0.000    -1.367617   -.6468797
+      ctot_g |   -.167642   .0807766    -2.08   0.046    -.3319832   -.0033008
+         yd2 |  -1.602437   .5384545    -2.98   0.005    -2.697931   -.5069428
+         yd3 |  -.6528225   .5716402    -1.14   0.262    -1.815833    .5101882
+         yd4 |  -.6292239   .6017167    -1.05   0.303    -1.853426    .5949779
+         yd5 |   .9738297   .6447383     1.51   0.140    -.3379002     2.28556
+         yd6 |   .0241222   .5345133     0.05   0.964    -1.063353    1.111598
+         yd7 |   1.151276   .5676437     2.03   0.051    -.0036038    2.306156
+         yd8 |   .8319267   .6512252     1.28   0.210    -.4930009    2.156854
+         yd9 |  -2.297875   .5122921    -4.49   0.000    -3.340141   -1.255609
+        yd10 |  -6.334748   .7584395    -8.35   0.000    -7.877805   -4.791691
+        yd11 |   1.756643   .7223525     2.43   0.021     .2870058     3.22628
+        yd12 |  -.4642269   .3969623    -1.17   0.251    -1.271853    .3433989
+        yd13 |  -2.066967   .4921369    -4.20   0.000    -3.068227   -1.065707
+        yd14 |  -1.364909   .4421177    -3.09   0.004    -2.264404   -.4654137
+        yd15 |  -.1281903    .385202    -0.33   0.741    -.9118896     .655509
+        yd16 |   .2679016   .4947299     0.54   0.592     -.738634    1.274437
+        yd17 |  -.3254695    .355552    -0.92   0.367    -1.048846    .3979065
+        yd18 |   .8868051   .3168424     2.80   0.008     .2421845    1.531426
+        yd19 |   .3399107   .2523699     1.35   0.187    -.1735398    .8533612
+        yd20 |          0  (omitted)
+       _cons |   81.32516    12.7276     6.39   0.000     55.43067    107.2196
+-------------+----------------------------------------------------------------
+     sigma_u |  6.2421626
+     sigma_e |  1.8484658
+         rho |  .91937916   (fraction of variance due to u_i)
+------------------------------------------------------------------------------
+
+. postclose `T'
+
+. 
+. * =====================================================================================
+. * Figura 6: efeito marginal ao longo do merito (linear, faixas), com histograma e N
+. * =====================================================================================
+. use "$RINT/h3_dados.dta", clear
+
+. estimates restore H3
+(results H3 are active now)
+
+. local df = e(df_r)
+
+. local N = e(N)
+
+. quietly summ meritc if sM
+
+. local lo0 = r(min)
+
+. local hi0 = r(max)
+
+. preserve
+
+. clear
+
+. set obs 61
+Number of observations (_N) was 0, now 61.
+
+. gen z = `lo0' + (`hi0' - `lo0') * (_n - 1) / 60
+
+. gen me = .
+(61 missing values generated)
+
+. gen lo = .
+(61 missing values generated)
+
+. gen hi = .
+(61 missing values generated)
+
+. forvalues i = 1/61 {
+  2.     local zz = z[`i']
+  3.     quietly lincom wb_m1 + `zz' * wbxm
+  4.     quietly replace me = r(estimate) in `i'
+  5.     quietly replace lo = r(estimate) - invttail(`df', 0.025) * r(se) in `i'
+  6.     quietly replace hi = r(estimate) + invttail(`df', 0.025) * r(se) in `i'
+  7. }
+
+. gen zr = z + `mbar'
+
+. tempfile ME
+
+. save `ME'
+file C:\Users\Usuario\AppData\Local\Temp\ST_64e0_00000t.tmp saved as .dta format
+
+. use "$RINT/h3_bins.dta", clear
+
+. gen blo = me - invttail(`df', 0.025) * se
+
+. gen bhi = me + invttail(`df', 0.025) * se
+
+. append using `ME'
+
+. append using "$RINT/h3_kernel.dta"
+
+. twoway (rarea lo hi zr, fcolor(gs14) lcolor(gs8) lpattern(dash) lwidth(vthin)) (line me zr, lcolor(black)) ///
+>        (line mek zk, lcolor(gs4) lpattern(longdash)) (line lok zk, lcolor(gs8) lpattern(dot)) (line hik zk, lcolor(gs8) lpattern(dot)) ///
+>        (rcap blo bhi zmed, lcolor(black)) (scatter me zmed, msymbol(D) mcolor(black) msize(small)), ///
+>        $GOPT yline(0, lcolor(gs10) lpattern(shortdash)) ylabel(, format(%3.1f) labsize(8pt) nogrid angle(horizontal)) ///
+>        xlabel(, format(%3.1f) labsize(8pt)) legend(order(2 "Linear interaction (95% CI)" 3 "Kernel (dotted: 95% CI, country bootstrap)" 7 "Tercile bins (95% CI)") rows(1) pos(6) size(7pt)) ///
+>        xtitle("Meritocratic recruitment (V-Dem), t{sub:p} − 1; higher = more merit-based", size(8pt)) ///
+>        ytitle("Marginal effect of the wage bill on growth (p.p.)", size(8pt)) name(me, replace) nodraw
+
+. restore
+
+. twoway (histogram merit_m1 if sM, frequency color(gs12) lcolor(gs8) width(0.25)), $GOPT ///
+>     xlabel(, format(%3.1f) labsize(8pt)) ylabel(, labsize(7pt) nogrid angle(horizontal)) ytitle("Count", size(7.5pt)) ///
+>     xtitle("") fysize(28) name(hist, replace) nodraw
+
+. graph combine me hist, cols(1) imargin(small) graphregion(color(white)) xcommon ///
+>     note("N = `N' country-periods", size(7pt))
+
+. rv_fig Fig6_marginal_merit, width(190) height(120)
+file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/figures/Fig6_marginal_merit.pdf saved as PDF format
+file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/figures/Fig6_marginal_merit.png saved as PNG format
+figura gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/figures/Fig6_marginal_merit.{pdf,png} (190 x 120 mm)
+
+. 
+. * =====================================================================================
+. * Tabela suplementar: moderacao (H3)
+. * =====================================================================================
+. rv_new, ncol(8) head1("(1)" "(2)" "(3)" "(4)" "(5)" "(6)" "(7)" "(8)") ///
+>     head2("Linear (preferred)" "Bins (HMX)" "Split: tercile 1" "Split: tercile 2" "Split: tercile 3" "Split: below median" "Split: above median" "")
+
+. rv_estrow "Wage bill (% of GDP), t_p − 1", models(H3 . H3_split1 H3_split2 H3_split3 H3_med0 H3_med1) vars(wb_m1)
+
+. rv_estrow "Wage bill × merit (centred)", models(H3 . . . . . .) vars(wbxm)
+
+. rv_estrow "Marginal effect, tercile 1 (median of bin)", models(. H3_bins . . . . .) vars(DG1)
+
+. rv_estrow "Marginal effect, tercile 2 (median of bin)", models(. H3_bins . . . . .) vars(DG2)
+
+. rv_estrow "Marginal effect, tercile 3 (median of bin)", models(. H3_bins . . . . .) vars(DG3)
+
+. rv_mid
+
+. rv_stat "Observations", models(H3 H3_bins H3_split1 H3_split2 H3_split3 H3_med0 H3_med1) stat(N)
+
+. rv_stat "Countries", models(H3 H3_bins H3_split1 H3_split2 H3_split3 H3_med0 H3_med1) stat(N_clust)
+
+. import delimited "$RINT/kv.csv", clear varnames(1) stringcols(_all)
+(encoding automatically selected: ISO-8859-1)
+(2 vars, 1,090 obs)
+
+. foreach k in h3_merit_mean h3_pboot h3_wald_p h3_mde h3_relevant h3_p1090 h3_q10 h3_q90 thr_ss_2015_p thr_hansen_p thr_lin_static thr_lin_controls {
+  2.     quietly levelsof value if key == "`k'", local(`k') clean
+  3.     local `k' : word 1 of ``k''
+  4. }
+
+. rv_row "Wild cluster bootstrap p (interaction)" "`h3_pboot'" "" "" "" "" "" "" ""
+
+. rv_row "HMX Wald test of linearity, p" "" "`h3_wald_p'" "" "" "" "" "" ""
+
+. rv_row "Minimum detectable interaction (80% power)" "`h3_mde'" "" "" "" "" "" "" ""
+
+. rv_row "Economically relevant interaction" "`h3_relevant'" "" "" "" "" "" "" ""
+
+. rv_out TabS_moderation, landscape ///
+>     title("Table S9. Does meritocratic recruitment moderate the wage bill coefficient? (H3)") ///
+>     notes("Dependent variable: growth of real GDP per capita (%, five-year average). Wage bill and merit (V-Dem v2stcritrecadm; higher values = more merit-based) in t_p − 1; merit is centred at its 
+> estimation-sample mean (`h3_merit_mean'), so the main effect in column 1 is evaluated at average merit. Predetermined controls of Table 2, country and period fixed effects, standard errors clustered
+>  by country. Column 2: binning estimator of Hainmueller, Mummolo and Xu (2019), one model with bin-specific intercepts and slopes and common controls and fixed effects; marginal effects at the media
+> n of each tercile; the Wald test compares it with the linear model. Columns 3–7: separate regressions in each tercile or half, each with its own fixed effects (singletons dropped within each subsamp
+> le), which is why they differ from column 2. Minimum detectable effect: (1.96 + 0.84) × standard error of the interaction. Economically relevant interaction: half of the preferred H1 coefficient (T3
+> ) divided by the distance between the 10th and 90th percentiles of merit (`h3_q10' to `h3_q90'). Threshold models (annual balanced panels, wage bill and merit lagged one year): Seo and Shin (2016), 
+> 2015–2019, linearity bootstrap p = `thr_ss_2015_p'; Hansen (1999), 2000–2019, p = `thr_hansen_p'. In the Hansen panel the linear fixed-effects coefficient of the lagged wage bill is `thr_lin_static'
+>  without controls and `thr_lin_controls' with the controls and lagged growth of Table 1, so the large regime coefficients reflect the static specification, not the threshold. * p<0.10, ** p<0.05, **
+> * p<0.01.")
+successfully replaced "C:/Users/Usuario/Dropbox/Papers/Emprego Público e Crescimento/Estimações/output/revisao/tables/TabS_moderation.docx"
+tabela gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/tables/TabS_moderation.{tex,docx}
+
+. 
+. log close
+      name:  <unnamed>
+       log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/logs/08_merito.log
+  log type:  text
+ closed on:  17 Oct 2026, 16:54:59
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
