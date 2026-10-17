@@ -1,0 +1,2 @@
+Table S5. General and central government wage bill by country, 2010–2019 averages
+Compensation of employees of the general government (IMF GFS) and of the central government (WDI, compensation of employees as a share of expense times expense as a share of GDP, divided by 100), averages over 2010–2019 for countries with both series; microstates excluded. Federal: Forum of Federations list. Federations first, then unitary countries, each sorted by the ratio.
