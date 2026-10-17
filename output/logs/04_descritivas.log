@@ -3,7 +3,7 @@
        log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Esti
 > mações/output/logs/04_descritivas.log
   log type:  text
- opened on:   7 Oct 2026, 23:28:57
+ opened on:  15 Oct 2026, 00:10:49
 
 . 
 . use "$FINAL/painel_anual.dta", clear
@@ -647,9 +647,19 @@ figura gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\E
 .     file close `F'
 . }
 
-. if `nf' == 0 file write `A' "- Nenhuma falha nas fontes automáticas. Pendente
->  apenas o FMI Fiscal Rules Dataset (bloqueio do servidor; download manual)." 
-> _n
+. capture confirm file "$INTERIM/fiscal_rules.dta"
+
+. local frok = !_rc
+
+. if `nf' == 0 & `frok' file write `A' "- Nenhuma falha nas fontes automáticas.
+>  O FMI Fiscal Rules Dataset (atualização 1985–2024) foi obtido por download m
+> anual (o servidor bloqueia acesso automatizado); 123 países listados, membros
+>  do FMI ausentes codificados sem regra; 1979–1984 reconstruídos pelo ano de i
+> mplementação (decisão D38)." _n
+
+. if `nf' == 0 & !`frok' file write `A' "- Nenhuma falha nas fontes automáticas
+> . Pendente apenas o FMI Fiscal Rules Dataset (bloqueio do servidor; download 
+> manual)." _n
 
 . file close `A'
 
@@ -659,5 +669,5 @@ figura gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\E
        log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Esti
 > mações/output/logs/04_descritivas.log
   log type:  text
- closed on:   7 Oct 2026, 23:29:07
+ closed on:  15 Oct 2026, 00:10:58
 -------------------------------------------------------------------------------

@@ -3,7 +3,7 @@
        log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Esti
 > mações/output/logs/07_moderacao.log
   log type:  text
- opened on:   7 Oct 2026, 23:29:18
+ opened on:  15 Oct 2026, 10:55:30
 
 . 
 . global X5 "lny0 hc0 inv open infl popg ctot_g"
@@ -1051,12 +1051,14 @@ added scalar:
 >  the first year of the period. Meritocratic recruitment: V-Dem v2stcritrecadm
 >  (criteria for appointment decisions in the state administration; higher valu
 > es = more merit-based), measured in the first year of the period. WGI: govern
-> ment effectiveness, first year of the period (from 1996). Columns 3-7 split t
-> he sample at the median and terciles of merit in the estimation sample of col
-> umn 1; the equality test comes from a pooled model with all coefficients and 
-> the period effects interacted with the group. Controls as in Table 2. Country
->  and period fixed effects; standard errors clustered by country. The threshol
-> d estimates (Seo and Shin, 2016) are in Table A6. `stars'")
+> ment effectiveness (higher values = more effective), first year of the period
+>  (from 1996). A positive interaction means that the growth cost of the wage b
+> ill is smaller where the moderator is higher. Columns 3-7 split the sample at
+>  the median and terciles of merit in the estimation sample of column 1; the e
+> quality test comes from a pooled model with all coefficients and the period e
+> ffects interacted with the group. Controls as in Table 2. Country and period 
+> fixed effects; standard errors clustered by country. The threshold estimates 
+> (Seo and Shin, 2016) are in Table A6. `stars'")
 successfully replaced "C:/Users/Usuario/Dropbox/Papers/Emprego Público e Cresci
 > mento/Estimações/output/tables/Table4_moderation.docx"
 tabela gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\E
@@ -1191,17 +1193,17 @@ tabela gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\E
 >     notes("Dependent variable: annual growth of real GDP per capita (%). Stro
 > ngly balanced annual panels (required by both estimators), microstates exclud
 > ed. Regime-dependent regressor: general government wage bill (% of GDP), lagg
-> ed one year; threshold variable: V-Dem meritocratic recruitment, lagged one y
-> ear. Columns 1-2: dynamic panel threshold model of Seo and Shin (2016), first
-> -difference GMM (xthenreg), asymptotic standard errors; the lower-regime slop
-> e and the change in the slope above the threshold are shown. In column 1 the 
-> number of moment conditions (all available lags of growth for each year) exce
-> eds the number of countries, which is the instrument proliferation that the p
-> re-specified rule excludes; its estimates are reported for transparency and a
-> re not interpreted. Column 3: fixed-effects threshold model of Hansen (1999),
->  xthreg, with year dummies as regime-independent regressors and no instrument
-> s; slopes by regime. Linearity tests by bootstrap with 500 replications. * p<
-> 0.10, ** p<0.05, *** p<0.01.")
+> ed one year; threshold variable: V-Dem meritocratic recruitment (higher value
+> s = more merit-based), lagged one year. Columns 1-2: dynamic panel threshold 
+> model of Seo and Shin (2016), first-difference GMM (xthenreg), asymptotic sta
+> ndard errors; the lower-regime slope and the change in the slope above the th
+> reshold are shown. In column 1 the number of moment conditions (all available
+>  lags of growth for each year) exceeds the number of countries, which is the 
+> instrument proliferation that the pre-specified rule excludes; its estimates 
+> are reported for transparency and are not interpreted. Column 3: fixed-effect
+> s threshold model of Hansen (1999), xthreg, with year dummies as regime-indep
+> endent regressors and no instruments; slopes by regime. Linearity tests by bo
+> otstrap with 500 replications. * p<0.10, ** p<0.05, *** p<0.01.")
 successfully replaced "C:/Users/Usuario/Dropbox/Papers/Emprego Público e Cresci
 > mento/Estimações/output/tables/TableA6_threshold.docx"
 tabela gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\E
@@ -1251,5 +1253,5 @@ file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações
        log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Esti
 > mações/output/logs/07_moderacao.log
   log type:  text
- closed on:   7 Oct 2026, 23:34:02
+ closed on:  15 Oct 2026, 11:01:46
 -------------------------------------------------------------------------------

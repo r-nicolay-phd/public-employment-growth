@@ -3,7 +3,7 @@
        log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Esti
 > mações/output/logs/03_painel.log
   log type:  text
- opened on:   7 Oct 2026, 23:28:53
+ opened on:  15 Oct 2026, 00:10:45
 
 . 
 . * ===========================================================================
@@ -184,23 +184,31 @@
 (13,554 real changes made)
 
 . 
-. * regras fiscais (download manual; ver docs/DOWNLOADS_MANUAIS.md)
-. capture confirm file "$MANUAL/IMF_Fiscal_Rules_Dataset_1985_2021.xlsx"
+. * regras fiscais (download manual; limpeza em 02_limpeza_fmi.do; ver docs/DOW
+> NLOADS_MANUAIS.md)
+. capture confirm file "$INTERIM/fiscal_rules.dta"
 
 . if !_rc {
-.     preserve
-.     import excel "$MANUAL/IMF_Fiscal_Rules_Dataset_1985_2021.xlsx", firstrow 
-> clear
-.     capture rename (ISO_code Year ER BBR) (iso3 year rule_exp rule_bb)
-.     keep iso3 year rule_exp rule_bb
-.     tempfile fr
-.     save `fr'
-.     restore
-.     merge 1:1 iso3 year using `fr', keep(master match) nogen
+.     merge 1:1 iso3 year using "$INTERIM/fiscal_rules.dta", keep(master match)
+>  nogen
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                         5,310
+        from master                     5,310  
+        from using                          0  
+
+    Matched                             8,730  
+    -----------------------------------------
 . }
 
-. else di "Fiscal Rules Dataset ausente: rule_exp e rule_bb nao criadas"
-Fiscal Rules Dataset ausente: rule_exp e rule_bb nao criadas
+. else {
+.     di "Fiscal Rules Dataset ausente: variaveis rule_* ficam vazias"
+.     foreach v in rule_exp rule_rev rule_bb rule_debt rule_any rule_exp_nat ru
+> le_bb_nat in_frd {
+  2.         gen byte `v' = .
+  3.     }
+. }
 
 . 
 . * ===========================================================================
@@ -692,7 +700,8 @@ file C:\Users\Usuario\Dropbox\Papers\Emprego Público e
 > gebill_comb cov_central ///
 >     wagebill_cg_wdi wagebill_cg_gfs exp_gdp rev_gdp balance_gdp sh_wage sh_go
 > ods sh_int sh_transf ///
->     sh_inv sh_other merit impartial pubcorrupt wgi_ge hc debt grd_rev
+>     sh_inv sh_other merit impartial pubcorrupt wgi_ge hc debt grd_rev ///
+>     rule_exp rule_bb rule_debt rule_any rule_exp_nat rule_bb_nat
 
 . local avail_vars pubemp_share relwage wwbi_prem_all wwbi_prem_formal wwbi_wag
 > ebill_gdp
@@ -732,7 +741,7 @@ file C:\Users\Usuario\Dropbox\Papers\Emprego Público e
 > war_any = war hyper_any = hyperinf ///
 >         (firstnm) iso3 country region income_grp oecd resource_rich federal m
 > icro exp_decentr qog_prof ///
->         qog_closed year0, by(id period)
+>         qog_closed in_frd year0, by(id period)
  19.     * renda inicial: log do PIB per capita no ano anterior ao periodo (do 
 > painel anual)
 .     tempfile P
@@ -785,6 +794,12 @@ file C:\Users\Usuario\Dropbox\Papers\Emprego Público e
 (7,616 missing values generated)
 (7,448 missing values generated)
 (7,776 missing values generated)
+(7,137 missing values generated)
+(7,137 missing values generated)
+(7,137 missing values generated)
+(7,137 missing values generated)
+(7,137 missing values generated)
+(7,137 missing values generated)
 (7,736 missing values generated)
 (6,660 missing values generated)
 (8,424 missing values generated)
@@ -800,7 +815,7 @@ file C:\Users\Usuario\Dropbox\Papers\Emprego Público e
 (4,897 missing values generated)
 (4,435 missing values generated)
 (7,979 missing values generated)
-file C:\Users\Usuario\AppData\Local\Temp\ST_7b5c_000001.tmp saved as .dta
+file C:\Users\Usuario\AppData\Local\Temp\ST_847c_000001.tmp saved as .dta
     format
 (label id already defined)
 
@@ -818,9 +833,15 @@ Panel variable: id (strongly balanced)
   variable year0 was float now int
   variable period was float now byte
   variable cov_central0 was float now byte
+  variable rule_exp0 was float now byte
+  variable rule_bb0 was float now byte
+  variable rule_debt0 was float now byte
+  variable rule_any0 was float now byte
+  variable rule_exp_nat0 was float now byte
+  variable rule_bb_nat0 was float now byte
   variable year1 was float now int
   variable ng was double now byte
-  (30,141 bytes saved)
+  (62,055 bytes saved)
 file C:\Users\Usuario\Dropbox\Papers\Emprego Público e
     Crescimento\Estimações/data/final/painel_5anos.dta saved
 (2,167 observations deleted)
@@ -849,6 +870,12 @@ file C:\Users\Usuario\Dropbox\Papers\Emprego Público e
 (6,359 missing values generated)
 (6,020 missing values generated)
 (6,456 missing values generated)
+(5,591 missing values generated)
+(5,591 missing values generated)
+(5,591 missing values generated)
+(5,591 missing values generated)
+(5,591 missing values generated)
+(5,591 missing values generated)
 (7,342 missing values generated)
 (6,704 missing values generated)
 (7,882 missing values generated)
@@ -864,7 +891,7 @@ file C:\Users\Usuario\Dropbox\Papers\Emprego Público e
 (4,503 missing values generated)
 (4,298 missing values generated)
 (7,080 missing values generated)
-file C:\Users\Usuario\AppData\Local\Temp\ST_7b5c_000002.tmp saved as .dta
+file C:\Users\Usuario\AppData\Local\Temp\ST_847c_000002.tmp saved as .dta
     format
 (label id already defined)
 
@@ -882,9 +909,15 @@ Panel variable: id (strongly balanced)
   variable year0 was float now int
   variable period was float now byte
   variable cov_central0 was float now byte
+  variable rule_exp0 was float now byte
+  variable rule_bb0 was float now byte
+  variable rule_debt0 was float now byte
+  variable rule_any0 was float now byte
+  variable rule_exp_nat0 was float now byte
+  variable rule_bb_nat0 was float now byte
   variable year1 was float now int
   variable ng was double now byte
-  (50,235 bytes saved)
+  (103,425 bytes saved)
 file C:\Users\Usuario\Dropbox\Papers\Emprego Público e
     Crescimento\Estimações/data/final/painel_3anos.dta saved
 
@@ -913,5 +946,5 @@ request ignored because of batch mode
        log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Esti
 > mações/output/logs/03_painel.log
   log type:  text
- closed on:   7 Oct 2026, 23:28:57
+ closed on:  15 Oct 2026, 00:10:49
 -------------------------------------------------------------------------------

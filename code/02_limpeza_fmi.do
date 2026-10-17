@@ -128,4 +128,76 @@ keep if iso3 != ""
 keep iso3 year wagebill_eurostat
 save "$INTERIM/eurostat.dta", replace
 
+* ---------------------------------------------------------------- regras fiscais (FMI, download manual)
+* Fiscal Rules Dataset 1985-2024 (atualizacao de ago. 2025). A aba Rules lista os 123 paises que tiveram
+* alguma regra nacional ou supranacional; membros do FMI ausentes da aba nao tem regra (codificados 0).
+* O universo de membros e os codigos ISO3 vem da aba weo_group do proprio arquivo (decisao D38).
+* 1979-1984 (anterior a base): regra em vigor se ja vigorava em 1985 e o ano de implementacao e <= ano.
+local frfile : dir "$MANUAL" files "*Fiscal Rules*.xlsx"
+local frfile : word 1 of `frfile'
+capture erase "$INTERIM/fiscal_rules.dta"
+if `"`frfile'"' != "" {
+    import excel "$MANUAL/`frfile'", sheet("weo_group") firstrow clear allstring
+    keep country ccode
+    keep if strlen(ccode) == 3
+    replace country = strtrim(country)
+    rename ccode iso3
+    replace iso3 = "XKX" if iso3 == "KOS"
+    replace iso3 = "ROU" if iso3 == "ROM"
+    tempfile univ
+    save `univ'
+    import excel "$MANUAL/`frfile'", sheet("Rules") cellrange(B5:O4924) clear allstring
+    rename (B C D E F G H I J K L M N O) (year country er rr bbr dr er_lvl rr_lvl bbr_lvl dr_lvl er_imp rr_imp bbr_imp dr_imp)
+    destring year, replace
+    drop if missing(year) | country == ""
+    replace country = strtrim(country)
+    * 1 = regra em vigor; "-" = sem regra. Nivel: 0 nacional, 1 supranacional, 2 ambos
+    foreach r in er rr bbr dr {
+        gen byte rule_`r' = `r' == "1"
+        destring `r'_lvl, replace force
+    }
+    gen byte rule_er_nat = rule_er == 1 & inlist(er_lvl, 0, 2)
+    gen byte rule_bbr_nat = rule_bbr == 1 & inlist(bbr_lvl, 0, 2)
+    * anos 1979-1984 a partir de 1985 e do ano de implementacao (primeiro ano listado na celula)
+    expand 7 if year == 1985, gen(_pre)
+    bysort country year _pre: replace year = 1978 + _n if _pre
+    foreach r in er rr bbr dr {
+        gen _imp = real(substr(strtrim(`r'_imp), 1, 4))
+        replace rule_`r' = rule_`r' == 1 & _imp <= year if _pre
+        drop _imp
+    }
+    replace rule_er_nat = rule_er_nat == 1 & rule_er == 1 if _pre
+    replace rule_bbr_nat = rule_bbr_nat == 1 & rule_bbr == 1 if _pre
+    drop if _pre & year == 1985
+    drop _pre
+    keep year country rule_*
+    merge m:1 country using `univ', keep(match using)
+    * todo nome da aba Rules precisa casar com um membro
+    count if _merge == 1
+    assert r(N) == 0
+    gen byte in_frd = _merge == 3
+    drop _merge
+    * membros sem regra: um registro por ano 1979-2024
+    expand 46 if in_frd == 0
+    bysort iso3 (year): replace year = 1978 + _n if in_frd == 0
+    foreach v of varlist rule_* {
+        replace `v' = 0 if in_frd == 0
+    }
+    gen byte rule_any = rule_er | rule_rr | rule_bbr | rule_dr
+    rename (rule_er rule_rr rule_bbr rule_dr rule_er_nat rule_bbr_nat) (rule_exp rule_rev rule_bb rule_debt rule_exp_nat rule_bb_nat)
+    keep iso3 year rule_exp rule_rev rule_bb rule_debt rule_any rule_exp_nat rule_bb_nat in_frd
+    isid iso3 year
+    label var rule_exp "Expenditure rule in force (IMF FRD)"
+    label var rule_rev "Revenue rule in force (IMF FRD)"
+    label var rule_bb "Budget balance rule in force (IMF FRD)"
+    label var rule_debt "Debt rule in force (IMF FRD)"
+    label var rule_any "Any numerical fiscal rule in force (IMF FRD)"
+    label var rule_exp_nat "National expenditure rule in force (IMF FRD)"
+    label var rule_bb_nat "National budget balance rule in force (IMF FRD)"
+    label var in_frd "Country listed in the IMF Fiscal Rules Dataset"
+    tab year if inlist(year, 1979, 1984, 1985, 1996, 2005, 2015, 2023), sum(rule_any)
+    save "$INTERIM/fiscal_rules.dta", replace
+}
+else di "Fiscal Rules Dataset ausente em $MANUAL"
+
 log close

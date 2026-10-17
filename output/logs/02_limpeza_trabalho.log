@@ -3,7 +3,7 @@
        log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Esti
 > mações/output/logs/02_limpeza_trabalho.log
   log type:  text
- opened on:   7 Oct 2026, 23:28:43
+ opened on:  15 Oct 2026, 00:10:37
 
 . 
 . * ---------------------------------------------------------------- WWBI
@@ -88,20 +88,20 @@ file C:\Users\Usuario\Dropbox\Papers\Emprego Público e
 (19 vars, 1,570 obs)
 (0 observations deleted)
 (0 observations deleted)
-file C:\Users\Usuario\AppData\Local\Temp\ST_7b5c_000001.tmp saved as .dta
+file C:\Users\Usuario\AppData\Local\Temp\ST_847c_000001.tmp saved as .dta
     format
 (19 vars, 21,302 obs)
 (16,796 observations deleted)
 year: all characters numeric; replaced as int
 (0 observations deleted)
 (0 observations deleted)
-file C:\Users\Usuario\AppData\Local\Temp\ST_7b5c_000002.tmp saved as .dta
+file C:\Users\Usuario\AppData\Local\Temp\ST_847c_000002.tmp saved as .dta
     format
 (18 vars, 1,049 obs)
 (0 observations deleted)
 (0 observations deleted)
 (0 observations deleted)
-file C:\Users\Usuario\AppData\Local\Temp\ST_7b5c_000003.tmp saved as .dta
+file C:\Users\Usuario\AppData\Local\Temp\ST_847c_000003.tmp saved as .dta
     format
 
 . use `t_EMP_TEMP_SEX_AGE_NB', clear
@@ -170,5 +170,5 @@ file C:\Users\Usuario\Dropbox\Papers\Emprego Público e
        log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Esti
 > mações/output/logs/02_limpeza_trabalho.log
   log type:  text
- closed on:   7 Oct 2026, 23:28:44
+ closed on:  15 Oct 2026, 00:10:37
 -------------------------------------------------------------------------------

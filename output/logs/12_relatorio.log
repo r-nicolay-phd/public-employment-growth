@@ -3,7 +3,7 @@
        log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Esti
 > mações/output/logs/12_relatorio.log
   log type:  text
- opened on:   7 Oct 2026, 23:34:46
+ opened on:  15 Oct 2026, 00:17:41
 
 . 
 . * ---------------------------------------------------------------- utilitario
@@ -180,6 +180,31 @@
 . verd e2 -1
 
 . verd e3 -1
+
+. 
+. * regras fiscais (bloco H, Tabela A10)
+. foreach m in 1 2 5 7 8 9 {
+  2.     capture confirm file "$LOG/est_H`m'.ster"
+  3.     local hok = !_rc
+  4.     if !`hok' continue, break
+  5.     if `m' != 9 cf H`m' WBxR h`m'i
+  6.     cf H`m' wagebill_gdp0 h`m'b
+  7.     quietly estimates use "$LOG/est_H`m'"
+  8.     pt e(me1)
+  9.     local h`m'me "`r(s)'"
+ 10.     pt `=e(me1) - invttail(e(df_r), 0.025) * e(me1_se)'
+ 11.     local h`m'lo "`r(s)'"
+ 12.     pt `=e(me1) + invttail(e(df_r), 0.025) * e(me1_se)'
+ 13.     local h`m'hi "`r(s)'"
+ 14.     local h`m'nr = e(nrule)
+ 15.     local h`m'ns = e(nswitch)
+ 16. }
+
+. if `hok' {
+.     cf H8 WBxR2 h8i2
+.     cf H9 WBxR2 h9i2
+.     cf H9 wb_x_merit0 h9m
+. }
 
 . 
 . quietly estimates use "$LOG/est_F1"
@@ -489,6 +514,27 @@
 > ha medida antes do crescimento é um efeito de médio prazo menor, visível nas 
 > médias de cinco anos e ausente na frequência anual." _n _n
 
+. if `hok' file write `R' "**Heterogeneidade por regras fiscais (bloco H; Tabel
+> a A10).** Com a folha interagida com uma regra fiscal numérica em vigor no pr
+> imeiro ano do período (FMI, Fiscal Rules Dataset 1985–2024), a associação neg
+> ativa se concentra nos períodos com regra de resultado. Com essa regra, o efe
+> ito da folha é `h2me' (IC [`h2lo'; `h2hi']) contra $h2b_b (IC $h2b_ci) sem re
+> gra; a interação é $h2i_b (IC $h2i_ci; p = $h2i_p), com `h2nr' países-período
+>  sob regra e `h2ns' países que mudam de situação na amostra. Com regra de des
+> pesa, a interação é $h1i_b (IC $h1i_ci; p = $h1i_p); com as duas regras junta
+> s, só a de resultado importa (interação $h8i2_b; IC $h8i2_ci). A interação co
+> m a regra de resultado sobrevive à inclusão da interação com o mérito ($h9i2_
+> b; IC $h9i2_ci), que continua nula ($h9m_b). Mas ela depende dos membros da U
+> nião Europeia, sujeitos à regra supranacional do Pacto de Estabilidade: só co
+> m regras nacionais, a interação é $h5i_b (IC $h5i_ci; p = $h5i_p); excluindo 
+> os países da UE, $h7i_b (IC $h7i_ci; p = $h7i_p), com `h7nr' países-período s
+> ob regra. Uma leitura possível, não testada aqui e próxima de H1: onde a regr
+> a limita o déficit, uma folha maior tem de ser acomodada por cortes em outras
+>  despesas, e não por endividamento. A adoção de regras não é exógena (países 
+> adotam regras depois de crises ou ao entrar na União Europeia), de modo que o
+>  resultado é heterogeneidade condicional, não efeito causal da regra; e, fora
+>  da UE, não há evidência estatística de heterogeneidade." _n _n
+
 . 
 . file write `R' "## 2. Tamanho do efeito" _n _n
 
@@ -674,10 +720,14 @@
 . 
 . file write `R' "## 5. Pendências" _n _n
 
-. file write `R' "- **Download manual**: FMI Fiscal Rules Dataset (o servidor d
-> o FMI bloqueia acesso automatizado). Não entra em nenhuma especificação fixad
-> a; colocar em \`data/raw/manual/\` (instruções em \`docs/DOWNLOADS_MANUAIS.md
-> \`)." _n
+. if `hok' file write `R' "- **Download manual**: nenhum pendente. O FMI Fiscal
+>  Rules Dataset (atualização 1985–2024) foi baixado à mão (o servidor do FMI b
+> loqueia acesso automatizado) e alimenta o bloco H (Tabela A10)." _n
+
+. else file write `R' "- **Download manual**: FMI Fiscal Rules Dataset (o servi
+> dor do FMI bloqueia acesso automatizado). Colocar em \`data/raw/manual/\` (in
+> struções em \`docs/DOWNLOADS_MANUAIS.md\`); o bloco H (Tabela A10) só é estim
+> ado com o arquivo." _n
 
 . file write `R' "- **Estimadores substituídos**: nenhum por falta de Stata (o 
 > Stata 17 estava disponível, e \`xthenreg\` e \`xtdpdbc\` foram usados). O est
@@ -691,8 +741,9 @@
 > _n
 
 . file write `R' "- **Etapas não incluídas** por não constarem da lista fixada 
-> na seção 7: PMG/CS-ARDL de longo prazo e heterogeneidade por regras fiscais (
-> esta depende do download manual)." _n _n
+> na seção 7: PMG/CS-ARDL de longo prazo. A heterogeneidade por regras fiscais 
+> (bloco H) foi acrescentada depois da primeira versão, quando o arquivo do FMI
+>  ficou disponível (decisão D38)." _n _n
 
 . 
 . file write `R' "## 6. Onde está cada tabela e figura" _n _n
@@ -715,17 +766,18 @@
 > or (D4)" "Table A8a|TableA8a_robustness_definitions|Robustez: medida, amostra
 > , outliers" "Table A8b|TableA8b_robustness_subsamples|Robustez: subamostras" 
 > "Table A8c|TableA8c_robustness_cce|Robustez: CCE de grupo médio" "Table A9|Ta
-> bleA9_bma|Média bayesiana de modelos" "Figure 1|Figure1_wagebill_income|Folha
->  por grupo de renda" "Figure 2|Figure2_employment_vs_wage|Emprego público x s
-> alário relativo" "Figure 3|Figure3_denominator|Viés do denominador (D4)" "Fig
-> ure 4|Figure4_marginal_effect_merit|Efeito marginal ao longo do mérito (C1, C
-> 2)" "Figure 5|Figure5_local_projections|Projeções locais (D1, D2)" "Figure 6|
-> Figure6_lp_merit|Projeções locais por regime de mérito (D3)" "Figure A1|Figur
-> eA1_coverage|Cobertura dos dados" "Figure A2|FigureA2_marginal_effect_wgi|Efe
-> ito marginal ao longo do WGI (C5)" "Figure A3|FigureA3_lp_mechanisms|Projeçõe
-> s locais dos mecanismos (E)" "Figure A4|FigureA4_lp_elections|Projeções locai
-> s por ano eleitoral (F3)" "Figure A5|FigureA5_leave_one_out|Exclusão de um pa
-> ís por vez" "Figure A6|FigureA6_bma_pip|Probabilidades de inclusão (BMA)""'
+> bleA9_bma|Média bayesiana de modelos" "Table A10|TableA10_fiscal_rules|Hetero
+> geneidade por regras fiscais (H)" "Figure 1|Figure1_wagebill_income|Folha por
+>  grupo de renda" "Figure 2|Figure2_employment_vs_wage|Emprego público x salár
+> io relativo" "Figure 3|Figure3_denominator|Viés do denominador (D4)" "Figure 
+> 4|Figure4_marginal_effect_merit|Efeito marginal ao longo do mérito (C1, C2)" 
+> "Figure 5|Figure5_local_projections|Projeções locais (D1, D2)" "Figure 6|Figu
+> re6_lp_merit|Projeções locais por regime de mérito (D3)" "Figure A1|FigureA1_
+> coverage|Cobertura dos dados" "Figure A2|FigureA2_marginal_effect_wgi|Efeito 
+> marginal ao longo do WGI (C5)" "Figure A3|FigureA3_lp_mechanisms|Projeções lo
+> cais dos mecanismos (E)" "Figure A4|FigureA4_lp_elections|Projeções locais po
+> r ano eleitoral (F3)" "Figure A5|FigureA5_leave_one_out|Exclusão de um país p
+> or vez" "Figure A6|FigureA6_bma_pip|Probabilidades de inclusão (BMA)""'
 
 . foreach it of local items {
   2.     tokenize "`it'", parse("|")
@@ -755,7 +807,7 @@
 >     TableA1_definitions TableA2_countries TableA3_correlations TableA4_gmm_in
 > struments TableA5_bond_check TableA6_threshold ///
 >     TableA7_denominator TableA8a_robustness_definitions TableA8b_robustness_s
-> ubsamples TableA8c_robustness_cce TableA9_bma
+> ubsamples TableA8c_robustness_cce TableA9_bma TableA10_fiscal_rules
 
 . foreach t of local tabs {
   2.     tempname C
@@ -848,5 +900,5 @@
        log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Esti
 > mações/output/logs/12_relatorio.log
   log type:  text
- closed on:   7 Oct 2026, 23:34:48
+ closed on:  15 Oct 2026, 00:17:42
 -------------------------------------------------------------------------------

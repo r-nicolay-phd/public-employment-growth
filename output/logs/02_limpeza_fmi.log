@@ -3,7 +3,7 @@
        log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Esti
 > mações/output/logs/02_limpeza_fmi.log
   log type:  text
- opened on:   7 Oct 2026, 23:28:35
+ opened on:  15 Oct 2026, 00:10:25
 
 . 
 . * ---------------------------------------------------------------- GFS, demon
@@ -412,10 +412,169 @@ file C:\Users\Usuario\Dropbox\Papers\Emprego Público e
     Crescimento\Estimações/data/interim/eurostat.dta saved
 
 . 
+. * ---------------------------------------------------------------- regras fis
+> cais (FMI, download manual)
+. * Fiscal Rules Dataset 1985-2024 (atualizacao de ago. 2025). A aba Rules list
+> a os 123 paises que tiveram
+. * alguma regra nacional ou supranacional; membros do FMI ausentes da aba nao 
+> tem regra (codificados 0).
+. * O universo de membros e os codigos ISO3 vem da aba weo_group do proprio arq
+> uivo (decisao D38).
+. * 1979-1984 (anterior a base): regra em vigor se ja vigorava em 1985 e o ano 
+> de implementacao e <= ano.
+. local frfile : dir "$MANUAL" files "*Fiscal Rules*.xlsx"
+
+. local frfile : word 1 of `frfile'
+
+. capture erase "$INTERIM/fiscal_rules.dta"
+
+. if `"`frfile'"' != "" {
+.     import excel "$MANUAL/`frfile'", sheet("weo_group") firstrow clear allstr
+> ing
+(23 vars, 209 obs)
+.     keep country ccode
+.     keep if strlen(ccode) == 3
+(13 observations deleted)
+.     replace country = strtrim(country)
+(1 real change made)
+.     rename ccode iso3
+.     replace iso3 = "XKX" if iso3 == "KOS"
+(1 real change made)
+.     replace iso3 = "ROU" if iso3 == "ROM"
+(1 real change made)
+.     tempfile univ
+.     save `univ'
+file C:\Users\Usuario\AppData\Local\Temp\ST_847c_000001.tmp saved as .dta
+    format
+.     import excel "$MANUAL/`frfile'", sheet("Rules") cellrange(B5:O4924) clear
+>  allstring
+(14 vars, 4,920 obs)
+.     rename (B C D E F G H I J K L M N O) (year country er rr bbr dr er_lvl rr
+> _lvl bbr_lvl dr_lvl er_imp rr_imp bbr_imp dr_imp)
+.     destring year, replace
+year: all characters numeric; replaced as int
+.     drop if missing(year) | country == ""
+(0 observations deleted)
+.     replace country = strtrim(country)
+(40 real changes made)
+.     * 1 = regra em vigor; "-" = sem regra. Nivel: 0 nacional, 1 supranacional
+> , 2 ambos
+.     foreach r in er rr bbr dr {
+  2.         gen byte rule_`r' = `r' == "1"
+  3.         destring `r'_lvl, replace force
+  4.     }
+er_lvl: contains nonnumeric characters; replaced as byte
+(3957 missing values generated)
+rr_lvl: contains nonnumeric characters; replaced as byte
+(4510 missing values generated)
+bbr_lvl: contains nonnumeric characters; replaced as byte
+(2724 missing values generated)
+dr_lvl: contains nonnumeric characters; replaced as byte
+(2989 missing values generated)
+.     gen byte rule_er_nat = rule_er == 1 & inlist(er_lvl, 0, 2)
+.     gen byte rule_bbr_nat = rule_bbr == 1 & inlist(bbr_lvl, 0, 2)
+.     * anos 1979-1984 a partir de 1985 e do ano de implementacao (primeiro ano
+>  listado na celula)
+.     expand 7 if year == 1985, gen(_pre)
+(738 observations created)
+.     bysort country year _pre: replace year = 1978 + _n if _pre
+(738 real changes made)
+.     foreach r in er rr bbr dr {
+  2.         gen _imp = real(substr(strtrim(`r'_imp), 1, 4))
+  3.         replace rule_`r' = rule_`r' == 1 & _imp <= year if _pre
+  4.         drop _imp
+  5.     }
+(3,593 missing values generated)
+(9 real changes made)
+(4,922 missing values generated)
+(6 real changes made)
+(1,656 missing values generated)
+(6 real changes made)
+(2,211 missing values generated)
+(0 real changes made)
+.     replace rule_er_nat = rule_er_nat == 1 & rule_er == 1 if _pre
+(9 real changes made)
+.     replace rule_bbr_nat = rule_bbr_nat == 1 & rule_bbr == 1 if _pre
+(6 real changes made)
+.     drop if _pre & year == 1985
+(0 observations deleted)
+.     drop _pre
+.     keep year country rule_*
+.     merge m:1 country using `univ', keep(match using)
+(variable country was str30, now str32 to accommodate using data's values)
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                            73
+        from master                         0  (_merge==1)
+        from using                         73  (_merge==2)
+
+    Matched                             5,658  (_merge==3)
+    -----------------------------------------
+.     * todo nome da aba Rules precisa casar com um membro
+.     count if _merge == 1
+  0
+.     assert r(N) == 0
+.     gen byte in_frd = _merge == 3
+.     drop _merge
+.     * membros sem regra: um registro por ano 1979-2024
+.     expand 46 if in_frd == 0
+(3,285 observations created)
+.     bysort iso3 (year): replace year = 1978 + _n if in_frd == 0
+(3,358 real changes made)
+.     foreach v of varlist rule_* {
+  2.         replace `v' = 0 if in_frd == 0
+  3.     }
+(3,358 real changes made)
+(3,358 real changes made)
+(3,358 real changes made)
+(3,358 real changes made)
+(3,358 real changes made)
+(3,358 real changes made)
+.     gen byte rule_any = rule_er | rule_rr | rule_bbr | rule_dr
+.     rename (rule_er rule_rr rule_bbr rule_dr rule_er_nat rule_bbr_nat) (rule_
+> exp rule_rev rule_bb rule_debt rule_exp_nat rule_bb_nat)
+.     keep iso3 year rule_exp rule_rev rule_bb rule_debt rule_any rule_exp_nat 
+> rule_bb_nat in_frd
+.     isid iso3 year
+.     label var rule_exp "Expenditure rule in force (IMF FRD)"
+.     label var rule_rev "Revenue rule in force (IMF FRD)"
+.     label var rule_bb "Budget balance rule in force (IMF FRD)"
+.     label var rule_debt "Debt rule in force (IMF FRD)"
+.     label var rule_any "Any numerical fiscal rule in force (IMF FRD)"
+.     label var rule_exp_nat "National expenditure rule in force (IMF FRD)"
+.     label var rule_bb_nat "National budget balance rule in force (IMF FRD)"
+.     label var in_frd "Country listed in the IMF Fiscal Rules Dataset"
+.     tab year if inlist(year, 1979, 1984, 1985, 1996, 2005, 2015, 2023), sum(r
+> ule_any)
+
+            |   Summary of Any numerical fiscal
+            |       rule in force (IMF FRD)
+       year |        Mean   Std. dev.       Freq.
+------------+------------------------------------
+       1979 |    .0255102   .15807251         196
+       1984 |    .0255102   .15807251         196
+       1985 |   .03061224   .17270586         196
+       1996 |   .12244898   .32864309         196
+       2005 |    .3877551   .48848595         196
+       2015 |    .5255102   .50062755         196
+       2023 |   .60714286   .48963618         196
+------------+------------------------------------
+      Total |   .24635569   .43104522       1,372
+.     save "$INTERIM/fiscal_rules.dta", replace
+(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e
+    Crescimento\Estimações/data/interim/fiscal_rules.dta not found)
+file C:\Users\Usuario\Dropbox\Papers\Emprego Público e
+    Crescimento\Estimações/data/interim/fiscal_rules.dta saved
+. }
+
+. else di "Fiscal Rules Dataset ausente em $MANUAL"
+
+. 
 . log close
       name:  <unnamed>
        log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Esti
 > mações/output/logs/02_limpeza_fmi.log
   log type:  text
- closed on:   7 Oct 2026, 23:28:43
+ closed on:  15 Oct 2026, 00:10:36
 -------------------------------------------------------------------------------

@@ -115,6 +115,14 @@ exp_decentr,float,"Subnational share of general government spending (%), 2010-20
 qog_prof,float,Professionalism index (QoG Expert Survey 2020)
 qog_closed,float,Closedness index (QoG Expert Survey 2020)
 qog_impartial,float,
+rule_exp,byte,Expenditure rule in force (IMF FRD)
+rule_rev,byte,Revenue rule in force (IMF FRD)
+rule_bb,byte,Budget balance rule in force (IMF FRD)
+rule_debt,byte,Debt rule in force (IMF FRD)
+rule_exp_nat,byte,National expenditure rule in force (IMF FRD)
+rule_bb_nat,byte,National budget balance rule in force (IMF FRD)
+in_frd,byte,Country listed in the IMF Fiscal Rules Dataset
+rule_any,byte,Any numerical fiscal rule in force (IMF FRD)
 id,int,
 micro,byte,"Microstate (population < 500,000)"
 g_raw,float,

@@ -17,19 +17,17 @@ merge m:1 iso3 using "$INTERIM/fd.dta", keep(master match) nogen
 merge m:1 iso3 using "$INTERIM/qog_expert.dta", keep(master match) nogen
 replace war = 0 if missing(war)
 
-* regras fiscais (download manual; ver docs/DOWNLOADS_MANUAIS.md)
-capture confirm file "$MANUAL/IMF_Fiscal_Rules_Dataset_1985_2021.xlsx"
+* regras fiscais (download manual; limpeza em 02_limpeza_fmi.do; ver docs/DOWNLOADS_MANUAIS.md)
+capture confirm file "$INTERIM/fiscal_rules.dta"
 if !_rc {
-    preserve
-    import excel "$MANUAL/IMF_Fiscal_Rules_Dataset_1985_2021.xlsx", firstrow clear
-    capture rename (ISO_code Year ER BBR) (iso3 year rule_exp rule_bb)
-    keep iso3 year rule_exp rule_bb
-    tempfile fr
-    save `fr'
-    restore
-    merge 1:1 iso3 year using `fr', keep(master match) nogen
+    merge 1:1 iso3 year using "$INTERIM/fiscal_rules.dta", keep(master match) nogen
 }
-else di "Fiscal Rules Dataset ausente: rule_exp e rule_bb nao criadas"
+else {
+    di "Fiscal Rules Dataset ausente: variaveis rule_* ficam vazias"
+    foreach v in rule_exp rule_rev rule_bb rule_debt rule_any rule_exp_nat rule_bb_nat in_frd {
+        gen byte `v' = .
+    }
+}
 
 * =====================================================================================
 * 2. Regras de limpeza (na ordem da especificacao); contagens gravadas em regras_limpeza.csv
@@ -237,7 +235,8 @@ local mean_vars g g_raw infl infl_raw inv open popg ctot_g ipriv privinv_wdi tfp
     exp_gdp rev_gdp balance_gdp wagebill_gdp wagebill_cyc hc war hyperinf
 local first_vars wagebill_gdp wagebill_share wagebill_cyc wagebill_cyc_ham wagebill_comb cov_central ///
     wagebill_cg_wdi wagebill_cg_gfs exp_gdp rev_gdp balance_gdp sh_wage sh_goods sh_int sh_transf ///
-    sh_inv sh_other merit impartial pubcorrupt wgi_ge hc debt grd_rev
+    sh_inv sh_other merit impartial pubcorrupt wgi_ge hc debt grd_rev ///
+    rule_exp rule_bb rule_debt rule_any rule_exp_nat rule_bb_nat
 local avail_vars pubemp_share relwage wwbi_prem_all wwbi_prem_formal wwbi_wagebill_gdp
 local fl ""
 foreach v of local first_vars {
@@ -267,7 +266,7 @@ foreach L in 5 3 {
     gen ng = !missing(g)
     collapse (mean) `mean_vars' g_excr (firstnm) `fl' `al' (sum) ng (max) war_any = war hyper_any = hyperinf ///
         (firstnm) iso3 country region income_grp oecd resource_rich federal micro exp_decentr qog_prof ///
-        qog_closed year0, by(id period)
+        qog_closed in_frd year0, by(id period)
     * renda inicial: log do PIB per capita no ano anterior ao periodo (do painel anual)
     tempfile P
     save `P'

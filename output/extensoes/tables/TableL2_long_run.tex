@@ -1,0 +1,30 @@
+% gerado por code/00_tabelas.do -- nao editar a mao
+\begin{table}[htbp]\centering\footnotesize
+\providecommand{\sym}[1]{\ensuremath{^{#1}}}
+\caption{Table L2. Long-run effect of the wage bill: heterogeneous panels and cross-sectional dependence}\label{tab:TableL2_long_run}
+\begin{tabular}{l*{7}{c}}
+\toprule
+ & (1) & (2) & (3) & (4) & (5) & (6) & (7) \\
+ & PMG & MG & DFE & CS-ARDL(1,1) & CS-ARDL(1,1), parsimonious & CS-ARDL(2,2) & CS-DL \\
+\midrule
+Panel A. Wage bill (\% of GDP), lagged one year &  &  &  &  &  &  &  \\
+Wage bill, long-run coefficient & -0.401\sym{***} & 1.155 & -0.053 & 1.117\sym{***} & 0.164 & 0.787 & 0.473 \\
+ & (0.082) & (0.953) & (0.150) & (0.304) & (0.340) & (0.490) & (0.348) \\
+Adjustment / lagged growth coefficient & -0.987\sym{***} & -1.259\sym{***} & -0.890\sym{***} & -1.154\sym{***} & -0.881\sym{***} & -1.124\sym{***} &  \\
+ & (0.054) & (0.080) & (0.037) & (0.049) & (0.043) & (0.075) &  \\
+Observations & 1,086 & 1,086 & 1,086 & 1,086 & 1,040 & 1,040 & 994 \\
+Countries & 43 & 43 & 43 & 43 & 43 & 43 & 43 \\
+Hausman test, PMG vs MG (p-value) & 0.819 &  &  &  &  &  &  \\
+\midrule
+Panel B. Wage bill (\% of Hamilton trend GDP), lagged one year &  &  &  &  &  &  &  \\
+Wage bill, long-run coefficient & -0.084 & 0.368 & 0.094 & -0.469 & -0.507 & -0.475 & 0.009 \\
+ & (0.098) & (0.333) & (0.153) & (0.401) & (0.496) & (0.600) & (0.348) \\
+Adjustment / lagged growth coefficient & -0.989\sym{***} & -1.191\sym{***} & -0.930\sym{***} & -1.067\sym{***} & -0.832\sym{***} & -0.894\sym{***} &  \\
+ & (0.040) & (0.045) & (0.031) & (0.035) & (0.047) & (0.051) &  \\
+Observations & 1,086 & 1,086 & 1,086 & 1,086 & 1,040 & 1,040 & 994 \\
+Countries & 43 & 43 & 43 & 43 & 43 & 43 & 43 \\
+Hausman test, PMG vs MG (p-value) & 0.902 &  &  &  &  &  &  \\
+\bottomrule
+\end{tabular}
+\begin{minipage}{0.95\linewidth}\vspace{4pt}\scriptsize \textit{Notes:} Annual panel 1996-2023, countries with at least 20 complete annual observations (same sample in both panels), microstates excluded. ARDL models of GDP per capita growth with the general government wage bill lagged one year (predetermined), investment, openness, inflation and population growth. Panel B divides the lagged wage bill by Hamilton trend GDP instead of actual GDP, which removes the mechanical rise of the ratio in recession years. The first row is the long-run coefficient of the wage bill on growth (p.p. per p.p. of GDP), comparable to Table 2. Columns 1-3 (xtpmg): pooled mean group (common long-run coefficients, country-specific short run and adjustment), mean group and dynamic fixed effects; the second coefficient row is the error-correction (adjustment) coefficient. Columns 4-7 (xtdcce2): mean-group estimators augmented with cross-sectional averages (Chudik et al., 2016): CS-ARDL(1,1) with all controls and contemporaneous averages; CS-ARDL(1,1) with investment only and one lag of the averages; CS-ARDL(2,2) with investment only and one lag of the averages; CS-DL with two lags of the averages. For CS-ARDL the second coefficient row is the long-run adjustment coefficient reported by xtdcce2. The Hausman test compares MG and PMG (null: common long-run coefficients). * p<0.10, ** p<0.05, *** p<0.01.\end{minipage}
+\end{table}

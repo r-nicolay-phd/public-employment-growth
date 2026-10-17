@@ -311,7 +311,10 @@ if !_rc {
     }
     file close `F'
 }
-if `nf' == 0 file write `A' "- Nenhuma falha nas fontes automáticas. Pendente apenas o FMI Fiscal Rules Dataset (bloqueio do servidor; download manual)." _n
+capture confirm file "$INTERIM/fiscal_rules.dta"
+local frok = !_rc
+if `nf' == 0 & `frok' file write `A' "- Nenhuma falha nas fontes automáticas. O FMI Fiscal Rules Dataset (atualização 1985–2024) foi obtido por download manual (o servidor bloqueia acesso automatizado); 123 países listados, membros do FMI ausentes codificados sem regra; 1979–1984 reconstruídos pelo ano de implementação (decisão D38)." _n
+if `nf' == 0 & !`frok' file write `A' "- Nenhuma falha nas fontes automáticas. Pendente apenas o FMI Fiscal Rules Dataset (bloqueio do servidor; download manual)." _n
 file close `A'
 
 log close

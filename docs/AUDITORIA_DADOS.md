@@ -1,6 +1,6 @@
 # Auditoria dos dados
 
-Gerado por `code/04_descritivas.do` em  7 Oct 2026. Não editar à mão: todo número abaixo sai do código.
+Gerado por `code/04_descritivas.do` em 15 Oct 2026. Não editar à mão: todo número abaixo sai do código.
 
 ## 1. Regras de limpeza (na ordem aplicada)
 
@@ -139,4 +139,4 @@ Nos países federais (Brasil, Estados Unidos, Alemanha, Índia, Argentina, Méxi
 
 Ver `docs/DOWNLOADS_MANUAIS.md`. Falha registrada pelo script de coleta (`data/raw/_falhas.txt`):
 
-- Nenhuma falha nas fontes automáticas. Pendente apenas o FMI Fiscal Rules Dataset (bloqueio do servidor; download manual).
+- Nenhuma falha nas fontes automáticas. O FMI Fiscal Rules Dataset (atualização 1985–2024) foi obtido por download manual (o servidor bloqueia acesso automatizado); 123 países listados, membros do FMI ausentes codificados sem regra; 1979–1984 reconstruídos pelo ano de implementação (decisão D38).

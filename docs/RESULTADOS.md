@@ -1,6 +1,6 @@
 # Resultados: folha de pagamento do setor público, burocracia e crescimento
 
-Relatório para o orientador. Gerado por `code/12_relatorio.do` em  7 Oct 2026; todos os números vêm das estimativas gravadas pelo pipeline. Coeficientes em pontos percentuais de crescimento anual do PIB per capita por ponto percentual do PIB na folha, salvo indicação. IC = intervalo de confiança de 95%.
+Relatório para o orientador. Gerado por `code/12_relatorio.do` em 15 Oct 2026; todos os números vêm das estimativas gravadas pelo pipeline. Coeficientes em pontos percentuais de crescimento anual do PIB per capita por ponto percentual do PIB na folha, salvo indicação. IC = intervalo de confiança de 95%.
 
 Regra dos vereditos, fixada antes da leitura dos números: *sustentada* = especificação preferida com o sinal previsto e p < 0,05; *rejeitada* = sinal oposto e p < 0,05; *inconclusiva* nos demais casos.
 
@@ -19,6 +19,8 @@ Regra dos vereditos, fixada antes da leitura dos números: *sustentada* = especi
 **H5 (economia política) — inconclusiva, com sinal oposto ao previsto; o instrumento é fraco.** A folha cresce em anos de eleição com calendário predeterminado (0,084 p.p. do PIB; IC [0,012; 0,156]); o F do primeiro estágio é 5,31.  Nas projeções locais, expansões da folha em anos eleitorais não são seguidas de crescimento pior: em quatro anos, 1,663% após choques em ano eleitoral contra -1,301% nos demais anos (p da diferença = 0,058); em países de mérito alto, 2,122% contra -1,682% (p = 0,009). Pela regra fixada, o veredito usa a diferença em h = 4 na amostra toda.
 
 **O viés do denominador (resultado central, D4; Figura 3 e Tabela A7).** Na mesma amostra anual e com o mesmo modelo, o coeficiente da folha é -0,686 (IC [-1,026; -0,345]) com a razão contemporânea, -0,432 (IC [-0,721; -0,142]) com a folha sobre o PIB tendencial do filtro HP, 0,034 (IC [-0,267; 0,336]) com o filtro de Hamilton e 0,040 (IC [-0,235; 0,314]) com a folha defasada um ano. Nas médias de cinco anos, -0,300 com a média do período contra -0,182 com o valor inicial. A associação negativa forte da dissertação é, em grande parte, contemporânea e mecânica; o que sobra com a folha medida antes do crescimento é um efeito de médio prazo menor, visível nas médias de cinco anos e ausente na frequência anual.
+
+**Heterogeneidade por regras fiscais (bloco H; Tabela A10).** Com a folha interagida com uma regra fiscal numérica em vigor no primeiro ano do período (FMI, Fiscal Rules Dataset 1985–2024), a associação negativa se concentra nos períodos com regra de resultado. Com essa regra, o efeito da folha é -0,367 (IC [-0,532; -0,203]) contra -0,121 (IC [-0,276; 0,035]) sem regra; a interação é -0,247 (IC [-0,390; -0,104]; p = 0,001), com 217 países-período sob regra e 37 países que mudam de situação na amostra. Com regra de despesa, a interação é -0,125 (IC [-0,278; 0,028]; p = 0,108); com as duas regras juntas, só a de resultado importa (interação -0,265; IC [-0,426; -0,105]). A interação com a regra de resultado sobrevive à inclusão da interação com o mérito (-0,234; IC [-0,365; -0,103]), que continua nula (0,058). Mas ela depende dos membros da União Europeia, sujeitos à regra supranacional do Pacto de Estabilidade: só com regras nacionais, a interação é -0,117 (IC [-0,247; 0,012]; p = 0,075); excluindo os países da UE, -0,119 (IC [-0,334; 0,096]; p = 0,270), com 86 países-período sob regra. Uma leitura possível, não testada aqui e próxima de H1: onde a regra limita o déficit, uma folha maior tem de ser acomodada por cortes em outras despesas, e não por endividamento. A adoção de regras não é exógena (países adotam regras depois de crises ou ao entrar na União Europeia), de modo que o resultado é heterogeneidade condicional, não efeito causal da regra; e, fora da UE, não há evidência estatística de heterogeneidade.
 
 ## 2. Tamanho do efeito
 
@@ -68,10 +70,10 @@ Especificação de referência: A1 (coeficiente -0,182; p = 0,014). Verificaçõ
 
 ## 5. Pendências
 
-- **Download manual**: FMI Fiscal Rules Dataset (o servidor do FMI bloqueia acesso automatizado). Não entra em nenhuma especificação fixada; colocar em `data/raw/manual/` (instruções em `docs/DOWNLOADS_MANUAIS.md`).
+- **Download manual**: nenhum pendente. O FMI Fiscal Rules Dataset (atualização 1985–2024) foi baixado à mão (o servidor do FMI bloqueia acesso automatizado) e alimenta o bloco H (Tabela A10).
 - **Estimadores substituídos**: nenhum por falta de Stata (o Stata 17 estava disponível, e `xthenreg` e `xtdpdbc` foram usados). O estimador por kernel de Hainmueller, Mummolo e Xu foi implementado no próprio código, porque o modo kernel do `interflex` para Stata, com efeitos fixos e bootstrap, termina com erro interno; os tercis e o teste de Wald vêm do `interflex` (decisão D28).
 - **Fontes substituídas por rota oficial alternativa**: UNU-WIDER GRD via QoG; ILOSTAT via SDMX (detalhes em `docs/DECISOES.md`, D22).
-- **Etapas não incluídas** por não constarem da lista fixada na seção 7: PMG/CS-ARDL de longo prazo e heterogeneidade por regras fiscais (esta depende do download manual).
+- **Etapas não incluídas** por não constarem da lista fixada na seção 7: PMG/CS-ARDL de longo prazo. A heterogeneidade por regras fiscais (bloco H) foi acrescentada depois da primeira versão, quando o arquivo do FMI ficou disponível (decisão D38).
 
 ## 6. Onde está cada tabela e figura
 
@@ -96,6 +98,7 @@ Tabelas em `output/tables/` (`.tex` e `.docx`); figuras em `output/figures/` (`.
 | Table A8b | `output/tables/TableA8b_robustness_subsamples.{tex,docx}` | Robustez: subamostras |
 | Table A8c | `output/tables/TableA8c_robustness_cce.{tex,docx}` | Robustez: CCE de grupo médio |
 | Table A9 | `output/tables/TableA9_bma.{tex,docx}` | Média bayesiana de modelos |
+| Table A10 | `output/tables/TableA10_fiscal_rules.{tex,docx}` | Heterogeneidade por regras fiscais (H) |
 | Figure 1 | `output/figures/Figure1_wagebill_income.{pdf,png}` | Folha por grupo de renda |
 | Figure 2 | `output/figures/Figure2_employment_vs_wage.{pdf,png}` | Emprego público x salário relativo |
 | Figure 3 | `output/figures/Figure3_denominator.{pdf,png}` | Viés do denominador (D4) |

@@ -2,9 +2,9 @@
 
 Fontes que não puderam ser baixadas automaticamente. Nenhuma foi substituída por dados simulados. Os scripts detectam o arquivo quando ele aparece no local indicado; basta rodar `run_all.do` de novo.
 
-| Fonte | O que falta | Endereço | Onde colocar | Status em 2026-10-07 |
+| Fonte | O que falta | Endereço | Onde colocar | Status em 2026-10-14 |
 |---|---|---|---|---|
-| FMI, Fiscal Rules Dataset (1985–2021) | Planilha com regras de despesa, de resultado, de dívida e de receita por país e ano | https://www.imf.org/external/datamapper/fiscalrules/IMF%20Fiscal%20Rules%20Dataset%201985%20-%202021%20-%20January%202022%20rev%20Dec%2021.xlsx (página: https://www.imf.org/external/datamapper/FiscalRules/map/map.htm) | `data/raw/manual/IMF_Fiscal_Rules_Dataset_1985_2021.xlsx` | Pendente. O servidor do FMI (Akamai) devolve HTTP 403 para acesso automatizado. A variável não entra em nenhuma especificação fixada da seção 7; seria usada só como heterogeneidade. `03_painel.do` cria `rule_exp` e `rule_bb` se o arquivo existir. |
+| FMI, Fiscal Rules Dataset | Planilha com regras de despesa, de resultado, de dívida e de receita por país e ano | https://www.imf.org/external/datamapper/FiscalRules/map/map.htm | `data/raw/manual/` (qualquer arquivo `*Fiscal Rules*.xlsx`) | **Obtido em 2026-10-14**: atualização 1985–2024 (`Publication - IMF FAD Fiscal Rules Dataset 1985-2024 Update.xlsx`), baixada à mão porque o servidor do FMI (Akamai) devolve HTTP 403 para acesso automatizado. Limpeza em `02_limpeza_fmi.do`; usado no bloco H (`10b_regras_fiscais.do`, Tabela A10). Decisão D38. |
 
 ## Fontes obtidas por espelho oficial ou rota alternativa
 

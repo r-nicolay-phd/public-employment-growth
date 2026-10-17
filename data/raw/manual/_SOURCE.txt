@@ -1,0 +1,4 @@
+Data de acesso: 2026-10-14 (download manual pelo autor; o servidor do FMI devolve HTTP 403 para acesso automatizado)
+Arquivo: Publication - IMF FAD Fiscal Rules Dataset 1985-2024 Update.xlsx
+Página: https://www.imf.org/external/datamapper/FiscalRules/map/map.htm
+FMI, Fiscal Affairs Department, Fiscal Rules Dataset 1985-2024 (atualizado em ago. 2025). Abas usadas: Rules (regras por país e ano) e weo_group (códigos ISO3).

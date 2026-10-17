@@ -122,6 +122,29 @@ verd e1 -1
 verd e2 -1
 verd e3 -1
 
+* regras fiscais (bloco H, Tabela A10)
+foreach m in 1 2 5 7 8 9 {
+    capture confirm file "$LOG/est_H`m'.ster"
+    local hok = !_rc
+    if !`hok' continue, break
+    if `m' != 9 cf H`m' WBxR h`m'i
+    cf H`m' wagebill_gdp0 h`m'b
+    quietly estimates use "$LOG/est_H`m'"
+    pt e(me1)
+    local h`m'me "`r(s)'"
+    pt `=e(me1) - invttail(e(df_r), 0.025) * e(me1_se)'
+    local h`m'lo "`r(s)'"
+    pt `=e(me1) + invttail(e(df_r), 0.025) * e(me1_se)'
+    local h`m'hi "`r(s)'"
+    local h`m'nr = e(nrule)
+    local h`m'ns = e(nswitch)
+}
+if `hok' {
+    cf H8 WBxR2 h8i2
+    cf H9 WBxR2 h9i2
+    cf H9 wb_x_merit0 h9m
+}
+
 quietly estimates use "$LOG/est_F1"
 pt e(F1) %5.2f
 local f1F "`r(s)'"
@@ -259,6 +282,7 @@ file write `R' "**H4 (mecanismo) — investimento privado: $e1_v; PTF: $e2_v; em
 file write `R' "**H5 (economia política) — `h5v'; `h5iv'.** A folha cresce em anos de eleição com calendário predeterminado ($f1_b p.p. do PIB; IC $f1_ci); o F do primeiro estágio é `f1F'. `f1txt' Nas projeções locais, expansões da folha em anos eleitorais não são seguidas de crescimento pior: em quatro anos, `F3_hi_4'% após choques em ano eleitoral contra `F3_lo_4'% nos demais anos (p da diferença = `F3_p4'); em países de mérito alto, `F3_hi_hi_4'% contra `F3_hi_lo_4'% (p = `F3_hi_p4'). Pela regra fixada, o veredito usa a diferença em h = 4 na amostra toda." _n _n
 
 file write `R' "**O viés do denominador (resultado central, D4; Figura 3 e Tabela A7).** Na mesma amostra anual e com o mesmo modelo, o coeficiente da folha é `d4b1' (IC [`d4lo1'; `d4hi1']) com a razão contemporânea, `d4b2' (IC [`d4lo2'; `d4hi2']) com a folha sobre o PIB tendencial do filtro HP, `d4b3' (IC [`d4lo3'; `d4hi3']) com o filtro de Hamilton e `d4b4' (IC [`d4lo4'; `d4hi4']) com a folha defasada um ano. Nas médias de cinco anos, `d4b5' com a média do período contra `d4b6' com o valor inicial. A associação negativa forte da dissertação é, em grande parte, contemporânea e mecânica; o que sobra com a folha medida antes do crescimento é um efeito de médio prazo menor, visível nas médias de cinco anos e ausente na frequência anual." _n _n
+if `hok' file write `R' "**Heterogeneidade por regras fiscais (bloco H; Tabela A10).** Com a folha interagida com uma regra fiscal numérica em vigor no primeiro ano do período (FMI, Fiscal Rules Dataset 1985–2024), a associação negativa se concentra nos períodos com regra de resultado. Com essa regra, o efeito da folha é `h2me' (IC [`h2lo'; `h2hi']) contra $h2b_b (IC $h2b_ci) sem regra; a interação é $h2i_b (IC $h2i_ci; p = $h2i_p), com `h2nr' países-período sob regra e `h2ns' países que mudam de situação na amostra. Com regra de despesa, a interação é $h1i_b (IC $h1i_ci; p = $h1i_p); com as duas regras juntas, só a de resultado importa (interação $h8i2_b; IC $h8i2_ci). A interação com a regra de resultado sobrevive à inclusão da interação com o mérito ($h9i2_b; IC $h9i2_ci), que continua nula ($h9m_b). Mas ela depende dos membros da União Europeia, sujeitos à regra supranacional do Pacto de Estabilidade: só com regras nacionais, a interação é $h5i_b (IC $h5i_ci; p = $h5i_p); excluindo os países da UE, $h7i_b (IC $h7i_ci; p = $h7i_p), com `h7nr' países-período sob regra. Uma leitura possível, não testada aqui e próxima de H1: onde a regra limita o déficit, uma folha maior tem de ser acomodada por cortes em outras despesas, e não por endividamento. A adoção de regras não é exógena (países adotam regras depois de crises ou ao entrar na União Europeia), de modo que o resultado é heterogeneidade condicional, não efeito causal da regra; e, fora da UE, não há evidência estatística de heterogeneidade." _n _n
 
 file write `R' "## 2. Tamanho do efeito" _n _n
 file write `R' "O desvio-padrão da folha (% do PIB) dentro dos países é `sdw5s' p.p. no painel de cinco anos (valor inicial do período) e `sdwas' p.p. no painel anual (Tabela 1). Pela especificação A1, uma folha um desvio-padrão (dentro do país) mais alta no início do período está associada a uma variação de `eff5' p.p. no crescimento anual dos cinco anos seguintes, ou cerca de `eff5cum'% de PIB per capita acumulado no período. É uma ordem de grandeza abaixo dos coeficientes da dissertação (−2 a −3 p.p. por ponto do PIB), como o diagnóstico antecipava." _n _n
@@ -334,15 +358,16 @@ file write `R' "6. **Eleições.** O DPI termina em 2020; a definição de calen
 file write `R' "7. **Período e choques comuns.** O período de 2019–2023 contém a pandemia; a exclusão de 2008–2009 e 2020–2021 reduz o coeficiente e o deixa no limite da significância a 10%." _n _n
 
 file write `R' "## 5. Pendências" _n _n
-file write `R' "- **Download manual**: FMI Fiscal Rules Dataset (o servidor do FMI bloqueia acesso automatizado). Não entra em nenhuma especificação fixada; colocar em \`data/raw/manual/\` (instruções em \`docs/DOWNLOADS_MANUAIS.md\`)." _n
+if `hok' file write `R' "- **Download manual**: nenhum pendente. O FMI Fiscal Rules Dataset (atualização 1985–2024) foi baixado à mão (o servidor do FMI bloqueia acesso automatizado) e alimenta o bloco H (Tabela A10)." _n
+else file write `R' "- **Download manual**: FMI Fiscal Rules Dataset (o servidor do FMI bloqueia acesso automatizado). Colocar em \`data/raw/manual/\` (instruções em \`docs/DOWNLOADS_MANUAIS.md\`); o bloco H (Tabela A10) só é estimado com o arquivo." _n
 file write `R' "- **Estimadores substituídos**: nenhum por falta de Stata (o Stata 17 estava disponível, e \`xthenreg\` e \`xtdpdbc\` foram usados). O estimador por kernel de Hainmueller, Mummolo e Xu foi implementado no próprio código, porque o modo kernel do \`interflex\` para Stata, com efeitos fixos e bootstrap, termina com erro interno; os tercis e o teste de Wald vêm do \`interflex\` (decisão D28)." _n
 file write `R' "- **Fontes substituídas por rota oficial alternativa**: UNU-WIDER GRD via QoG; ILOSTAT via SDMX (detalhes em \`docs/DECISOES.md\`, D22)." _n
-file write `R' "- **Etapas não incluídas** por não constarem da lista fixada na seção 7: PMG/CS-ARDL de longo prazo e heterogeneidade por regras fiscais (esta depende do download manual)." _n _n
+file write `R' "- **Etapas não incluídas** por não constarem da lista fixada na seção 7: PMG/CS-ARDL de longo prazo. A heterogeneidade por regras fiscais (bloco H) foi acrescentada depois da primeira versão, quando o arquivo do FMI ficou disponível (decisão D38)." _n _n
 
 file write `R' "## 6. Onde está cada tabela e figura" _n _n
 file write `R' "Tabelas em \`output/tables/\` (\`.tex\` e \`.docx\`); figuras em \`output/figures/\` (\`.pdf\` e \`.png\` a 600 dpi); legendas e notas em \`output/captions.md\`." _n _n
 file write `R' "| Item | Arquivo | Conteúdo |" _n "|---|---|---|" _n
-local items `""Table 1|Table1_descriptives|Estatísticas descritivas" "Table 2|Table2_baseline|Base, A1–A5 e A7" "Table 3|Table3_decomposition|Decomposição, B1–B3" "Table 4|Table4_moderation|Moderação, C1, C3, C5" "Table 5|Table5_mechanisms|Mecanismos, E1–E3" "Table 6|Table6_political_economy|Economia política, F1–F3" "Table A1|TableA1_definitions|Definições e fontes" "Table A2|TableA2_countries|Países por grupo de renda" "Table A3|TableA3_correlations|Matriz de correlação" "Table A4|TableA4_gmm_instruments|Sensibilidade de instrumentos (A5)" "Table A5|TableA5_bond_check|Verificação de Bond (A6)" "Table A6|TableA6_threshold|Limiares (C4)" "Table A7|TableA7_denominator|Viés do denominador (D4)" "Table A8a|TableA8a_robustness_definitions|Robustez: medida, amostra, outliers" "Table A8b|TableA8b_robustness_subsamples|Robustez: subamostras" "Table A8c|TableA8c_robustness_cce|Robustez: CCE de grupo médio" "Table A9|TableA9_bma|Média bayesiana de modelos" "Figure 1|Figure1_wagebill_income|Folha por grupo de renda" "Figure 2|Figure2_employment_vs_wage|Emprego público x salário relativo" "Figure 3|Figure3_denominator|Viés do denominador (D4)" "Figure 4|Figure4_marginal_effect_merit|Efeito marginal ao longo do mérito (C1, C2)" "Figure 5|Figure5_local_projections|Projeções locais (D1, D2)" "Figure 6|Figure6_lp_merit|Projeções locais por regime de mérito (D3)" "Figure A1|FigureA1_coverage|Cobertura dos dados" "Figure A2|FigureA2_marginal_effect_wgi|Efeito marginal ao longo do WGI (C5)" "Figure A3|FigureA3_lp_mechanisms|Projeções locais dos mecanismos (E)" "Figure A4|FigureA4_lp_elections|Projeções locais por ano eleitoral (F3)" "Figure A5|FigureA5_leave_one_out|Exclusão de um país por vez" "Figure A6|FigureA6_bma_pip|Probabilidades de inclusão (BMA)""'
+local items `""Table 1|Table1_descriptives|Estatísticas descritivas" "Table 2|Table2_baseline|Base, A1–A5 e A7" "Table 3|Table3_decomposition|Decomposição, B1–B3" "Table 4|Table4_moderation|Moderação, C1, C3, C5" "Table 5|Table5_mechanisms|Mecanismos, E1–E3" "Table 6|Table6_political_economy|Economia política, F1–F3" "Table A1|TableA1_definitions|Definições e fontes" "Table A2|TableA2_countries|Países por grupo de renda" "Table A3|TableA3_correlations|Matriz de correlação" "Table A4|TableA4_gmm_instruments|Sensibilidade de instrumentos (A5)" "Table A5|TableA5_bond_check|Verificação de Bond (A6)" "Table A6|TableA6_threshold|Limiares (C4)" "Table A7|TableA7_denominator|Viés do denominador (D4)" "Table A8a|TableA8a_robustness_definitions|Robustez: medida, amostra, outliers" "Table A8b|TableA8b_robustness_subsamples|Robustez: subamostras" "Table A8c|TableA8c_robustness_cce|Robustez: CCE de grupo médio" "Table A9|TableA9_bma|Média bayesiana de modelos" "Table A10|TableA10_fiscal_rules|Heterogeneidade por regras fiscais (H)" "Figure 1|Figure1_wagebill_income|Folha por grupo de renda" "Figure 2|Figure2_employment_vs_wage|Emprego público x salário relativo" "Figure 3|Figure3_denominator|Viés do denominador (D4)" "Figure 4|Figure4_marginal_effect_merit|Efeito marginal ao longo do mérito (C1, C2)" "Figure 5|Figure5_local_projections|Projeções locais (D1, D2)" "Figure 6|Figure6_lp_merit|Projeções locais por regime de mérito (D3)" "Figure A1|FigureA1_coverage|Cobertura dos dados" "Figure A2|FigureA2_marginal_effect_wgi|Efeito marginal ao longo do WGI (C5)" "Figure A3|FigureA3_lp_mechanisms|Projeções locais dos mecanismos (E)" "Figure A4|FigureA4_lp_elections|Projeções locais por ano eleitoral (F3)" "Figure A5|FigureA5_leave_one_out|Exclusão de um país por vez" "Figure A6|FigureA6_bma_pip|Probabilidades de inclusão (BMA)""'
 foreach it of local items {
     tokenize "`it'", parse("|")
     local ext = cond(substr("`1'", 1, 3) == "Tab", "tables/`3'.{tex,docx}", "figures/`3'.{pdf,png}")
@@ -358,7 +383,7 @@ file write `R' "# Table and figure captions" _n _n "Generated by \`code/12_relat
 file write `R' "## Tables" _n _n
 local tabs Table1_descriptives Table2_baseline Table3_decomposition Table4_moderation Table5_mechanisms Table6_political_economy ///
     TableA1_definitions TableA2_countries TableA3_correlations TableA4_gmm_instruments TableA5_bond_check TableA6_threshold ///
-    TableA7_denominator TableA8a_robustness_definitions TableA8b_robustness_subsamples TableA8c_robustness_cce TableA9_bma
+    TableA7_denominator TableA8a_robustness_definitions TableA8b_robustness_subsamples TableA8c_robustness_cce TableA9_bma TableA10_fiscal_rules
 foreach t of local tabs {
     tempname C
     capture file open `C' using "$LOG/captions/`t'.txt", read text

@@ -45,7 +45,7 @@ Random seed: `20261007` (`set seed` and `set sortseed`, in `code/00_setup.do`), 
 
 ## 3. Data sources
 
-All sources are free. Access date for every automatic download: 7 October 2026. Each folder in `data/raw/` has a `_SOURCE.txt` with the exact URL and access date.
+All sources are free. Access date for every automatic download: 7 October 2026; manual download of the IMF Fiscal Rules Dataset: 14 October 2026. Each folder in `data/raw/` has a `_SOURCE.txt` with the exact URL and access date.
 
 | Source | Folder | Access route |
 |---|---|---|
@@ -67,7 +67,7 @@ All sources are free. Access date for every automatic download: 7 October 2026. 
 | Database of Political Institutions 2020 | `data/raw/dpi/` | IDB open data portal |
 | UCDP/PRIO Armed Conflict Dataset v26.1 | `data/raw/ucdp/` | ucdp.uu.se |
 | Original dissertation panel (EViews) | `inputs/` | Provided by the author |
-| IMF Fiscal Rules Dataset 1985-2021 | `data/raw/manual/` | **Manual download** (server blocks automated access); see `docs/DOWNLOADS_MANUAIS.md`. Not used in any reported specification. |
+| IMF Fiscal Rules Dataset 1985-2024 (August 2025 update) | `data/raw/manual/` | **Manual download**, 14 October 2026 (server blocks automated access); see `docs/DOWNLOADS_MANUAIS.md`. Used in block H (Table A10). |
 
 ## 4. Scripts, in execution order, and outputs
 
@@ -78,7 +78,7 @@ All sources are free. Access date for every automatic download: 7 October 2026. 
 | `code/01_coleta_wf1.py` | Reads the original `.wf1` | `data/interim/wf1_original.csv` |
 | `code/01_coleta_fontes.py` | Downloads all sources | `data/raw/*` |
 | `code/02_limpeza_wf1_fase0.do` | Phase 0 control replication of the dissertation | `output/logs/02_limpeza_wf1_fase0.log` |
-| `code/02_limpeza_wdi.do`, `_fmi.do`, `_trabalho.do`, `_instituicoes.do` | Source-by-source cleaning to ISO3-year | `data/interim/*.dta` |
+| `code/02_limpeza_wdi.do`, `_fmi.do`, `_trabalho.do`, `_instituicoes.do` | Source-by-source cleaning to ISO3-year (`_fmi.do` also cleans the manual Fiscal Rules file) | `data/interim/*.dta` |
 | `code/03_painel.do` | Merge, cleaning rules 1-5, constructed variables, 3- and 5-year panels | `data/final/painel_{anual,3anos,5anos}.dta`, `dicionario.csv`, `output/logs/regras_limpeza.csv` |
 | `code/03b_exporta_parquet.py` | Format conversion | `data/final/*.parquet` |
 | `code/04_descritivas.do` | Descriptive statistics, appendix tables, data audit | Table 1, Tables A1-A3, Figures 1, 2, A1, `docs/AUDITORIA_DADOS.md` |
@@ -89,6 +89,7 @@ All sources are free. Access date for every automatic download: 7 October 2026. 
 | `code/08_dinamica.do` | Block D (local projections, denominator bias) | Figures 3, 5, 6, Table A7 |
 | `code/09_mecanismos.do` | Block E (H4) | Table 5, Figure A3 |
 | `code/10_economia_politica.do` | Block F (H5) | Table 6, Figure A4 |
+| `code/10b_regras_fiscais.do` | Block H (heterogeneity by fiscal rules; skipped if the manual file is absent) | Table A10 |
 | `code/11_robustez.do` | Block G (robustness) | Tables A8a-A8c, A9, Figures A5, A6 |
 | `code/12_relatorio.do` | Numbers for the results report and captions | `docs/RESULTADOS.md` (numeric parts), `output/captions.md` |
 

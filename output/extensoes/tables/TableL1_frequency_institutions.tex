@@ -1,0 +1,36 @@
+% gerado por code/00_tabelas.do -- nao editar a mao
+\begin{table}[htbp]\centering\footnotesize
+\providecommand{\sym}[1]{\ensuremath{^{#1}}}
+\caption{Table L1. Government size, institutions and growth: annual versus five-year measures}\label{tab:TableL1_frequency_institutions}
+\begin{tabular}{l*{6}{c}}
+\toprule
+ & (1) & (2) & (3) & (4) & (5) & (6) \\
+ & Annual: contemporaneous & Annual: \% of trend GDP (HP) & Annual: \% of trend GDP (Hamilton) & Annual: lagged one year & 5-year: period mean & 5-year: first year \\
+\midrule
+Panel A. Government consumption (\% of GDP, WDI) &  &  &  &  &  &  \\
+Government size (at mean institutions) & -0.263\sym{***} & -0.118\sym{**} & 0.117\sym{***} & -0.042 & -0.154\sym{***} & -0.115\sym{**} \\
+ & (0.069) & (0.048) & (0.042) & (0.064) & (0.059) & (0.049) \\
+Government size x institutional quality & -0.185\sym{***} & -0.178\sym{***} & -0.140\sym{***} & 0.019 & -0.041 & 0.054 \\
+ & (0.050) & (0.043) & (0.029) & (0.046) & (0.073) & (0.059) \\
+Government size, 10th pct. of institutions & -0.064 & 0.074 & 0.268\sym{***} & -0.063 & -0.110 & -0.173\sym{**} \\
+ & (0.066) & (0.053) & (0.053) & (0.062) & (0.107) & (0.078) \\
+Government size, 90th pct. of institutions & -0.531\sym{***} & -0.375\sym{***} & -0.086 & -0.014 & -0.216\sym{*} & -0.034 \\
+ & (0.120) & (0.092) & (0.059) & (0.111) & (0.115) & (0.104) \\
+Observations & 2,902 & 2,902 & 2,902 & 2,902 & 713 & 713 \\
+Countries & 128 & 128 & 128 & 128 & 128 & 128 \\
+\midrule
+Panel B. General government total expenditure (\% of GDP, IMF GFS) &  &  &  &  &  &  \\
+Government size (at mean institutions) & -0.214\sym{***} & -0.117\sym{***} & 0.051\sym{**} & -0.005 & -0.144\sym{***} & -0.069\sym{*} \\
+ & (0.043) & (0.034) & (0.024) & (0.039) & (0.043) & (0.037) \\
+Government size x institutional quality & 0.015 & -0.028 & -0.036 & -0.026 & -0.019 & 0.038 \\
+ & (0.026) & (0.021) & (0.028) & (0.023) & (0.037) & (0.039) \\
+Government size, 10th pct. of institutions & -0.232\sym{***} & -0.085\sym{*} & 0.092\sym{*} & 0.024 & -0.122\sym{*} & -0.112\sym{*} \\
+ & (0.067) & (0.046) & (0.047) & (0.048) & (0.070) & (0.067) \\
+Government size, 90th pct. of institutions & -0.198\sym{***} & -0.148\sym{***} & 0.011 & -0.033 & -0.165\sym{***} & -0.028 \\
+ & (0.031) & (0.036) & (0.031) & (0.046) & (0.046) & (0.046) \\
+Observations & 1,477 & 1,477 & 1,477 & 1,477 & 317 & 317 \\
+Countries & 88 & 88 & 88 & 88 & 72 & 72 \\
+\bottomrule
+\end{tabular}
+\begin{minipage}{0.95\linewidth}\vspace{4pt}\scriptsize \textit{Notes:} Each column interacts a measure of government size with institutional quality (mean of the six WGI indicators, centred at the sample mean), so the first row is the effect of government size at average institutions. Columns 1-4: annual panel 1996-2023, same sample in each panel, country and year fixed effects, lagged growth and the controls of Table A7, Driscoll-Kraay standard errors; government size measured as the contemporaneous ratio, as a share of trend GDP (HP filter, lambda = 6.25; Hamilton filter), or lagged one year. Columns 5-6: five-year averages, country and period fixed effects, controls of Table 2, standard errors clustered by country; government size measured as the period mean or in the first year of the period, institutions in the first available year of the period. A negative interaction means that better institutions make government size more harmful (the result of Mollick and Vianna, 2023); a positive one means they mitigate it. * p<0.10, ** p<0.05, *** p<0.01.\end{minipage}
+\end{table}

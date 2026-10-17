@@ -3,7 +3,7 @@
        log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Esti
 > mações/output/logs/07b_figura4.log
   log type:  text
- opened on:   7 Oct 2026, 23:34:02
+ opened on:  15 Oct 2026, 00:16:54
 
 . 
 . * histograma do moderador na amostra de estimacao
@@ -27,7 +27,7 @@
 . tempfile H
 
 . save `H'
-file C:\Users\Usuario\AppData\Local\Temp\ST_7b5c_000001.tmp saved as .dta
+file C:\Users\Usuario\AppData\Local\Temp\ST_847c_000001.tmp saved as .dta
     format
 
 . 
@@ -53,7 +53,7 @@ file C:\Users\Usuario\AppData\Local\Temp\ST_7b5c_000001.tmp saved as .dta
 .     gen src = "ker"
 .     tempfile K
 .     save `K'
-file C:\Users\Usuario\AppData\Local\Temp\ST_7b5c_000003.tmp saved as .dta
+file C:\Users\Usuario\AppData\Local\Temp\ST_847c_000003.tmp saved as .dta
     format
 .     restore
 .     append using `K'
@@ -174,5 +174,5 @@ figura gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\E
        log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Esti
 > mações/output/logs/07b_figura4.log
   log type:  text
- closed on:   7 Oct 2026, 23:34:05
+ closed on:  15 Oct 2026, 00:16:57
 -------------------------------------------------------------------------------
