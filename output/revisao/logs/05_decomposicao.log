@@ -1,0 +1,1124 @@
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/logs/05_decomposicao.log
+  log type:  text
+ opened on:  17 Oct 2026, 16:31:58
+
+. 
+. global XP "lny0 hc_m1 inv_m1 open_m1 infl_m1 popg_m1 ctot_g_m1"
+
+. 
+. * ---------------------------------------------------------------- folha total na amostra do B1 do draft 7 (205 obs.)
+. use "$FINAL/painel_5anos.dta", clear
+
+. keep if micro == 0
+(261 observations deleted)
+
+. xtset id period
+
+Panel variable: id (strongly balanced)
+ Time variable: period, 0 to 8
+         Delta: 1 unit
+
+. reghdfe g pubemp_share0 relwage0 lny0 hc0 inv open infl popg ctot_g, absorb(id period) vce(cluster id)
+(dropped 12 singleton observations)
+(MWFE estimator converged in 6 iterations)
+
+HDFE Linear regression                            Number of obs   =        205
+Absorbing 2 HDFE groups                           F(   9,     56) =      14.03
+Statistics robust to heteroskedasticity           Prob > F        =     0.0000
+                                                  R-squared       =     0.7889
+                                                  Adj R-squared   =     0.6811
+                                                  Within R-sq.    =     0.5093
+Number of clusters (id)      =         57         Root MSE        =     1.3844
+
+                                     (Std. err. adjusted for 57 clusters in id)
+-------------------------------------------------------------------------------
+              |               Robust
+            g | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+--------------+----------------------------------------------------------------
+pubemp_share0 |  -.0062911   .0413241    -0.15   0.880    -.0890731     .076491
+     relwage0 |  -.9402309   .5512585    -1.71   0.094    -2.044534    .1640725
+         lny0 |  -8.057597   1.289786    -6.25   0.000    -10.64135   -5.473845
+          hc0 |  -.5310579   2.511632    -0.21   0.833     -5.56246    4.500345
+          inv |   .1980688   .0740128     2.68   0.010     .0498033    .3463342
+         open |   .0275543   .0188777     1.46   0.150    -.0102623    .0653708
+         infl |   .0488493   .0353061     1.38   0.172    -.0218773    .1195758
+         popg |  -.8937024   .3813096    -2.34   0.023    -1.657557   -.1298474
+       ctot_g |   -.066194   .2344503    -0.28   0.779    -.5358544    .4034664
+        _cons |   72.72679   16.30917     4.46   0.000     40.05559     105.398
+-------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+          id |        57          57           0    *|
+      period |         5           1           4     |
+-----------------------------------------------------+
+* = FE nested within cluster; treated as redundant for DoF computation
+
+. gen byte sB1 = e(sample)
+
+. rv_kv B1d_N `e(N)'
+
+. reghdfe g wagebill_gdp0 lny0 hc0 inv open infl popg ctot_g i.period if sB1, absorb(id) vce(cluster id)
+(dropped 3 singleton observations)
+(MWFE estimator converged in 1 iterations)
+
+HDFE Linear regression                            Number of obs   =        185
+Absorbing 1 HDFE group                            F(  12,     53) =      24.98
+Statistics robust to heteroskedasticity           Prob > F        =     0.0000
+                                                  R-squared       =     0.8061
+                                                  Adj R-squared   =     0.7003
+                                                  Within R-sq.    =     0.7104
+Number of clusters (id)      =         54         Root MSE        =     1.3158
+
+                                     (Std. err. adjusted for 54 clusters in id)
+-------------------------------------------------------------------------------
+              |               Robust
+            g | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+--------------+----------------------------------------------------------------
+wagebill_gdp0 |  -.3039835   .1351771    -2.25   0.029    -.5751144   -.0328526
+         lny0 |  -6.739768   1.012509    -6.66   0.000    -8.770604   -4.708932
+          hc0 |   1.299371   2.614014     0.50   0.621    -3.943677    6.542419
+          inv |   .2046197   .0810551     2.52   0.015     .0420438    .3671956
+         open |    .022695   .0159826     1.42   0.161    -.0093621    .0547521
+         infl |  -.0147082   .0312538    -0.47   0.640    -.0773953    .0479789
+         popg |  -1.093612   .3613544    -3.03   0.004    -1.818397   -.3688269
+       ctot_g |  -.0524229   .2446652    -0.21   0.831    -.5431592    .4383133
+              |
+       period |
+           5  |    2.64966   .8138543     3.26   0.002     1.017274    4.282045
+           6  |   .9153471    .901951     1.01   0.315    -.8937376    2.724432
+           7  |   2.677815   1.049058     2.55   0.014     .5736716    4.781958
+           8  |   2.354068   1.215535     1.94   0.058    -.0839856    4.792123
+              |
+        _cons |   56.49872   12.06517     4.68   0.000     32.29905    80.69838
+-------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+          id |        54          54           0    *|
+-----------------------------------------------------+
+* = FE nested within cluster; treated as redundant for DoF computation
+
+. estimates store D_total_B1
+
+. rv_kv B1d_total_b `=string(_b[wagebill_gdp0], "%9.4f")'
+
+. rv_kv B1d_total_p `=string(2 * ttail(e(df_r), abs(_b[wagebill_gdp0] / _se[wagebill_gdp0])), "%9.4f")'
+
+. 
+. * ---------------------------------------------------------------- painel da revisao: mesmo ano para folha e emprego
+. use "$RINT/p5_rv.dta", clear
+
+. keep if micro == 0
+(261 observations deleted)
+
+. xtset id period
+
+Panel variable: id (strongly balanced)
+ Time variable: period, 0 to 8
+         Delta: 1 unit
+
+. gen relw_sel = wb_sel / pe_sel
+(1,269 missing values generated)
+
+. gen lpe = ln(pe_sel)
+(1,269 missing values generated)
+
+. gen lrw = ln(relw_sel)
+(1,269 missing values generated)
+
+. gen lwbs = ln(wb_sel)
+(1,269 missing values generated)
+
+. gen lrwh = ln(relh_sel / pe_sel * pe_sel)
+(1,269 missing values generated)
+
+. replace lrwh = ln(relh_sel)
+(0 real changes made)
+
+. gen lilo = ln(ilo_sel)
+(1,400 missing values generated)
+
+. gen prem01 = prem_sel / 0.1
+(1,140 missing values generated)
+
+. gen premf01 = premf_sel / 0.1
+(1,227 missing values generated)
+
+. label var lpe "log public employment (% of total employment)"
+
+. label var lrw "log relative public wage"
+
+. * contagens do timing comum
+. count if !missing(yd)
+  243
+
+. rv_kv pairs_all `r(N)'
+
+. count if yd == 1
+  139
+
+. rv_kv pairs_exact `r(N)'
+
+. count if !missing(yd) & yd != 1
+  104
+
+. rv_kv pairs_other `r(N)'
+
+. tab yd
+
+  (firstnm) |
+         yd |      Freq.     Percent        Cum.
+------------+-----------------------------------
+         -3 |         15        6.17        6.17
+         -2 |         11        4.53       10.70
+         -1 |         25       10.29       20.99
+          0 |         12        4.94       25.93
+          1 |        139       57.20       83.13
+          2 |         21        8.64       91.77
+          3 |         10        4.12       95.88
+          4 |         10        4.12      100.00
+------------+-----------------------------------
+      Total |        243      100.00
+
+. * amostra harmonizada (logs, premio disponivel, controles de T3)
+. gen byte sH = !missing(g, lpe, lrw, prem01, lny0, hc_m1, inv_m1, open_m1, infl_m1, popg_m1, ctot_g_m1)
+
+. count if sH
+  204
+
+. * checagem algebrica: log WageBill = log PubEmp + log RelWage
+. gen double chk = abs(lwbs - lpe - lrw)
+(1,269 missing values generated)
+
+. summ chk
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+         chk |        243    7.09e-08    6.09e-08          0   2.38e-07
+
+. rv_kv chk_max `=string(r(max), "%9.2e")'
+
+. 
+. tempname P
+
+. postfile `P' str10 spec str10 v double(b se p pboot sdw) long(N nc) using "$RINT/decomp.dta", replace
+(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/decomp.dta not found)
+
+. capture program drop postd
+
+. program define postd
+  1.     * postd P spec var: coeficiente, p (cluster), p (wild bootstrap) e DP dentro do pais na amostra
+.     args P spec v
+  2.     local b = _b[`v']
+  3.     local se = _se[`v']
+  4.     local p = 2 * ttail(e(df_r), abs(`b' / `se'))
+  5.     tempvar dm
+  6.     quietly bysort id: egen double `dm' = mean(`v') if e(sample)
+  7.     quietly summ `v' if e(sample)
+  8.     tempvar w
+  9.     quietly gen double `w' = `v' - `dm' if e(sample)
+ 10.     quietly summ `w'
+ 11.     local sdw = r(sd)
+ 12.     local N = e(N)
+ 13.     local nc = e(N_clust)
+ 14.     capture rv_boot `v'
+ 15.     local pb = cond(_rc, ., r(p))
+ 16.     post `P' ("`spec'") ("`v'") (`b') (`se') (`p') (`pb') (`sdw') (`N') (`nc')
+ 17.     rv_kv d_`spec'_`v'_b `=string(`b', "%9.4f")'
+ 18.     rv_kv d_`spec'_`v'_p `=string(`p', "%9.4f")'
+ 19.     rv_kv d_`spec'_`v'_pboot `=string(`pb', "%9.4f")'
+ 20.     rv_kv d_`spec'_`v'_sdw `=string(`sdw', "%9.4f")'
+ 21.     rv_kv d_`spec'_N `N'
+ 22. end
+
+. * (2) niveis, timing comum, controles de T3 (contrapartida do B1)
+. reghdfe g pe_sel relw_sel $XP i.period, absorb(id) vce(cluster id)
+(dropped 6 singleton observations)
+(MWFE estimator converged in 1 iterations)
+
+HDFE Linear regression                            Number of obs   =        221
+Absorbing 1 HDFE group                            F(  13,     61) =      26.86
+Statistics robust to heteroskedasticity           Prob > F        =     0.0000
+                                                  R-squared       =     0.7935
+                                                  Adj R-squared   =     0.6888
+                                                  Within R-sq.    =     0.6905
+Number of clusters (id)      =         62         Root MSE        =     1.3538
+
+                                    (Std. err. adjusted for 62 clusters in id)
+------------------------------------------------------------------------------
+             |               Robust
+           g | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+      pe_sel |   .0662676   .0489046     1.36   0.180    -.0315232    .1640585
+    relw_sel |  -1.603677   .8339208    -1.92   0.059    -3.271205    .0638505
+        lny0 |  -7.747277    1.09583    -7.07   0.000    -9.938524    -5.55603
+       hc_m1 |   .3830381   1.923732     0.20   0.843    -3.463701    4.229777
+      inv_m1 |    -.08051    .036709    -2.19   0.032    -.1539142   -.0071058
+     open_m1 |   .0227699   .0149737     1.52   0.134    -.0071719    .0527116
+     infl_m1 |   .0661628   .0449576     1.47   0.146    -.0237354    .1560611
+     popg_m1 |  -1.200888   .3556433    -3.38   0.001     -1.91204   -.4897348
+   ctot_g_m1 |   .2718707   .1450097     1.87   0.066     -.018094    .5618355
+             |
+      period |
+          5  |   3.313343   .6336347     5.23   0.000     2.046312    4.580373
+          6  |   1.608571    .728653     2.21   0.031     .1515388    3.065602
+          7  |   2.960551   .7946577     3.73   0.000     1.371535    4.549568
+          8  |   3.171978   .9240413     3.43   0.001     1.324244    5.019713
+             |
+       _cons |   70.11156     10.654     6.58   0.000     48.80756    91.41555
+------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+          id |        62          62           0    *|
+-----------------------------------------------------+
+* = FE nested within cluster; treated as redundant for DoF computation
+
+. estimates store D_lev
+
+. postd `P' lev pe_sel
+
+. estimates restore D_lev
+(results D_lev are active now)
+
+. postd `P' lev relw_sel
+
+. * (3) logs na amostra harmonizada: especificacao preferida de H2
+. reghdfe g lpe lrw $XP i.period if sH, absorb(id) vce(cluster id)
+(dropped 5 singleton observations)
+(MWFE estimator converged in 1 iterations)
+
+HDFE Linear regression                            Number of obs   =        199
+Absorbing 1 HDFE group                            F(  13,     56) =      31.15
+Statistics robust to heteroskedasticity           Prob > F        =     0.0000
+                                                  R-squared       =     0.8251
+                                                  Adj R-squared   =     0.7316
+                                                  Within R-sq.    =     0.7329
+Number of clusters (id)      =         57         Root MSE        =     1.2914
+
+                                    (Std. err. adjusted for 57 clusters in id)
+------------------------------------------------------------------------------
+             |               Robust
+           g | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+         lpe |  -3.713077   1.246462    -2.98   0.004     -6.21004   -1.216114
+         lrw |  -5.392725   1.047855    -5.15   0.000    -7.491831   -3.293619
+        lny0 |  -6.811478   .9870951    -6.90   0.000    -8.788867   -4.834089
+       hc_m1 |   .3264887   1.770625     0.18   0.854    -3.220499    3.873476
+      inv_m1 |  -.1128077   .0347169    -3.25   0.002     -.182354   -.0432615
+     open_m1 |   .0134197    .013022     1.03   0.307    -.0126665    .0395059
+     infl_m1 |   .0621439   .0588999     1.06   0.296    -.0558467    .1801345
+     popg_m1 |  -1.103543   .3518998    -3.14   0.003    -1.808483   -.3986028
+   ctot_g_m1 |   .3437062   .1384351     2.48   0.016     .0663873    .6210251
+             |
+      period |
+          5  |   3.259659   .6199123     5.26   0.000     2.017825    4.501493
+          6  |   1.520428    .677354     2.24   0.029     .1635249    2.877331
+          7  |   2.743658   .8200229     3.35   0.001     1.100955    4.386361
+          8  |   2.955503   .9344072     3.16   0.003      1.08366    4.827345
+             |
+       _cons |   70.93728   9.486578     7.48   0.000     51.93338    89.94118
+------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+          id |        57          57           0    *|
+-----------------------------------------------------+
+* = FE nested within cluster; treated as redundant for DoF computation
+
+. estimates store D_log
+
+. postd `P' log lpe
+
+. estimates restore D_log
+(results D_log are active now)
+
+. postd `P' log lrw
+
+. * (4) logs so com pares exatamente em t_p - 1
+. reghdfe g lpe lrw $XP i.period if yd == 1, absorb(id) vce(cluster id)
+(dropped 15 singleton observations)
+(MWFE estimator converged in 1 iterations)
+
+HDFE Linear regression                            Number of obs   =        116
+Absorbing 1 HDFE group                            F(  12,     39) =      30.65
+Statistics robust to heteroskedasticity           Prob > F        =     0.0000
+                                                  R-squared       =     0.8932
+                                                  Adj R-squared   =     0.8081
+                                                  Within R-sq.    =     0.8264
+Number of clusters (id)      =         40         Root MSE        =     0.9863
+
+                                    (Std. err. adjusted for 40 clusters in id)
+------------------------------------------------------------------------------
+             |               Robust
+           g | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+         lpe |  -2.334888   2.111365    -1.11   0.276    -6.605527    1.935751
+         lrw |  -4.983832   1.581673    -3.15   0.003    -8.183068   -1.784595
+        lny0 |  -6.269518   1.975554    -3.17   0.003    -10.26545   -2.273582
+       hc_m1 |   1.905879     3.3889     0.56   0.577    -4.948819    8.760577
+      inv_m1 |  -.2214732   .0309276    -7.16   0.000    -.2840302   -.1589162
+     open_m1 |   .0218933   .0180007     1.22   0.231    -.0145166    .0583031
+     infl_m1 |   .0676819   .0324818     2.08   0.044     .0019813    .1333825
+     popg_m1 |  -1.152884   .3700881    -3.12   0.003    -1.901458   -.4043101
+   ctot_g_m1 |  -.0523069   .1901417    -0.28   0.785    -.4369047     .332291
+             |
+      period |
+          6  |   -1.02095   .7367912    -1.39   0.174    -2.511251    .4693513
+          7  |  -.0108167   .8781396    -0.01   0.990    -1.787022    1.765388
+          8  |  -.2936485   1.230943    -0.24   0.813    -2.783466    2.196169
+             |
+       _cons |   62.97718   20.59201     3.06   0.004      21.3259    104.6285
+------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+          id |        40          40           0    *|
+-----------------------------------------------------+
+* = FE nested within cluster; treated as redundant for DoF computation
+
+. estimates store D_exact
+
+. postd `P' exact lpe
+
+. estimates restore D_exact
+(results D_exact are active now)
+
+. postd `P' exact lrw
+
+. * (5) emprego do WWBI instrumentado pelo do ILOSTAT (mesmo ano), salario relativo exogeno
+. ivreghdfe g lrw $XP (lpe = lilo) i.period, absorb(id) cluster(id) first ffirst
+(dropped 3 singleton observations)
+(MWFE estimator converged in 1 iterations)
+
+First-stage regressions
+-----------------------
+
+
+First-stage regression of lpe:
+
+Statistics robust to heteroskedasticity and clustering on id
+Number of obs =                    102
+Number of clusters (id) =           33
+------------------------------------------------------------------------------
+             |               Robust
+         lpe | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+        lilo |   .5787404   .2376318     2.44   0.017     .1064971    1.050984
+         lrw |  -.7833509   .1037874    -7.55   0.000    -.9896066   -.5770952
+        lny0 |  -.0260476   .1069031    -0.24   0.808     -.238495    .1863999
+       hc_m1 |   .2506324   .1757585     1.43   0.157    -.0986507    .5999156
+      inv_m1 |  -.0041618   .0036566    -1.14   0.258    -.0114285    .0031049
+     open_m1 |   .0008961   .0008944     1.00   0.319    -.0008813    .0026735
+     infl_m1 |   .0021797   .0053565     0.41   0.685    -.0084652    .0128246
+     popg_m1 |   .0702646   .0246199     2.85   0.005     .0213376    .1191915
+   ctot_g_m1 |   .0063074   .0157819     0.40   0.690    -.0250557    .0376705
+             |
+      period |
+          4  |          0  (empty)
+          5  |  -.0789454   .0704767    -1.12   0.266    -.2190032    .0611123
+          6  |  -.1149384   .0818668    -1.40   0.164    -.2776316    .0477547
+          7  |  -.1088394   .1040747    -1.05   0.299    -.3156659    .0979871
+          8  |  -.0967952    .118284    -0.82   0.415    -.3318598    .1382694
+------------------------------------------------------------------------------
+F test of excluded instruments:
+  F(  1,    32) =     5.93
+  Prob > F      =   0.0206
+Sanderson-Windmeijer multivariate F test of excluded instruments:
+  F(  1,    32) =     5.93
+  Prob > F      =   0.0206
+
+
+
+Summary results for first-stage regressions
+-------------------------------------------
+
+                                           (Underid)            (Weak id)
+Variable     | F(  1,    32)  P-val | SW Chi-sq(  1) P-val | SW F(  1,    32)
+lpe          |       5.93    0.0206 |        7.02   0.0081 |        5.93
+
+NB: first-stage test statistics cluster-robust
+
+Stock-Yogo weak ID F test critical values for single endogenous regressor:
+                                   10% maximal IV size             16.38
+                                   15% maximal IV size              8.96
+                                   20% maximal IV size              6.66
+                                   25% maximal IV size              5.53
+Source: Stock-Yogo (2005).  Reproduced by permission.
+NB: Critical values are for i.i.d. errors only.
+
+Underidentification test
+Ho: matrix of reduced form coefficients has rank=K1-1 (underidentified)
+Ha: matrix has rank=K1 (identified)
+Kleibergen-Paap rk LM statistic          Chi-sq(1)=2.66     P-val=0.1028
+
+Weak identification test
+Ho: equation is weakly identified
+Cragg-Donald Wald F statistic                                      34.51
+Kleibergen-Paap Wald rk F statistic                                 5.93
+
+Stock-Yogo weak ID test critical values for K1=1 and L1=1:
+                                   10% maximal IV size             16.38
+                                   15% maximal IV size              8.96
+                                   20% maximal IV size              6.66
+                                   25% maximal IV size              5.53
+Source: Stock-Yogo (2005).  Reproduced by permission.
+NB: Critical values are for Cragg-Donald F statistic and i.i.d. errors.
+
+Weak-instrument-robust inference
+Tests of joint significance of endogenous regressors B1 in main equation
+Ho: B1=0 and orthogonality conditions are valid
+Anderson-Rubin Wald test           F(1,32)=        1.10     P-val=0.3026
+Anderson-Rubin Wald test           Chi-sq(1)=      1.30     P-val=0.2543
+Stock-Wright LM S statistic        Chi-sq(1)=      2.77     P-val=0.0963
+
+NB: Underidentification, weak identification and weak-identification-robust
+    test statistics cluster-robust
+
+Number of clusters             N_clust  =         33
+Number of observations               N  =        102
+Number of regressors                 K  =         13
+Number of endogenous regressors      K1 =          1
+Number of instruments                L  =         13
+Number of excluded instruments       L1 =          1
+
+IV (2SLS) estimation
+--------------------
+
+Estimates efficient for homoskedasticity only
+Statistics robust to heteroskedasticity and clustering on id
+
+Number of clusters (id) =           33                Number of obs =      102
+                                                      F( 13,    32) =    41.23
+                                                      Prob > F      =   0.0000
+Total (centered) SS     =  192.3999772                Centered R2   =   0.5724
+Total (uncentered) SS   =  192.3999772                Uncentered R2 =   0.5724
+Residual SS             =  82.27764273                Root MSE      =    .9669
+
+------------------------------------------------------------------------------
+             |               Robust
+           g | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+         lpe |  -2.581766   2.827418    -0.91   0.368    -8.341028    3.177497
+         lrw |  -.8101765   2.783013    -0.29   0.773    -6.478988    4.858635
+        lny0 |  -5.752516   1.419091    -4.05   0.000     -8.64311   -2.861922
+       hc_m1 |  -2.196295   2.188314    -1.00   0.323    -6.653744    2.261154
+      inv_m1 |  -.0610465   .0374559    -1.63   0.113    -.1373416    .0152486
+     open_m1 |   .0030653   .0164573     0.19   0.853    -.0304571    .0365878
+     infl_m1 |    .062319   .0837343     0.74   0.462    -.1082423    .2328802
+     popg_m1 |  -1.176935   .5240013    -2.25   0.032     -2.24429   -.1095789
+   ctot_g_m1 |   .5256373   .1983744     2.65   0.012     .1215618    .9297128
+             |
+      period |
+          4  |          0  (empty)
+          5  |    3.09681   .8913651     3.47   0.001     1.281159    4.912462
+          6  |    2.13342   1.095207     1.95   0.060    -.0974431    4.364284
+          7  |   3.117978   1.310513     2.38   0.023     .4485501    5.787405
+          8  |    3.62616   1.473831     2.46   0.019     .6240645    6.628255
+------------------------------------------------------------------------------
+Underidentification test (Kleibergen-Paap rk LM statistic):              2.662
+                                                   Chi-sq(1) P-val =    0.1028
+------------------------------------------------------------------------------
+Weak identification test (Cragg-Donald Wald F statistic):               34.515
+                         (Kleibergen-Paap rk Wald F statistic):          5.931
+Stock-Yogo weak ID test critical values: 10% maximal IV size             16.38
+                                         15% maximal IV size              8.96
+                                         20% maximal IV size              6.66
+                                         25% maximal IV size              5.53
+Source: Stock-Yogo (2005).  Reproduced by permission.
+NB: Critical values are for Cragg-Donald F statistic and i.i.d. errors.
+------------------------------------------------------------------------------
+Hansen J statistic (overidentification test of all instruments):         0.000
+                                                 (equation exactly identified)
+------------------------------------------------------------------------------
+Instrumented:         lpe
+Included instruments: lrw lny0 hc_m1 inv_m1 open_m1 infl_m1 popg_m1 ctot_g_m1
+                      5.period 6.period 7.period 8.period
+Excluded instruments: lilo
+Partialled-out:       _cons
+                      nb: total SS, model F and R2s are after partialling-out;
+                          any small-sample adjustments include partialled-out
+                          variables in regressor count K
+------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+          id |        33          33           0    *|
+-----------------------------------------------------+
+* = FE nested within cluster; treated as redundant for DoF computation
+
+. estimates store D_iv
+
+. local Fkp = e(widstat)
+
+. rv_kv d_iv_Fkp `=string(`Fkp', "%9.2f")'
+
+. rv_kv d_iv_lpe_b `=string(_b[lpe], "%9.4f")'
+
+. rv_kv d_iv_lrw_b `=string(_b[lrw], "%9.4f")'
+
+. rv_kv d_iv_lrw_p `=string(2 * normal(-abs(_b[lrw] / _se[lrw])), "%9.4f")'
+
+. rv_kv d_iv_N `e(N)'
+
+. * F efetivo de Montiel Olea-Pflueger: com um instrumento, igual ao F robusto (cluster) do primeiro estagio
+. reghdfe lpe lilo lrw $XP i.period if e(sample), absorb(id) vce(cluster id)
+(MWFE estimator converged in 1 iterations)
+
+HDFE Linear regression                            Number of obs   =        102
+Absorbing 1 HDFE group                            F(  13,     32) =      14.47
+Statistics robust to heteroskedasticity           Prob > F        =     0.0000
+                                                  R-squared       =     0.9874
+                                                  Adj R-squared   =     0.9773
+                                                  Within R-sq.    =     0.6658
+Number of clusters (id)      =         33         Root MSE        =     0.0817
+
+                                    (Std. err. adjusted for 33 clusters in id)
+------------------------------------------------------------------------------
+             |               Robust
+         lpe | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+        lilo |   .5787404   .2376318     2.44   0.021     .0947002    1.062781
+         lrw |  -.7833509   .1037874    -7.55   0.000     -.994759   -.5719428
+        lny0 |  -.0260476   .1069031    -0.24   0.809     -.243802    .1917069
+       hc_m1 |   .2506324   .1757585     1.43   0.164     -.107376    .6086408
+      inv_m1 |  -.0041618   .0036566    -1.14   0.264      -.01161    .0032865
+     open_m1 |   .0008961   .0008944     1.00   0.324    -.0009257    .0027179
+     infl_m1 |   .0021797   .0053565     0.41   0.687    -.0087311    .0130905
+     popg_m1 |   .0702646   .0246199     2.85   0.008     .0201154    .1204137
+   ctot_g_m1 |   .0063074   .0157819     0.40   0.692    -.0258392     .038454
+             |
+      period |
+          5  |  -.0789454   .0704767    -1.12   0.271    -.2225019     .064611
+          6  |  -.1149384   .0818668    -1.40   0.170    -.2816957    .0518188
+          7  |  -.1088394   .1040747    -1.05   0.303    -.3208325    .1031537
+          8  |  -.0967952    .118284    -0.82   0.419    -.3377319    .1441415
+             |
+       _cons |   .3055034   1.283461     0.24   0.813    -2.308822    2.919829
+------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+          id |        33          33           0    *|
+-----------------------------------------------------+
+* = FE nested within cluster; treated as redundant for DoF computation
+
+. local Feff = (_b[lilo] / _se[lilo])^2
+
+. rv_kv d_iv_Feff `=string(`Feff', "%9.2f")'
+
+. estimates restore D_iv
+(results D_iv are active now)
+
+. estadd scalar Feff = `Feff'
+
+added scalar:
+               e(Feff) =  5.9314165
+
+. estimates store D_iv
+
+. * (6) e (7) modelos separados, controlando pela folha total
+. reghdfe g lpe lwbs $XP i.period if sH, absorb(id) vce(cluster id)
+(dropped 5 singleton observations)
+(MWFE estimator converged in 1 iterations)
+
+HDFE Linear regression                            Number of obs   =        199
+Absorbing 1 HDFE group                            F(  13,     56) =      31.15
+Statistics robust to heteroskedasticity           Prob > F        =     0.0000
+                                                  R-squared       =     0.8251
+                                                  Adj R-squared   =     0.7316
+                                                  Within R-sq.    =     0.7329
+Number of clusters (id)      =         57         Root MSE        =     1.2914
+
+                                    (Std. err. adjusted for 57 clusters in id)
+------------------------------------------------------------------------------
+             |               Robust
+           g | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+         lpe |   1.679648   .6626774     2.53   0.014     .3521461    3.007151
+        lwbs |  -5.392724   1.047855    -5.15   0.000     -7.49183   -3.293619
+        lny0 |  -6.811479   .9870952    -6.90   0.000    -8.788868   -4.834089
+       hc_m1 |    .326488   1.770624     0.18   0.854    -3.220499    3.873475
+      inv_m1 |  -.1128077   .0347169    -3.25   0.002     -.182354   -.0432615
+     open_m1 |   .0134197    .013022     1.03   0.307    -.0126665    .0395059
+     infl_m1 |   .0621439   .0588999     1.06   0.296    -.0558467    .1801345
+     popg_m1 |  -1.103543   .3518997    -3.14   0.003    -1.808483   -.3986029
+   ctot_g_m1 |   .3437062   .1384351     2.48   0.016     .0663873    .6210251
+             |
+      period |
+          5  |   3.259659   .6199123     5.26   0.000     2.017825    4.501492
+          6  |   1.520428   .6773539     2.24   0.029     .1635252    2.877331
+          7  |   2.743658   .8200228     3.35   0.001     1.100955    4.386361
+          8  |   2.955503   .9344071     3.16   0.003      1.08366    4.827345
+             |
+       _cons |   70.93728   9.486578     7.48   0.000     51.93338    89.94118
+------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+          id |        57          57           0    *|
+-----------------------------------------------------+
+* = FE nested within cluster; treated as redundant for DoF computation
+
+. estimates store D_sepE
+
+. postd `P' sepE lpe
+
+. reghdfe g lrw lwbs $XP i.period if sH, absorb(id) vce(cluster id)
+(dropped 5 singleton observations)
+(MWFE estimator converged in 1 iterations)
+
+HDFE Linear regression                            Number of obs   =        199
+Absorbing 1 HDFE group                            F(  13,     56) =      31.15
+Statistics robust to heteroskedasticity           Prob > F        =     0.0000
+                                                  R-squared       =     0.8251
+                                                  Adj R-squared   =     0.7316
+                                                  Within R-sq.    =     0.7329
+Number of clusters (id)      =         57         Root MSE        =     1.2914
+
+                                    (Std. err. adjusted for 57 clusters in id)
+------------------------------------------------------------------------------
+             |               Robust
+           g | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+         lrw |  -1.679648   .6626773    -2.53   0.014    -3.007151   -.3521462
+        lwbs |  -3.713076   1.246461    -2.98   0.004    -6.210038   -1.216114
+        lny0 |  -6.811479   .9870951    -6.90   0.000    -8.788868   -4.834089
+       hc_m1 |   .3264882   1.770625     0.18   0.854    -3.220499    3.873475
+      inv_m1 |  -.1128077   .0347169    -3.25   0.002     -.182354   -.0432615
+     open_m1 |   .0134197    .013022     1.03   0.307    -.0126665    .0395059
+     infl_m1 |   .0621439   .0588999     1.06   0.296    -.0558467    .1801345
+     popg_m1 |  -1.103543   .3518998    -3.14   0.003    -1.808483   -.3986029
+   ctot_g_m1 |   .3437062   .1384351     2.48   0.016     .0663873    .6210251
+             |
+      period |
+          5  |   3.259659   .6199123     5.26   0.000     2.017825    4.501492
+          6  |   1.520428    .677354     2.24   0.029     .1635251    2.877331
+          7  |   2.743658   .8200228     3.35   0.001     1.100955    4.386361
+          8  |   2.955503   .9344071     3.16   0.003      1.08366    4.827345
+             |
+       _cons |   70.93728   9.486578     7.48   0.000     51.93338    89.94118
+------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+          id |        57          57           0    *|
+-----------------------------------------------------+
+* = FE nested within cluster; treated as redundant for DoF computation
+
+. estimates store D_sepW
+
+. postd `P' sepW lrw
+
+. * (8) salario relativo sobre o PIB por trabalhador tendencial (Hamilton)
+. reghdfe g lpe lrwh $XP i.period, absorb(id) vce(cluster id)
+(dropped 6 singleton observations)
+(MWFE estimator converged in 1 iterations)
+
+HDFE Linear regression                            Number of obs   =        221
+Absorbing 1 HDFE group                            F(  13,     61) =      29.02
+Statistics robust to heteroskedasticity           Prob > F        =     0.0000
+                                                  R-squared       =     0.8002
+                                                  Adj R-squared   =     0.6990
+                                                  Within R-sq.    =     0.7006
+Number of clusters (id)      =         62         Root MSE        =     1.3316
+
+                                    (Std. err. adjusted for 62 clusters in id)
+------------------------------------------------------------------------------
+             |               Robust
+           g | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+         lpe |  -1.498669   1.127466    -1.33   0.189    -3.753177    .7558392
+        lrwh |  -3.652527    1.24119    -2.94   0.005     -6.13444   -1.170614
+        lny0 |  -7.346566    1.08999    -6.74   0.000    -9.526135   -5.166996
+       hc_m1 |   .3674565   1.890916     0.19   0.847    -3.413664    4.148577
+      inv_m1 |  -.0739697   .0351017    -2.11   0.039    -.1441598   -.0037795
+     open_m1 |   .0213621    .012012     1.78   0.080    -.0026575    .0453816
+     infl_m1 |   .0458406   .0331791     1.38   0.172    -.0205051    .1121864
+     popg_m1 |  -1.075692   .3298131    -3.26   0.002    -1.735194   -.4161902
+   ctot_g_m1 |   .3088504   .1525967     2.02   0.047     .0037144    .6139864
+             |
+      period |
+          5  |    3.46972   .6356026     5.46   0.000     2.198754    4.740686
+          6  |   1.718713   .7107271     2.42   0.019     .2975264      3.1399
+          7  |   2.947252   .7878236     3.74   0.000     1.371901    4.522603
+          8  |   3.201734    .920994     3.48   0.001     1.360093    5.043376
+             |
+       _cons |   68.61594   9.956252     6.89   0.000     48.70718     88.5247
+------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+          id |        62          62           0    *|
+-----------------------------------------------------+
+* = FE nested within cluster; treated as redundant for DoF computation
+
+. estimates store D_trend
+
+. postd `P' trend lrwh
+
+. * (9) premio ajustado (por 0,1 ponto log) na amostra harmonizada; (10) premio contra privados formais
+. reghdfe g prem01 $XP i.period if sH, absorb(id) vce(cluster id)
+(dropped 5 singleton observations)
+(MWFE estimator converged in 1 iterations)
+
+HDFE Linear regression                            Number of obs   =        199
+Absorbing 1 HDFE group                            F(  12,     56) =      28.55
+Statistics robust to heteroskedasticity           Prob > F        =     0.0000
+                                                  R-squared       =     0.7961
+                                                  Adj R-squared   =     0.6894
+                                                  Within R-sq.    =     0.6885
+Number of clusters (id)      =         57         Root MSE        =     1.3892
+
+                                    (Std. err. adjusted for 57 clusters in id)
+------------------------------------------------------------------------------
+             |               Robust
+           g | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+      prem01 |   .2460057    .160412     1.53   0.131    -.0753382    .5673496
+        lny0 |  -7.455628   1.360503    -5.48   0.000    -10.18104   -4.730213
+       hc_m1 |   1.981292   2.266916     0.87   0.386    -2.559886     6.52247
+      inv_m1 |  -.0865102   .0415485    -2.08   0.042    -.1697417   -.0032786
+     open_m1 |   .0240166   .0180143     1.33   0.188    -.0120704    .0601035
+     infl_m1 |   .1032776   .0672295     1.54   0.130    -.0313991    .2379544
+     popg_m1 |  -1.175782   .4320834    -2.72   0.009    -2.041349   -.3102149
+   ctot_g_m1 |   .2704143    .130359     2.07   0.043     .0092739    .5315548
+             |
+      period |
+          5  |   3.032306   .6441719     4.71   0.000     1.741875    4.322738
+          6  |   .6816475   .7870903     0.87   0.390    -.8950838    2.258379
+          7  |   2.065745   .8568815     2.41   0.019      .349205    3.782285
+          8  |    2.10214   1.010249     2.08   0.042     .0783687    4.125911
+             |
+       _cons |   63.77478   13.47762     4.73   0.000     36.77587    90.77369
+------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+          id |        57          57           0    *|
+-----------------------------------------------------+
+* = FE nested within cluster; treated as redundant for DoF computation
+
+. estimates store D_prem
+
+. postd `P' prem prem01
+
+. reghdfe g lrw $XP i.period if sH, absorb(id) vce(cluster id)
+(dropped 5 singleton observations)
+(MWFE estimator converged in 1 iterations)
+
+HDFE Linear regression                            Number of obs   =        199
+Absorbing 1 HDFE group                            F(  12,     56) =      31.52
+Statistics robust to heteroskedasticity           Prob > F        =     0.0000
+                                                  R-squared       =     0.8149
+                                                  Adj R-squared   =     0.7180
+                                                  Within R-sq.    =     0.7172
+Number of clusters (id)      =         57         Root MSE        =     1.3236
+
+                                    (Std. err. adjusted for 57 clusters in id)
+------------------------------------------------------------------------------
+             |               Robust
+           g | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+         lrw |   -2.87033    .633003    -4.53   0.000    -4.138388   -1.602273
+        lny0 |   -6.84576    1.05041    -6.52   0.000    -8.949984   -4.741537
+       hc_m1 |   .1509515   1.866146     0.08   0.936    -3.587388    3.889291
+      inv_m1 |  -.1044614    .037565    -2.78   0.007    -.1797131   -.0292097
+     open_m1 |   .0213249   .0142542     1.50   0.140    -.0072297    .0498795
+     infl_m1 |   .0730246   .0633961     1.15   0.254    -.0539731    .2000223
+     popg_m1 |  -1.177552   .3749129    -3.14   0.003    -1.928593   -.4265109
+   ctot_g_m1 |   .3020432   .1352144     2.23   0.030     .0311762    .5729102
+             |
+      period |
+          5  |   3.179971   .6362309     5.00   0.000     1.905448    4.454495
+          6  |   1.437524   .7177997     2.00   0.050    -.0004011     2.87545
+          7  |   2.665193   .8371639     3.18   0.002     .9881526    4.342234
+          8  |   2.813245   .9377912     3.00   0.004      .934623    4.691866
+             |
+       _cons |   61.97953   10.12173     6.12   0.000     41.70327    82.25578
+------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+          id |        57          57           0    *|
+-----------------------------------------------------+
+* = FE nested within cluster; treated as redundant for DoF computation
+
+. estimates store D_lrwonly
+
+. postd `P' lrwonly lrw
+
+. reghdfe g premf01 $XP i.period if !missing(lpe), absorb(id) vce(cluster id)
+(dropped 4 singleton observations)
+(MWFE estimator converged in 1 iterations)
+
+HDFE Linear regression                            Number of obs   =        174
+Absorbing 1 HDFE group                            F(  12,     48) =      21.31
+Statistics robust to heteroskedasticity           Prob > F        =     0.0000
+                                                  R-squared       =     0.8025
+                                                  Adj R-squared   =     0.6977
+                                                  Within R-sq.    =     0.6896
+Number of clusters (id)      =         49         Root MSE        =     1.3800
+
+                                    (Std. err. adjusted for 49 clusters in id)
+------------------------------------------------------------------------------
+             |               Robust
+           g | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+     premf01 |   .0223763   .2087016     0.11   0.915    -.3972464     .441999
+        lny0 |  -7.353575   1.345879    -5.46   0.000    -10.05965   -4.647504
+       hc_m1 |  -.0502044    2.06593    -0.02   0.981    -4.204034    4.103625
+      inv_m1 |  -.1077456   .0415521    -2.59   0.013    -.1912918   -.0241995
+     open_m1 |   .0173823   .0175529     0.99   0.327    -.0179102    .0526747
+     infl_m1 |   .0954156   .0656005     1.45   0.152     -.036483    .2273142
+     popg_m1 |  -1.246726   .4375692    -2.85   0.006    -2.126518   -.3669345
+   ctot_g_m1 |   .0850324    .101917     0.83   0.408    -.1198854    .2899502
+             |
+      period |
+          5  |   3.600451   .7627138     4.72   0.000     2.066912     5.13399
+          6  |   1.413466   .8152754     1.73   0.089    -.2257554    3.052687
+          7  |   3.003111   .8568181     3.50   0.001     1.280362    4.725859
+          8  |   3.209509   1.012378     3.17   0.003     1.173987    5.245031
+             |
+       _cons |   70.18758   13.43906     5.22   0.000     43.16653    97.20862
+------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+          id |        49          49           0    *|
+-----------------------------------------------------+
+* = FE nested within cluster; treated as redundant for DoF computation
+
+. estimates store D_premf
+
+. postd `P' premf premf01
+
+. * folha total na amostra harmonizada (log da folha), para comparacao direta
+. reghdfe g lwbs $XP i.period if sH, absorb(id) vce(cluster id)
+(dropped 5 singleton observations)
+(MWFE estimator converged in 1 iterations)
+
+HDFE Linear regression                            Number of obs   =        199
+Absorbing 1 HDFE group                            F(  12,     56) =      29.78
+Statistics robust to heteroskedasticity           Prob > F        =     0.0000
+                                                  R-squared       =     0.8192
+                                                  Adj R-squared   =     0.7247
+                                                  Within R-sq.    =     0.7239
+Number of clusters (id)      =         57         Root MSE        =     1.3080
+
+                                    (Std. err. adjusted for 57 clusters in id)
+------------------------------------------------------------------------------
+             |               Robust
+           g | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+        lwbs |  -5.226963   1.217598    -4.29   0.000    -7.666104   -2.787822
+        lny0 |  -6.905501   1.033968    -6.68   0.000    -8.976787   -4.834214
+       hc_m1 |   .7381012   1.847774     0.40   0.691    -2.963435    4.439637
+      inv_m1 |  -.1129103   .0344244    -3.28   0.002    -.1818707   -.0439498
+     open_m1 |   .0098377   .0123499     0.80   0.429    -.0149021    .0345774
+     infl_m1 |   .0686058   .0597661     1.15   0.256    -.0511201    .1883317
+     popg_m1 |  -1.115801   .3617802    -3.08   0.003    -1.840534   -.3910685
+   ctot_g_m1 |   .3442278   .1359738     2.53   0.014     .0718396     .616616
+             |
+      period |
+          5  |   3.303816   .6045874     5.46   0.000     2.092682     4.51495
+          6  |   1.346858   .6596482     2.04   0.046     .0254239    2.668292
+          7  |    2.63577   .8014712     3.29   0.002      1.03023    4.241309
+          8  |   2.887186   .9259659     3.12   0.003     1.032253    4.742118
+             |
+       _cons |   75.50004   10.44383     7.23   0.000     54.57853    96.42155
+------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+          id |        57          57           0    *|
+-----------------------------------------------------+
+* = FE nested within cluster; treated as redundant for DoF computation
+
+. estimates store D_lwb
+
+. postd `P' lwb lwbs
+
+. postclose `P'
+
+. 
+. * =====================================================================================
+. * Tabela 5 (texto principal): decomposicao revisada
+. * =====================================================================================
+. use "$RINT/decomp.dta", clear
+
+. list, noobs sep(0)
+
+  +--------------------------------------------------------------------------------------------+
+  |    spec          v            b          se           p       pboot         sdw     N   nc |
+  |--------------------------------------------------------------------------------------------|
+  |     lev     pe_sel    .06626764   .04890461   .18040221   .19561956   2.8554317   221   62 |
+  |     lev   relw_sel   -1.6036772   .83392082   .05914432   .09980998   .18267373   221   62 |
+  |     log        lpe    -3.713077   1.2464618     .004271   .00520052   .12683872   199   57 |
+  |     log        lrw   -5.3927252   1.0478551   3.537e-06   .00070007   .15043247   199   57 |
+  |   exact        lpe    -2.334888   2.1113649   .27555954   .36833683   .10102319   116   40 |
+  |   exact        lrw   -4.9838317   1.5816734   .00312196    .0060006   .12180605   116   40 |
+  |    sepE        lpe    1.6796484    .6626774    .0140784   .01720172   .12683872   199   57 |
+  |    sepW        lrw   -1.6796485   .66267735   .01407839   .01720172   .15043247   199   57 |
+  |   trend       lrwh   -3.6525269   1.2411903   .00459481   .01490149   .17408761   221   62 |
+  |    prem     prem01    .24600571   .16041204    .1307621    .2410241   .83285326   199   57 |
+  | lrwonly        lrw   -2.8703301   .63300304    .0000309   .00010001   .15043247   199   57 |
+  |   premf    premf01    .02237632   .20870162   .91506388   .92639264   .75106139   174   49 |
+  |     lwb       lwbs   -5.2269631   1.2175977   .00007066   .00070007   .09044176   199   57 |
+  +--------------------------------------------------------------------------------------------+
+
+. rv_new, ncol(7) head1("(1)" "(2)" "(3)" "(4)" "(5)" "(6)" "(7)") ///
+>     head2("Total, B1 sample" "Levels, same year" "Logs (preferred)" "Logs, exact t_p − 1" "IV for employment" "Premium" "Log wage bill")
+
+. rv_estrow "Wage bill, general government (% of GDP), initial", models(D_total_B1 . . . . . .) vars(wagebill_gdp0)
+
+. rv_estrow "Public employment (% of total employment)", models(. D_lev . . . . .) vars(pe_sel)
+
+. rv_estrow "Relative public wage", models(. D_lev . . . . .) vars(relw_sel)
+
+. rv_estrow "log public employment", models(. . D_log D_exact D_iv . .) vars(lpe)
+
+. rv_estrow "log relative public wage", models(. . D_log D_exact D_iv . .) vars(lrw)
+
+. rv_estrow "Adjusted public wage premium (per 0.1 log point)", models(. . . . . D_prem .) vars(prem01)
+
+. rv_estrow "log wage bill (% of GDP)", models(. . . . . . D_lwb) vars(lwbs)
+
+. rv_mid
+
+. * efeitos de 1 DP dentro do pais e p do wild bootstrap para os coeficientes de preco
+. local r1 ""
+
+. local r2 ""
+
+. foreach k in "lev relw_sel" "log lrw" "exact lrw" "iv lrw" "prem prem01" "lwb lwbs" {
+  2.     gettoken s v : k
+  3.     local v = strtrim("`v'")
+  4.     quietly summ b if spec == "`s'" & v == "`v'"
+  5.     local b = r(mean)
+  6.     quietly summ sdw if spec == "`s'" & v == "`v'"
+  7.     if r(N) == 0 {
+  8.         local r1 `"`r1' """'
+  9.         local r2 `"`r2' """'
+ 10.         continue
+ 11.     }
+ 12.     rv_fmt `=`b' * r(mean)' %12.3f
+ 13.     local r1 `"`r1' "`r(s)'""'
+ 14.     quietly summ pboot if spec == "`s'" & v == "`v'"
+ 15.     rv_fmt `=r(mean)' %12.3f
+ 16.     local r2 `"`r2' "`r(s)'""'
+ 17. }
+
+. rv_row "Price term: effect of 1 within-country SD" "" `r1'
+
+. rv_row "Price term: wild cluster bootstrap p-value" "" `r2'
+
+. rv_mid
+
+. rv_stat "Observations", models(D_total_B1 D_lev D_log D_exact D_iv D_prem D_lwb) stat(N)
+
+. rv_stat "Countries", models(D_total_B1 D_lev D_log D_exact D_iv D_prem D_lwb) stat(N_clust)
+
+. rv_stat "First-stage effective F (Montiel Olea–Pflueger)", models(. . . . D_iv . .) stat(Feff) fmt(%12.2f)
+
+. rv_row "Controls" "Draft 7" "Predetermined" "Predetermined" "Predetermined" "Predetermined" "Predetermined" "Predetermined"
+
+. rv_row "Country FE" "Yes" "Yes" "Yes" "Yes" "Yes" "Yes" "Yes"
+
+. rv_row "Period FE" "Yes" "Yes" "Yes" "Yes" "Yes" "Yes" "Yes"
+
+. rv_row "Standard errors" "Cluster" "Cluster" "Cluster" "Cluster" "Cluster" "Cluster" "Cluster"
+
+. import delimited "$RINT/kv.csv", clear varnames(1) stringcols(_all)
+(encoding automatically selected: ISO-8859-1)
+(2 vars, 905 obs)
+
+. foreach k in pairs_all pairs_exact pairs_other B1d_N {
+  2.     quietly levelsof value if key == "`k'", local(`k') clean
+  3.     local `k' : word 1 of ``k''
+  4. }
+
+. rv_out Tab5_decomposition, landscape ///
+>     title("Table 5. Employment or relative pay? Decomposition of the wage bill (revised)") ///
+>     notes("Dependent variable: growth of real GDP per capita (%, five-year average), 1979–2023 (WWBI data from 2000). Column 1: total wage bill on the `B1d_N' country-periods of the draft-7 decompos
+> ition (B1), with the draft-7 controls. Columns 2–7: the wage bill and public employment are taken from the same year, the one closest to t_p − 1 (searching t_p − 1 to t_p − 4, then t_p to t_p + 3); 
+> `pairs_all' country-periods have a pair, `pairs_exact' exactly in t_p − 1 (column 4) and `pairs_other' in another year. log WageBill = log PubEmp + log RelWage holds exactly in the data, so the log 
+> coefficients are directly comparable. Columns 3, 6 and 7 use the same harmonized sample (log employment, log relative wage and the adjusted premium all available). Column 5 instruments log WWBI publ
+> ic employment with log ILOSTAT public-sector employment in the same year (country and period fixed effects, clustered errors); with one instrument the effective F of Montiel Olea and Pflueger equals
+>  the cluster-robust first-stage F. The premium is the WWBI adjusted public-private wage gap against all private employees, rescaled to 0.1 log point. Within-country SD: standard deviation of the reg
+> ressor after removing country means in the estimation sample. Predetermined controls of Table 2; country and period fixed effects; standard errors clustered by country; wild cluster bootstrap with W
+> ebb weights and 9,999 replications. * p<0.10, ** p<0.05, *** p<0.01.")
+successfully created "C:/Users/Usuario/Dropbox/Papers/Emprego Público e Crescimento/Estimações/output/revisao/tables/Tab5_decomposition.docx"
+(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/logs/captions/Tab5_decomposition.txt not found)
+tabela gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/tables/Tab5_decomposition.{tex,docx}
+
+. 
+. * =====================================================================================
+. * Tabela suplementar: correcoes do vies de divisao
+. * =====================================================================================
+. rv_new, ncol(4) head1("(1)" "(2)" "(3)" "(4)") head2("Employment, controlling for wage bill" "Relative wage, controlling for wage bill" "Relative wage over trend GDP" "Premium vs formal private")
+
+. rv_estrow "log public employment", models(D_sepE . D_trend .) vars(lpe)
+
+. rv_estrow "log relative public wage", models(. D_sepW . .) vars(lrw)
+
+. rv_estrow "log relative wage over trend GDP per worker (Hamilton)", models(. . D_trend .) vars(lrwh)
+
+. rv_estrow "log wage bill (% of GDP)", models(D_sepE D_sepW . .) vars(lwbs)
+
+. rv_estrow "Premium vs formal private employees (per 0.1 log point)", models(. . . D_premf) vars(premf01)
+
+. rv_mid
+
+. rv_stat "Observations", models(D_sepE D_sepW D_trend D_premf) stat(N)
+
+. rv_stat "Countries", models(D_sepE D_sepW D_trend D_premf) stat(N_clust)
+
+. rv_out TabS_decomposition_bias, ///
+>     title("Table S6. Decomposition of the wage bill: division-bias corrections") ///
+>     notes("Dependent variable: growth of real GDP per capita (%, five-year average). Wage bill and public employment from the same year (see Table 5). Columns 1–2: each component with the log total 
+> wage bill as a control (harmonized sample of Table 5). Column 3: relative wage computed over trend GDP per worker (Hamilton filter), which removes the cyclical denominator from the price component. 
+> Column 4: WWBI wage premium against formal private employees (Gindling et al., 2020). Predetermined controls of Table 2, country and period fixed effects, standard errors clustered by country. * p<0
+> .10, ** p<0.05, *** p<0.01.")
+successfully created "C:/Users/Usuario/Dropbox/Papers/Emprego Público e Crescimento/Estimações/output/revisao/tables/TabS_decomposition_bias.docx"
+(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/logs/captions/TabS_decomposition_bias.txt not found)
+tabela gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/tables/TabS_decomposition_bias.{tex,docx}
+
+. 
+. log close
+      name:  <unnamed>
+       log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/logs/05_decomposicao.log
+  log type:  text
+ closed on:  17 Oct 2026, 16:32:04
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
