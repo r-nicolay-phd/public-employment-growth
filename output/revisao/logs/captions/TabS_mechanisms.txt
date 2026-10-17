@@ -1,0 +1,2 @@
+Table S12. Mechanisms: private investment, productivity and private employment (H4)
+Five-year averages of the dependent variable, 1979–2023: private investment (IMF Investment and Capital Stock Dataset, available to 2019), TFP growth (Penn World Table 11.0) and private employment growth (ILOSTAT, total minus public employment from the same survey). Wage bill in t_p − 1; predetermined controls of Table 2 without investment, which is the mediator; country and period fixed effects; standard errors clustered by country. * p<0.10, ** p<0.05, *** p<0.01.

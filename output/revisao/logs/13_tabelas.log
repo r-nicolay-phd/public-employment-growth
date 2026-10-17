@@ -1,0 +1,746 @@
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/logs/13_tabelas.log
+  log type:  text
+ opened on:  17 Oct 2026, 17:24:58
+
+. 
+. * registro chave-valor em macros KV_<chave>
+. capture program drop kvload
+
+. program define kvload
+  1.     preserve
+  2.     import delimited "$RINT/kv.csv", clear varnames(1) stringcols(_all)
+  3.     gen long n = _n
+  4.     bysort key (n): keep if _n == _N
+  5.     forvalues i = 1/`=_N' {
+  6.         c_local KV_`=key[`i']' "`=value[`i']'"
+  7.     }
+  8.     restore
+  9. end
+
+. kvload
+(encoding automatically selected: ISO-8859-1)
+(2 vars, 1,396 obs)
+(762 observations deleted)
+
+. 
+. * =====================================================================================
+. * Vereditos (regra do plano, secao 2.1): sinal previsto, p do wild bootstrap e Romano-Wolf
+. * =====================================================================================
+. * erros-padrao das especificacoes preferidas guardadas em disco
+. estimates use "$RINT/est_H1b_tr"
+
+. local se_H1b = _se[wagebill_share_m1]
+
+. estimates use "$RINT/est_H4_ipriv"
+
+. local se_H4inv = _se[wb_m1]
+
+. estimates use "$RINT/est_H4_tfp_g"
+
+. local se_H4tfp = _se[wb_m1]
+
+. tempname V
+
+. postfile `V' str6 h str60 lab str6 sign double(b se lo hi p pboot prw) str20 verdict using "$RINT/vereditos.dta", replace
+
+. foreach h in H1 H1b H2 H3 H4inv H4tfp H5 {
+  2.     if "`h'" == "H1" {
+  3.         local b = `KV_T3_own_b'
+  4.         local se = `KV_T3_own_se'
+  5.         local p = `KV_T3_own_p'
+  6.         local pb = `KV_T3_own_pboot'
+  7.         local s = -1
+  8.         local lab "Wage bill (t_p − 1), five-year growth (T3)"
+  9.     }
+ 10.     if "`h'" == "H1b" {
+ 11.         local b = `KV_H1b_tr_b'
+ 12.         local se = `se_H1b'
+ 13.         local p = `KV_H1b_tr_p'
+ 14.         local pb = `KV_H1b_tr_pboot'
+ 15.         local s = -1
+ 16.         local lab "Wage bill share of spending, transfers omitted"
+ 17.     }
+ 18.     if "`h'" == "H2" {
+ 19.         local b = `KV_d_log_lrw_b'
+ 20.         local se = `KV_d_log_lrw_se'
+ 21.         local p = `KV_d_log_lrw_p'
+ 22.         local pb = `KV_d_log_lrw_pboot'
+ 23.         local s = -1
+ 24.         local lab "log relative public wage (log model)"
+ 25.     }
+ 26.     if "`h'" == "H3" {
+ 27.         local b = `KV_h3_bi'
+ 28.         local se = `KV_h3_sei'
+ 29.         local p = `KV_h3_pi'
+ 30.         local pb = `KV_h3_pboot'
+ 31.         local s = 1
+ 32.         local lab "Wage bill × merit (mitigation predicted)"
+ 33.     }
+ 34.     if "`h'" == "H4inv" {
+ 35.         local b = `KV_h4_ipriv_b'
+ 36.         local se = `se_H4inv'
+ 37.         local p = `KV_h4_ipriv_p'
+ 38.         local pb = `KV_h4_ipriv_pboot'
+ 39.         local s = -1
+ 40.         local lab "Wage bill (t_p − 1) on private investment"
+ 41.     }
+ 42.     if "`h'" == "H4tfp" {
+ 43.         local b = `KV_h4_tfp_g_b'
+ 44.         local se = `se_H4tfp'
+ 45.         local p = `KV_h4_tfp_g_p'
+ 46.         local pb = `KV_h4_tfp_g_pboot'
+ 47.         local s = -1
+ 48.         local lab "Wage bill (t_p − 1) on TFP growth"
+ 49.     }
+ 50.     if "`h'" == "H5" {
+ 51.         local b = `KV_ep_dem_b'
+ 52.         local se = `KV_ep_dem_se'
+ 53.         local p = `KV_ep_dem_p'
+ 54.         local pb = `KV_ep_dem_pboot'
+ 55.         local s = 1
+ 56.         local lab "Predetermined election on wage bill change (democracies)"
+ 57.     }
+ 58.     local prw = `KV_rw_`h''
+ 59.     local ok = sign(`b') == `s'
+ 60.     local v "Not supported"
+ 61.     if `ok' & `pb' < 0.05 & `prw' < 0.05 local v "Supported"
+ 62.     else if `ok' & ((`pb' >= 0.05 & `pb' < 0.10) | (`pb' < 0.05 & `prw' >= 0.05)) local v "Inconclusive"
+ 63.     post `V' ("`h'") ("`lab'") ("`=cond(`s' < 0, "−", "+")'") (`b') (`se') (`b' - 1.96 * `se') (`b' + 1.96 * `se') (`p') (`pb') (`prw') ("`v'")
+ 64.     rv_kv verdict_`h' "`v'"
+ 65. }
+
+. postclose `V'
+
+. use "$RINT/vereditos.dta", clear
+
+. list, noobs
+
+  +----------------------------------------------------------------------------------------------------------------------------------------------------------------+
+  |     h                                                        lab   sign         b          se           lo           hi       p   pboot    prw         verdict |
+  |----------------------------------------------------------------------------------------------------------------------------------------------------------------|
+  |    H1                 Wage bill (t_p − 1), five-year growth (T3)      −    -.1424        .071      -.28156      -.00324   .0489   .1201   .426   Not supported |
+  |   H1b             Wage bill share of spending, transfers omitted      −    -.0727   .04460368   -.16012321    .01472321   .1092   .3111   .541   Not supported |
+  |    H2                       log relative public wage (log model)      −   -5.3927      1.0479    -7.446584    -3.338816       0   .0007   .002       Supported |
+  |    H3                   Wage bill × merit (mitigation predicted)      +     .0656       .0476     -.027696      .158896   .1727   .3815   .541   Not supported |
+  | H4inv                  Wage bill (t_p − 1) on private investment      −    -.3517   .17455017   -.69381834   -.00958166   .0479   .0758   .426    Inconclusive |
+  |----------------------------------------------------------------------------------------------------------------------------------------------------------------|
+  | H4tfp                          Wage bill (t_p − 1) on TFP growth      −    -.0332   .06079896   -.15236597    .08596597   .5869   .6886   .673   Not supported |
+  |    H5   Predetermined election on wage bill change (democracies)      +     .0542       .0355      -.01538       .12378   .1313   .1307   .541   Not supported |
+  +----------------------------------------------------------------------------------------------------------------------------------------------------------------+
+
+. * enquadramento (secao 2.2 do plano)
+. kvload
+(encoding automatically selected: ISO-8859-1)
+(2 vars, 1,403 obs)
+(764 observations deleted)
+
+. local H1v "`KV_verdict_H1'"
+
+. local A = ("`H1v'" == "Supported") & (`KV_dl_wbL_sum' < 0) & (`KV_dl_wbL_sum_pboot' < 0.05) & ///
+>     (`KV_dl_wbL_sum_bootlo' <= `KV_T3_own_b') & (`KV_dl_wbL_sum_boothi' >= `KV_T3_own_b')
+
+. local nitida_dec = (`KV_vies_wb_placebo_b' < 0) & (`KV_vies_wb_placebo_p' < 0.05) & (`KV_dif_12_p' < 0.05)
+
+. * replicas nitidas: sinal publicado com p < 0,10 na medida contemporanea e perda de significancia na predeterminada
+. preserve
+
+. use "$RINT/replicas.dta", clear
+
+. quietly summ pi if rep == "opra_icrg" & meas == "gc_mean" & est == "sgmm"
+
+. local o_c = r(mean)
+
+. quietly summ bi if rep == "opra_icrg" & meas == "gc_mean" & est == "sgmm"
+
+. local o_cb = r(mean)
+
+. quietly summ pi if rep == "opra_icrg" & meas == "gc_m1" & est == "sgmm"
+
+. local o_p = r(mean)
+
+. quietly summ pi if rep == "mv" & meas == "gc"
+
+. local m_c = r(mean)
+
+. quietly summ bi if rep == "mv" & meas == "gc"
+
+. local m_cb = r(mean)
+
+. quietly summ pi if rep == "mv" & meas == "gc_l1"
+
+. local m_p = r(mean)
+
+. restore
+
+. local nit_opra = (`o_cb' > 0) & (`o_c' < 0.10) & (`o_p' >= 0.10)
+
+. local nit_mv = (`m_cb' < 0) & (`m_c' < 0.10) & (`m_p' >= 0.10)
+
+. local C = (`KV_afg_fs_Feff' >= 10) | (`KV_afg_y100_h4_p' < 0.05)
+
+. local B = ("`H1v'" != "Supported") & `nitida_dec' & (`nit_opra' | `nit_mv')
+
+. local cen = cond(`C', "C", cond(`A', "A", cond(`B', "B", "B (parcial)")))
+
+. rv_kv scen_A `A'
+
+. rv_kv scen_B `B'
+
+. rv_kv scen_C `C'
+
+. rv_kv nitida_dec `nitida_dec'
+
+. rv_kv nit_opra `nit_opra'
+
+. rv_kv nit_mv `nit_mv'
+
+. rv_kv cenario "`cen'"
+
+. di "Cenario: `cen' (A = `A', B = `B', C = `C'; decomposicao nitida = `nitida_dec'; OPRA = `nit_opra'; MV = `nit_mv')"
+Cenario: B (A = 0, B = 1, C = 0; decomposicao nitida = 1; OPRA = 0; MV = 1)
+
+. 
+. * =====================================================================================
+. * Tabela 3 (texto principal): resultado de base e composicao
+. * =====================================================================================
+. foreach m in T3 T3_gmm T3_bc H1b_sh H1b_tr H1b_inv {
+  2.     estimates use "$RINT/est_`m'"
+  3.     estimates store `m'
+  4. }
+
+. rv_new, ncol(6) head1("(1)" "(2)" "(3)" "(4)" "(5)" "(6)") ///
+>     head2("Fixed effects (T3)" "System GMM" "BC-FE" "Share, total spending held" "Budget: transfers omitted" "Budget: investment omitted")
+
+. rv_estrow "Wage bill (% of GDP), t_p − 1", models(T3 T3_gmm T3_bc . . .) vars(wb_m1)
+
+. rv_estrow "Wage bill (% of total expenditure), t_p − 1", models(. . . H1b_sh H1b_tr H1b_inv) vars(wagebill_share_m1)
+
+. rv_estrow "Lagged growth (previous period)", models(. T3_gmm . . . .) vars(L_g)
+
+. rv_estrow "Lagged growth (previous period)", models(. . T3_bc . . .) vars(L.g)
+
+. rv_estrow "Total expenditure (% of GDP), t_p − 1", models(. . . H1b_sh H1b_tr H1b_inv) vars(exp_gdp_m1)
+
+. rv_estrow "Total revenue (% of GDP), t_p − 1", models(. . . . H1b_tr H1b_inv) vars(rev_gdp_m1)
+
+. rv_mid
+
+. rv_stat "Wild cluster bootstrap p-value (wage bill)", models(T3 . . H1b_sh H1b_tr H1b_inv) stat(pboot) fmt(%12.3f)
+
+. rv_stat "Observations", models(T3 T3_gmm T3_bc H1b_sh H1b_tr H1b_inv) stat(N)
+
+. rv_stat "Countries", models(T3 T3_gmm T3_bc H1b_sh H1b_tr H1b_inv) stat(N_clust)
+
+. rv_stat "Groups (GMM, BC-FE)", models(. T3_gmm T3_bc . . .) stat(N_g)
+
+. rv_stat "Instruments", models(. T3_gmm . . . .) stat(nins)
+
+. rv_stat "AR(2), p-value", models(. T3_gmm . . . .) stat(ar2p) fmt(%12.3f)
+
+. rv_stat "Hansen, p-value", models(. T3_gmm . . . .) stat(hansenp) fmt(%12.3f)
+
+. rv_stat "Difference-in-Hansen (levels), p-value", models(. T3_gmm . . . .) stat(dhansenp) fmt(%12.3f)
+
+. rv_row "Controls" "Predetermined" "Predetermined" "Predetermined" "Predetermined" "Predetermined" "Predetermined"
+
+. rv_row "Country FE" "Yes" "GMM" "Yes" "Yes" "Yes" "Yes"
+
+. rv_row "Period FE" "Yes" "Yes" "Yes" "Yes" "Yes" "Yes"
+
+. rv_row "Standard errors" "Cluster" "Windmeijer" "Robust" "Cluster" "Cluster" "Cluster"
+
+. rv_out Tab3_baseline_composition, landscape ///
+>     title("Table 3. Baseline estimates and the composition of spending") ///
+>     notes("Dependent variable: growth of real GDP per capita (%, five-year average), 1979–2023; all regressors in t_p − 1, the last year of the previous period. Predetermined controls: log GDP per c
+> apita, human capital, investment, openness, inflation, population growth and commodity terms-of-trade growth, all in t_p − 1. Column 1: preferred H1 specification (T3), country and period fixed effe
+> cts, standard errors clustered by country. Column 2: two-step system GMM with lagged growth, the wage bill and initial income instrumented by lags 2–3 (lagged growth: lags 1–2), collapsed, other con
+> trols and period dummies as standard instruments; Windmeijer-corrected standard errors. Column 3: bias-corrected fixed effects (Breitung, Kripfganz and Hayakawa, 2022), which assumes the controls ar
+> e strictly exogenous; robust standard errors. Columns 4–6: wage bill as a share of total expenditure (expense plus net investment in non-financial assets); column 4 holds total expenditure constant;
+>  columns 5–6 add the shares of goods and services, interest, other expense and either public investment (5) or transfers (6), total expenditure and revenue, so the wage-bill coefficient measures a r
+> eallocation of one percentage point of spending from the omitted category; the fiscal balance is implied. Shares, revenue and expenditure follow the extended cleaning rules (Table S1). Wild cluster 
+> bootstrap: Webb weights, 9,999 replications, clustered by country. Countries row: clusters (columns 1, 4–6) or groups (columns 2–3). * p<0.10, ** p<0.05, *** p<0.01.")
+successfully created "C:/Users/Usuario/Dropbox/Papers/Emprego Público e Crescimento/Estimações/output/revisao/tables/Tab3_baseline_composition.docx"
+(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/logs/captions/Tab3_baseline_composition.txt not found)
+tabela gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/tables/Tab3_baseline_composition.{tex,docx}
+
+. 
+. * =====================================================================================
+. * Tabela suplementar: mecanismos (H4)
+. * =====================================================================================
+. foreach m in H4_ipriv H4_tfp_g H4_privemp_g {
+  2.     estimates use "$RINT/est_`m'"
+  3.     estimates store `m'
+  4. }
+
+. rv_new, ncol(3) head1("Private investment (% of GDP)" "TFP growth (%)" "Private employment growth (%)")
+
+. rv_estrow "Wage bill (% of GDP), t_p − 1", models(H4_ipriv H4_tfp_g H4_privemp_g) vars(wb_m1)
+
+. rv_mid
+
+. rv_stat "Wild cluster bootstrap p-value", models(H4_ipriv H4_tfp_g H4_privemp_g) stat(pboot) fmt(%12.3f)
+
+. rv_row "Romano-Wolf adjusted p-value (H1–H5 family)" "`KV_rw_H4inv'" "`KV_rw_H4tfp'" ""
+
+. rv_stat "Observations", models(H4_ipriv H4_tfp_g H4_privemp_g) stat(N)
+
+. rv_stat "Countries", models(H4_ipriv H4_tfp_g H4_privemp_g) stat(N_clust)
+
+. rv_out TabS_mechanisms, ///
+>     title("Table S12. Mechanisms: private investment, productivity and private employment (H4)") ///
+>     notes("Five-year averages of the dependent variable, 1979–2023: private investment (IMF Investment and Capital Stock Dataset, available to 2019), TFP growth (Penn World Table 11.0) and private e
+> mployment growth (ILOSTAT, total minus public employment from the same survey). Wage bill in t_p − 1; predetermined controls of Table 2 without investment, which is the mediator; country and period 
+> fixed effects; standard errors clustered by country. * p<0.10, ** p<0.05, *** p<0.01.")
+successfully created "C:/Users/Usuario/Dropbox/Papers/Emprego Público e Crescimento/Estimações/output/revisao/tables/TabS_mechanisms.docx"
+(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/logs/captions/TabS_mechanisms.txt not found)
+tabela gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/tables/TabS_mechanisms.{tex,docx}
+
+. 
+. * =====================================================================================
+. * Tabela suplementar: resumo da inferencia e vereditos
+. * =====================================================================================
+. use "$RINT/vereditos.dta", clear
+
+. rv_new, ncol(6) head1("Predicted sign" "Coefficient" "p (cluster)" "p (wild bootstrap)" "p (Romano-Wolf)" "Verdict")
+
+. forvalues i = 1/`=_N' {
+  2.     rv_fmt `=b[`i']' %12.3f
+  3.     local bb "`r(s)'"
+  4.     rv_row "`=h[`i']': `=lab[`i']'" "`=sign[`i']'" "`bb'" "`=string(p[`i'], "%5.3f")'" "`=string(pboot[`i'], "%5.3f")'" "`=string(prw[`i'], "%5.3f")'" "`=verdict[`i']'"
+  5. }
+
+. rv_out TabS_inference_summary, landscape ///
+>     title("Table S13. Hypothesis tests: preferred specifications, bootstrap and multiple-testing adjustment") ///
+>     notes("Preferred specification of each hypothesis as registered in the analysis plan (commit 2182199, 17 October 2026). Wild cluster bootstrap: Webb weights, 9,999 replications, clustered by cou
+> ntry. Romano-Wolf step-down p-values over the seven tests, from 999 bootstrap resamples of countries shared by all tests (each test re-estimated on every resample with fixed effects on the resampled
+>  country copies). Verdict rule: supported if the coefficient has the predicted sign, the bootstrap p-value is below 0.05 and the Romano-Wolf p-value is below 0.05; inconclusive if the sign is right 
+> and the bootstrap p-value is between 0.05 and 0.10, or below 0.05 without surviving Romano-Wolf; not supported otherwise. H3 predicts mitigation (positive interaction); H5 uses the first stage in de
+> mocracies.")
+successfully created "C:/Users/Usuario/Dropbox/Papers/Emprego Público e Crescimento/Estimações/output/revisao/tables/TabS_inference_summary.docx"
+(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/logs/captions/TabS_inference_summary.txt not found)
+tabela gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/tables/TabS_inference_summary.{tex,docx}
+
+. 
+. * =====================================================================================
+. * Tabela suplementar: projecoes locais por horizonte (coeficientes, p ajustados e inferencia alternativa)
+. * =====================================================================================
+. use "$RINT/estrutural_lp.dta", clear
+
+. keep if spec == "base"
+(56 observations deleted)
+
+. tempfile LPM
+
+. save `LPM'
+file C:\Users\Usuario\AppData\Local\Temp\ST_5204_000002.tmp saved as .dta format
+
+. use "$RINT/rw_lpmerit_adj.dta", clear
+
+. gen h = real(substr(code, 2, .))
+
+. keep h p_raw p_rw
+
+. merge 1:1 h using `LPM', nogen
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                             0
+    Matched                                 7  
+    -----------------------------------------
+
+. sort h
+
+. rv_new, ncol(7) head1("h = 0" "h = 1" "h = 2" "h = 3" "h = 4" "h = 5" "h = 6")
+
+. foreach row in bhi blo {
+  2.     local cb ""
+  3.     local cs ""
+  4.     forvalues hh = 0/6 {
+  5.         quietly summ `row' if h == `hh'
+  6.         local b = r(mean)
+  7.         quietly summ se`=substr("`row'", 2, .)' if h == `hh'
+  8.         rv_fmt `b' %12.3f `=2 * normal(-abs(`b' / r(mean)))'
+  9.         local cb `"`cb' "`r(s)'""'
+ 10.         quietly summ se`=substr("`row'", 2, .)' if h == `hh'
+ 11.         rv_fmt `=r(mean)' %12.3f
+ 12.         local cs `"`cs' "(`r(s)')""'
+ 13.     }
+ 14.     rv_row "`=cond("`row'" == "bhi", "High merit: response to a 1 p.p. wage bill shock", "Low merit")'" `cb'
+ 15.     rv_row "" `cs'
+ 16. }
+
+. local r1 ""
+
+. local r2 ""
+
+. local r3 ""
+
+. local r4 ""
+
+. forvalues hh = 0/6 {
+  2.     quietly summ pdiff if h == `hh'
+  3.     rv_fmt `=r(mean)' %12.3f
+  4.     local r1 `"`r1' "`r(s)'""'
+  5.     quietly summ p_rw if h == `hh'
+  6.     rv_fmt `=r(mean)' %12.3f
+  7.     local r2 `"`r2' "`r(s)'""'
+  8.     quietly summ nep_hi if h == `hh'
+  9.     local n1 = r(mean)
+ 10.     quietly summ nc_hi if h == `hh'
+ 11.     local r3 `"`r3' "`n1' / `=r(mean)'""'
+ 12.     quietly summ N if h == `hh'
+ 13.     rv_fmt `=r(mean)' %12.0fc
+ 14.     local r4 `"`r4' "`r(s)'""'
+ 15. }
+
+. rv_row "p-value, high = low (Driscoll-Kraay)" `r1'
+
+. rv_row "Romano-Wolf p-value, high − low (7 horizons)" `r2'
+
+. rv_row "High-merit episodes / countries" `r3'
+
+. rv_row "Observations" `r4'
+
+. rv_mid
+
+. use "$RINT/lp_inferencia.dta", clear
+
+. foreach mm in shock meritdif {
+  2.     foreach k in dk la jk {
+  3.         local cb ""
+  4.         forvalues hh = 0/6 {
+  5.             quietly summ b_`k' if m == "`mm'" & h == `hh'
+  6.             local b = r(mean)
+  7.             if "`k'" != "jk" {
+  8.                 quietly summ se_`k' if m == "`mm'" & h == `hh'
+  9.                 rv_fmt `b' %12.3f `=2 * normal(-abs(`b' / r(mean)))'
+ 10.             }
+ 11.             else rv_fmt `b' %12.3f
+ 12.             local cb `"`cb' "`r(s)'""'
+ 13.         }
+ 14.         local lab = cond("`mm'" == "shock", "All countries", "High − low merit") + ": " + cond("`k'" == "dk", "Driscoll-Kraay (baseline)", cond("`k'" == "la", "lag-augmented, HC standard errors",
+>  "half-panel jackknife bias-corrected"))
+ 15.         rv_row "`lab'" `cb'
+ 16.     }
+ 17. }
+
+. rv_out TabS_lp_horizons, landscape ///
+>     title("Table S14. Local projections by horizon: merit regimes, multiple-testing adjustment and alternative inference") ///
+>     notes("Cumulative response of 100 × log GDP per capita from t − 1 to t + h to a real wage bill shock of one percentage point of lagged GDP (draft-7 specification), annual panel 1996–2023, countr
+> y and year fixed effects, two lags of the shock and of growth. Merit regimes: merit above the sample median in the year before the shock. Driscoll-Kraay standard errors (maximum lag 3). Romano-Wolf:
+>  step-down adjustment over the seven horizons of the high − low difference, 999 bootstrap resamples of countries (cluster-robust t statistics in the resamples). Lag-augmented local projections (Mont
+> iel Olea and Plagborg-Møller, 2021): one extra lag of the shock and of growth and heteroskedasticity-robust standard errors. Half-panel jackknife: 2 × full-sample estimate minus the average of the 1
+> 996–2009 and 2010–2023 estimates, a correction for the small-T fixed-effects bias; there is no Stata implementation of Herbst and Johannsen (2024), so their correction is not applied. * p<0.10, ** p
+> <0.05, *** p<0.01.")
+successfully created "C:/Users/Usuario/Dropbox/Papers/Emprego Público e Crescimento/Estimações/output/revisao/tables/TabS_lp_horizons.docx"
+(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/logs/captions/TabS_lp_horizons.txt not found)
+tabela gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/tables/TabS_lp_horizons.{tex,docx}
+
+. 
+. * =====================================================================================
+. * Tabela 8 (texto principal): mapa de robustez
+. * =====================================================================================
+. kvload
+(encoding automatically selected: ISO-8859-1)
+(2 vars, 1,410 obs)
+(764 observations deleted)
+
+. tempname M
+
+. postfile `M' str70 lab double(b se p) long(N) str30 src using "$RINT/mapa.dta", replace
+(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/mapa.dta not found)
+
+. capture program drop addm
+
+. program define addm
+  1.     args M lab b p N src
+  2.     local se = .
+  3.     post `M' ("`lab'") (`b') (.) (`p') (`N') ("`src'")
+  4. end
+
+. addm `M' "Preferred (T3): wage bill in t_p − 1, predetermined controls" `KV_T3_own_b' `KV_T3_own_p' `KV_T3_own_N' "Table 2, col. 4"
+
+. addm `M' "Draft-7 timing (t_p, period-mean controls)" `KV_T6_own_b' `KV_T6_own_p' `KV_T6_own_N' "Table 2, col. 1"
+
+. addm `M' "Growth excluding the first year (T2)" `KV_T2_own_b' `KV_T2_own_p' `KV_T2_own_N' "Table 2, col. 3"
+
+. addm `M' "Three-year averages (T3)" `KV_T3_3y_b' `KV_T3_3y_p' `KV_T3_3y_N' "Table 2, col. 7"
+
+. addm `M' "Annual, all regressors lagged" `KV_A_pre_b' . `KV_A_pre_N' "Table 2, col. 8"
+
+. addm `M' "General government, common sample with central" `KV_cov_all_gg_b' `KV_cov_all_gg_p' `KV_cov_all_gg_N' "Table 4, col. 1"
+
+. addm `M' "Central government, common sample" `KV_cov_all_cg_b' `KV_cov_all_cg_p' `KV_cov_all_cg_N' "Table 4, col. 2"
+
+. addm `M' "Federations, general government" `KV_cov_fed_gg_b' `KV_cov_fed_gg_p' `KV_cov_fed_gg_N' "Table 4, col. 3"
+
+. addm `M' "Unitary countries, general government" `KV_cov_uni_gg_b' `KV_cov_uni_gg_p' `KV_cov_uni_gg_N' "Table 4, col. 5"
+
+. addm `M' "Country-specific linear trends" `KV_str_trend_b' `KV_str_trend_p' `KV_str_trend_N' "Table S8"
+
+. addm `M' "Region × period fixed effects" `KV_str_regper_b' `KV_str_regper_p' `KV_str_regper_N' "Table S8"
+
+. addm `M' "Excluding euro area 2009–2013" `KV_str_noeuro_b' `KV_str_noeuro_p' `KV_str_noeuro_N' "Table S8"
+
+. addm `M' "Periods from 1994–1998" `KV_str_post94_b' `KV_str_post94_p' `KV_str_post94_N' "Table S8"
+
+. addm `M' "Balanced panel" `KV_str_balanced_b' `KV_str_balanced_p' `KV_str_balanced_N' "Table S8"
+
+. addm `M' "Banking-crisis control" `KV_str_crisis_b' `KV_str_crisis_p' `KV_str_crisis_N' "Table S8"
+
+. addm `M' "All structural changes together" `KV_str_all_b' `KV_str_all_p' `KV_str_all_N' "Table S8"
+
+. addm `M' "System GMM (T3 timing)" `KV_T3gmm_b' `KV_T3gmm_p' . "Table 3, col. 2"
+
+. addm `M' "Bias-corrected FE (T3 timing)" `KV_T3bc_b' `KV_T3bc_p' . "Table 3, col. 3"
+
+. postclose `M'
+
+. * acrescenta o longo prazo (S11) e a curva de especificacoes
+. use "$RINT/longo.dta", clear
+
+. gen p = 2 * normal(-abs(b / se))
+
+. keep if inlist(m, "pmg", "csardl")
+(8 observations deleted)
+
+. gen str70 lab = cond(m == "pmg", "PMG, annual, ", "CS-ARDL(1,1), annual, ") + cond(w == "wbL", "lagged wage bill", "lagged wage bill over trend GDP")
+
+. gen str30 src = "Table S11"
+
+. keep lab b se p N src
+
+. append using "$RINT/mapa.dta"
+(variable p was float, now double to accommodate using data's values)
+
+. gen ord = cond(src == "Table S11", 100 + _n, _n)
+
+. sort ord
+
+. rv_new, ncol(4) head1("Coefficient" "p-value" "Obs." "Source")
+
+. forvalues i = 1/`=_N' {
+  2.     rv_fmt `=b[`i']' %12.3f `=p[`i']'
+  3.     local bb "`r(s)'"
+  4.     local pp = cond(missing(p[`i']), "", string(p[`i'], "%5.3f"))
+  5.     local nn = cond(missing(N[`i']), "", string(N[`i'], "%9.0fc"))
+  6.     rv_row "`=lab[`i']'" "`bb'" "`pp'" "`nn'" "`=src[`i']'"
+  7. }
+
+. rv_mid
+
+. rv_row "Specification curve: share of the `KV_sc_n' estimates with a 95% CI below zero" "`=string(`KV_sc_negsig' / `KV_sc_n', "%5.3f")'" "" "" "Figure 9"
+
+. rv_row "Bayesian model averaging: posterior inclusion probability of the wage bill" "`KV_bma_pip_wb'" "" "`KV_bma_N'" "Table S15"
+
+. rv_out Tab8_robustness_map, ///
+>     title("Table 8. Robustness map of the wage bill coefficient") ///
+>     notes("Coefficient on the general government wage bill (% of GDP) in growth regressions; five-year averages with country and period fixed effects and clustered standard errors unless stated; ann
+> ual rows use Driscoll-Kraay standard errors; long-run rows report long-run coefficients. p-values from the t distribution (cluster or Driscoll-Kraay) or the normal distribution (GMM, long run). Sour
+> ce: table or figure with the full specification. * p<0.10, ** p<0.05, *** p<0.01.")
+successfully created "C:/Users/Usuario/Dropbox/Papers/Emprego Público e Crescimento/Estimações/output/revisao/tables/Tab8_robustness_map.docx"
+(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/logs/captions/Tab8_robustness_map.txt not found)
+tabela gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/tables/Tab8_robustness_map.{tex,docx}
+
+. 
+. * =====================================================================================
+. * Tabela suplementar: BMA
+. * =====================================================================================
+. use "$RINT/bma_rev.dta", clear
+
+. gsort -pip
+
+. rv_new, ncol(2) head1("Posterior inclusion probability" "Posterior mean")
+
+. forvalues i = 1/`=_N' {
+  2.     local v = var[`i']
+  3.     local lab = cond("`v'" == "wb_m1", "Wage bill (% of GDP), t_p − 1", cond("`v'" == "lny0", "Log GDP per capita, t_p − 1", ///
+>         cond("`v'" == "hc_m1", "Human capital, t_p − 1", cond("`v'" == "inv_m1", "Investment, t_p − 1", cond("`v'" == "open_m1", "Openness, t_p − 1", ///
+>         cond("`v'" == "infl_m1", "Inflation, t_p − 1", cond("`v'" == "popg_m1", "Population growth, t_p − 1", cond("`v'" == "ctot_g_m1", "Terms-of-trade growth, t_p − 1", ///
+>         cond("`v'" == "debt_m1", "Public debt, t_p − 1", "Meritocratic recruitment, t_p − 1")))))))))
+  4.     rv_fmt `=b[`i']' %12.3f
+  5.     rv_row "`lab'" "`=string(pip[`i'], "%5.3f")'" "`r(s)'"
+  6. }
+
+. rv_out TabS_bma, ///
+>     title("Table S15. Bayesian model averaging over the control set (T3 sample)") ///
+>     notes("Bayesian model averaging (De Luca and Magnus, 2011) over all 2^10 combinations of the regressors, all treated as auxiliary, after removing country and period fixed effects from every vari
+> able (Frisch-Waugh) in the effective T3 sample (`KV_bma_N' observations, singletons excluded). The posterior inclusion probability measures robustness to the choice of controls; it says nothing abou
+> t endogeneity. Weighted-average least squares (WALS) on the same data: wage-bill coefficient `KV_wals_b_wb' (t = `KV_wals_t_wb').")
+successfully created "C:/Users/Usuario/Dropbox/Papers/Emprego Público e Crescimento/Estimações/output/revisao/tables/TabS_bma.docx"
+(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/logs/captions/TabS_bma.txt not found)
+tabela gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/tables/TabS_bma.{tex,docx}
+
+. 
+. * =====================================================================================
+. * Tabela S2: descritivas das amostras de estimacao
+. * =====================================================================================
+. capture program drop descrow
+
+. program define descrow
+  1.     args v lab
+  2.     quietly summ `v', detail
+  3.     local m = r(mean)
+  4.     local sd = r(sd)
+  5.     local med = r(p50)
+  6.     local mn = r(min)
+  7.     local mx = r(max)
+  8.     local n = r(N)
+  9.     tempvar mi w
+ 10.     quietly bysort id: egen double `mi' = mean(`v')
+ 11.     quietly gen double `w' = `v' - `mi'
+ 12.     quietly summ `mi' if !missing(`v')
+ 13.     local sdb = r(sd)
+ 14.     quietly summ `w'
+ 15.     local sdw = r(sd)
+ 16.     foreach x in m sd sdb sdw med mn mx {
+ 17.         rv_fmt ``x'' %12.2f
+ 18.         local f`x' "`r(s)'"
+ 19.     }
+ 20.     rv_row "`lab'" "`fm'" "`fsd'" "`fsdb'" "`fsdw'" "`fmed'" "`fmn'" "`fmx'" "`=string(`n', "%9.0fc")'"
+ 21. end
+
+. rv_new, ncol(8) head1("Mean" "SD total" "SD between" "SD within" "Median" "Min" "Max" "N")
+
+. use "$RINT/p5_rv.dta", clear
+
+. keep if micro == 0
+(261 observations deleted)
+
+. merge 1:1 id period using "$RINT/amostra_T3.dta", keep(master match) nogen
+(label id already defined)
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                             0
+    Matched                             1,512  
+    -----------------------------------------
+
+. keep if S5_T3
+(1,157 observations deleted)
+
+. rv_row "B. Five-year panel, T3 estimation sample" "" "" "" "" "" "" "" ""
+
+. descrow g "GDP per capita growth (%, period mean)"
+
+. descrow wb_m1 "Wage bill, general government (% of GDP), t_p − 1"
+
+. descrow wb_ham_m1 "Wage bill (% of trend GDP, Hamilton), t_p − 1"
+
+. descrow lny0 "Log GDP per capita, t_p − 1"
+
+. descrow hc_m1 "Human capital index, t_p − 1"
+
+. descrow inv_m1 "Investment (% of GDP), t_p − 1"
+
+. descrow open_m1 "Trade openness (% of GDP), t_p − 1"
+
+. descrow infl_m1 "Inflation (%), t_p − 1"
+
+. descrow popg_m1 "Population growth (%), t_p − 1"
+
+. descrow ctot_g_m1 "Commodity terms-of-trade growth (%), t_p − 1"
+
+. descrow merit_m1 "Meritocratic recruitment (V-Dem), t_p − 1"
+
+. rv_mid
+
+. use "$RINT/anual_rv.dta", clear
+
+. keep if micro == 0 & inrange(year, 1996, 2023)
+(5,934 observations deleted)
+
+. merge 1:1 id year using "$RINT/amostras1.dta", keep(master match) nogen
+(label id already defined)
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                             0
+    Matched                             4,704  
+    -----------------------------------------
+
+. keep if S1_base
+(3,111 observations deleted)
+
+. rv_row "C. Annual panel, Table 1 sample" "" "" "" "" "" "" "" ""
+
+. descrow g "GDP per capita growth (%)"
+
+. descrow wb "Wage bill, general government (% of GDP)"
+
+. descrow wb_ham "Wage bill (% of trend GDP, Hamilton)"
+
+. descrow wb_hp1 "Wage bill (% of trend GDP, one-sided HP)"
+
+. descrow d_wagebill_real "Real wage bill shock (% of lagged GDP)"
+
+. descrow rev_gdp "Total revenue (% of GDP)"
+
+. descrow balance_gdp "Fiscal balance (% of GDP)"
+
+. descrow infl "Inflation (%)"
+
+. rv_out TabS2_descriptives, landscape ///
+>     title("Table S2. Descriptive statistics of the estimation samples") ///
+>     notes("Panel B: country-periods of the preferred H1 specification (T3). Panel C: country-years of the annual rows of Table 1. SD between: standard deviation of country means; SD within: standard
+>  deviation after removing country means, the relevant variation with country fixed effects. Values follow the extended cleaning rules (revenue above 100% of GDP, fiscal balance outside ±50% of GDP a
+> nd inflation above 1,000% treated as missing; growth and inflation winsorized at the 1st and 99th percentiles of the non-microstate sample, 1980–2023).")
+successfully created "C:/Users/Usuario/Dropbox/Papers/Emprego Público e Crescimento/Estimações/output/revisao/tables/TabS2_descriptives.docx"
+(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/logs/captions/TabS2_descriptives.txt not found)
+tabela gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/tables/TabS2_descriptives.{tex,docx}
+
+. 
+. * =====================================================================================
+. * Tabela S14b: paises da amostra efetiva (T3), por grupo de renda de 1996
+. * =====================================================================================
+. use "$RINT/p5_rv.dta", clear
+
+. keep if micro == 0
+(261 observations deleted)
+
+. merge 1:1 id period using "$RINT/amostra_T3.dta", keep(master match) nogen
+(label id already defined)
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                             0
+    Matched                             1,512  
+    -----------------------------------------
+
+. keep if S5_T3
+(1,157 observations deleted)
+
+. collapse (count) n = g (firstnm) income_grp federal, by(iso3)
+
+. rv_new, ncol(2) head1("Countries (ISO3)" "N")
+
+. forvalues k = 1/4 {
+  2.     quietly levelsof iso3 if income_grp == `k', local(L) clean
+  3.     local nn : word count `L'
+  4.     local gg : word `k' of "Low income" "Lower middle income" "Upper middle income" "High income"
+  5.     rv_row "`gg'" "`L'" "`nn'"
+  6. }
+
+. quietly count
+
+. local tot = r(N)
+
+. rv_row "Total" "" "`tot'"
+
+. rv_out TabS16_countries, landscape ///
+>     title("Table S16. Countries in the preferred five-year estimation sample (T3), by 1996 income group") ///
+>     notes("Countries with at least one country-period in the T3 estimation sample (after singletons are dropped). World Bank income group in 1996. The draft-7 table listed the 101 countries with a g
+> eneral government wage bill in any period rather than the estimation sample.")
+successfully created "C:/Users/Usuario/Dropbox/Papers/Emprego Público e Crescimento/Estimações/output/revisao/tables/TabS16_countries.docx"
+(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/logs/captions/TabS16_countries.txt not found)
+tabela gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/tables/TabS16_countries.{tex,docx}
+
+. 
+. log close
+      name:  <unnamed>
+       log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/logs/13_tabelas.log
+  log type:  text
+ closed on:  17 Oct 2026, 17:24:59
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

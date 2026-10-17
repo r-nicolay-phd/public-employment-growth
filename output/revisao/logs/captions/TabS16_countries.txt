@@ -1,0 +1,2 @@
+Table S16. Countries in the preferred five-year estimation sample (T3), by 1996 income group
+Countries with at least one country-period in the T3 estimation sample (after singletons are dropped). World Bank income group in 1996. The draft-7 table listed the 101 countries with a general government wage bill in any period rather than the estimation sample.

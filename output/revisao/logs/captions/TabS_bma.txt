@@ -1,0 +1,2 @@
+Table S15. Bayesian model averaging over the control set (T3 sample)
+Bayesian model averaging (De Luca and Magnus, 2011) over all 2^10 combinations of the regressors, all treated as auxiliary, after removing country and period fixed effects from every variable (Frisch-Waugh) in the effective T3 sample (346 observations, singletons excluded). The posterior inclusion probability measures robustness to the choice of controls; it says nothing about endogeneity. Weighted-average least squares (WALS) on the same data: wage-bill coefficient  (t = ).

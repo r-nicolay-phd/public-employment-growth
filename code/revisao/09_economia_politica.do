@@ -15,8 +15,33 @@ quietly summ merit_l1 if per & !missing(d_wagebill_real), detail
 gen byte mhi = merit_l1 > r(p50) if !missing(merit_l1)
 gen efxm = election_fixed * mhi
 
+mata:
+string scalar _arfmt(string scalar s)
+{
+    string scalar r, m, out
+    real scalar k
+    r = s
+    out = ""
+    while (ustrregexm(r, "-?[0-9]*\.[0-9]+|-?[0-9]+")) {
+        m = ustrregexs(0)
+        k = strpos(r, m)
+        out = out + substr(r, 1, k - 1) + strofreal(strtoreal(m), "%9.2f")
+        r = substr(r, k + strlen(m), .)
+    }
+    out = out + r
+    out = subinstr(out, "entire grid", "(" + uchar(8722) + uchar(8734) + ", +" + uchar(8734) + ")")
+    out = subinstr(out, "+inf", "+" + uchar(8734))
+    out = subinstr(out, "[ ... ,", "(" + uchar(8722) + uchar(8734) + ",")
+    out = subinstr(out, "[  ...  ", "(" + uchar(8722) + uchar(8734))
+    out = subinstr(out, " U ", " " + uchar(8746) + " ")
+    out = subinstr(out, "-", uchar(8722))
+    out = stritrim(subinstr(out, "[ ", "["))
+    return(out)
+}
+end
+
 tempname P
-postfile `P' str10 smp double(b se p pboot Feff Fkp) str40 arci long(N nc) using "$RINT/ep_first.dta", replace
+postfile `P' str10 smp double(b se p pboot Feff Fkp) str80 arci long(N nc) using "$RINT/ep_first.dta", replace
 foreach smp in all dem new old {
     local c = cond("`smp'" == "all", "per", cond("`smp'" == "dem", "per & dem == 1", cond("`smp'" == "new", "per & dem_new == 1", "per & dem == 1 & dem_new == 0")))
     reghdfe d_wagebill_real election_fixed L_g i.year if `c', absorb(id) vce(cluster id)
@@ -36,12 +61,13 @@ foreach smp in all dem new old {
     local ar ""
     capture noisily weakiv ivreg2 g (d_wagebill_real = election_fixed) balance_gdp L_g i.year i.id if `c', cluster(id)
     if !_rc {
+        * formato: duas casas, sinal de menos U+2212 e infinito
         local ar "`e(ar_cset)'"
-        local ar : subinstr local ar "  ...  ]" " +inf)"
-        local ar : subinstr local ar "[  ...  " "(−inf"
+        mata: st_local("ar", _arfmt(st_local("ar")))
     }
     post `P' ("`smp'") (`b') (`se') (`p') (`pb') (`Feff') (`Fkp') ("`ar'") (`N') (`nc')
     rv_kv ep_`smp'_b `=string(`b', "%9.4f")'
+    rv_kv ep_`smp'_se `=string(`se', "%9.4f")'
     rv_kv ep_`smp'_p `=string(`p', "%9.4f")'
     rv_kv ep_`smp'_pboot `=string(`pb', "%9.4f")'
     rv_kv ep_`smp'_Feff `=string(`Feff', "%9.2f")'

@@ -1,0 +1,708 @@
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/logs/16_relatorio.log
+  log type:  text
+ opened on:  17 Oct 2026, 20:56:47
+
+. 
+. * numero em portugues: casas decimais, virgula, sinal de menos U+2212 e ponto de milhar
+. mata:
+------------------------------------------------- mata (type end to exit) ------------------------------------------------------------------------------------------------------------------------------
+: string scalar _pt(real scalar x, real scalar d)
+> {
+>     string scalar s
+>     if (x >= .) return("n.d.")
+>     if (d == 0) {
+>         s = strofreal(abs(round(x)), "%15.0fc")
+>         s = subinstr(s, ",", ".")
+>     }
+>     else {
+>         s = strofreal(abs(x), "%15." + strofreal(d) + "f")
+>         s = subinstr(strtrim(s), ".", ",")
+>     }
+>     s = strtrim(s)
+>     if (x < 0 & s != "0" & s != "0,000" & s != "0,00") s = uchar(8722) + s
+>     return(s)
+> }
+
+: string scalar _pp(real scalar p)
+> {
+>     if (p >= .) return("n.d.")
+>     if (p < 0.001) return("< 0,001")
+>     return(subinstr(strofreal(p, "%5.3f"), ".", ","))
+> }
+
+: end
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+. 
+. * carrega o registro: K_<chave> (valor bruto), P_<chave> (3 casas), Q_<chave> (p-valor), N_<chave> (inteiro)
+. preserve
+
+. import delimited "$RINT/kv.csv", clear varnames(1) stringcols(_all)
+(encoding automatically selected: ISO-8859-1)
+(2 vars, 1,415 obs)
+
+. gen long n = _n
+
+. bysort key (n): keep if _n == _N
+(764 observations deleted)
+
+. forvalues i = 1/`=_N' {
+  2.     local k = key[`i']
+  3.     local v = value[`i']
+  4.     local K_`k' "`v'"
+  5.     local x = real("`v'")
+  6.     if !missing(`x') {
+  7.         mata: st_local("P_`k'", _pt(`x', 3))
+  8.         mata: st_local("Q_`k'", _pp(`x'))
+  9.         mata: st_local("N_`k'", _pt(`x', 0))
+ 10.         mata: st_local("D_`k'", _pt(`x', 2))
+ 11.     }
+ 12. }
+
+. restore
+
+. 
+. * valores lidos das bases de resultados
+. use "$RINT/replicas.dta", clear
+
+. foreach k in "opra_icrg gc_mean sgmm" "opra_icrg gc_mean fe" "opra_icrg gc_m1 fe" "opra_icrg gc_m1 sgmm" "opra_wgi gc_mean fe" "opra_wgi gc_m1 fe" "mv gc fe_dk" "mv gc_ham fe_dk" "mv gc_l1 fe_dk" {
+  2.     tokenize `k'
+  3.     quietly summ bi if rep == "`1'" & meas == "`2'" & est == "`3'"
+  4.     mata: st_local("R_`1'_`2'_`3'_b", _pt(`r(mean)', 3))
+  5.     quietly summ pi if rep == "`1'" & meas == "`2'" & est == "`3'"
+  6.     mata: st_local("R_`1'_`2'_`3'_p", _pp(`r(mean)'))
+  7. }
+
+. use "$RINT/ciclicidade.dta", clear
+
+. foreach s in base_cyc_pre with_cyc_pre {
+  2.     quietly summ bi if spec == "`s'"
+  3.     mata: st_local("C_`s'", _pt(`r(mean)', 3))
+  4. }
+
+. quietly summ bc if spec == "with_cyc_pre"
+
+. mata: st_local("C_cycint", _pt(`r(mean)', 3))
+
+. quietly summ pc if spec == "with_cyc_pre"
+
+. mata: st_local("C_cycint_p", _pp(`r(mean)'))
+
+. use "$RINT/vies_lp.dta", clear
+
+. foreach hh in -3 -2 {
+  2.     quietly summ b if shock == "shock" & h == `hh'
+  3.     local bb = r(mean)
+  4.     quietly summ se if shock == "shock" & h == `hh'
+  5.     local ss = r(mean)
+  6.     local nm = abs(`hh')
+  7.     mata: st_local("L_m`nm'", _pt(`bb', 3))
+  8.     mata: st_local("L_m`nm'_p", _pp(2 * normal(-abs(`bb' / `ss'))))
+  9. }
+
+. use "$RINT/bond.dta", clear
+
+. foreach t in draft T3 {
+  2.     foreach e in ols fe gmm bc {
+  3.         quietly summ rho if tim == "`t'" & est == "`e'"
+  4.         mata: st_local("B_`t'_`e'", _pt(`r(mean)', 3))
+  5.     }
+  6. }
+
+. use "$RINT/longo.dta", clear
+
+. foreach w in wbL wbH {
+  2.     foreach m in pmg csardl ccemg {
+  3.         quietly summ b if w == "`w'" & m == "`m'"
+  4.         mata: st_local("LR_`w'_`m'", _pt(`r(mean)', 3))
+  5.     }
+  6. }
+
+. use "$RINT/rw_lpmerit_adj.dta", clear
+
+. quietly summ p_rw if code == "M5"
+
+. mata: st_local("RW_M5", _pp(`r(mean)'))
+
+. quietly summ p_raw if code == "M5"
+
+. mata: st_local("RWraw_M5", _pp(`r(mean)'))
+
+. use "$RINT/vereditos.dta", clear
+
+. tempfile VER
+
+. save `VER'
+file C:\Users\Usuario\AppData\Local\Temp\ST_1398_000002.tmp saved as .dta format
+
+. * coeficiente de base do draft 7 com as variaveis originais (sem a limpeza ampliada)
+. use "$FINAL/painel_5anos.dta", clear
+
+. keep if micro == 0
+(261 observations deleted)
+
+. quietly reghdfe g wagebill_gdp0 lny0 hc0 inv open infl popg ctot_g, absorb(id period) vce(cluster id)
+
+. local a1 = _b[wagebill_gdp0]
+
+. mata: st_local("A1_draft", _pt(`a1', 3))
+
+. * razoes entre medidas (para o ledger)
+. local r_hp = `K_vies_wb_b' / `K_vies_wb_hp1_b'
+
+. local r_t3 = `K_vies_wb_b' / `K_T3_own_b'
+
+. mata: st_local("R_hp", _pt(`r_hp', 1))
+
+. mata: st_local("R_t3", _pt(`r_t3', 1))
+
+. local sh_hp = 100 * `K_vies_wb_hp1_b' / `K_vies_wb_b'
+
+. mata: st_local("SH_hp", _pt(`sh_hp', 0))
+
+. local share_sc = 100 * `K_sc_negsig' / `K_sc_n'
+
+. mata: st_local("SH_sc", _pt(`share_sc', 0))
+
+. local prem_rel = `K_d_log_lrw_b' - `K_d_log_lpe_b'
+
+. mata: st_local("D_prq", _pt(`prem_rel', 2))
+
+. * efeitos por 1 DP dentro do pais
+. local e_lrw = `K_d_log_lrw_b' * `K_d_log_lrw_sdw'
+
+. local e_lpe = `K_d_log_lpe_b' * `K_d_log_lpe_sdw'
+
+. mata: st_local("E_lrw", _pt(`e_lrw', 2))
+
+. mata: st_local("E_lpe", _pt(`e_lpe', 2))
+
+. local cen "`K_cenario'"
+
+. local hash "2182199"
+
+. 
+. * =====================================================================================
+. * RESULTADOS_REVISAO.md
+. * =====================================================================================
+. tempname F
+
+. file open `F' using "$DOCS/RESULTADOS_REVISAO.md", write replace text
+
+. file write `F' "# Resultados da revisão empírica (draft 7 → draft 8)" _n _n
+
+. file write `F' "Gerado por \`code/revisao/16_relatorio.do\` em `c(current_date)'. Todo número abaixo é lido de \`data/interim/revisao/kv.csv\` e das bases de resultados gravadas pelos do-files." _n 
+> _n
+
+. file write `F' "- **Plano de análise:** \`docs/PLANO_REVISAO.md\`, commit \`" "`hash'" "\` de 17/10/2026, 16h16 (UTC−3), feito antes de qualquer estimação da revisão." _n
+
+. file write `F' "- **Rotulagem:** as análises fora do plano estão marcadas como exploratórias." _n
+
+. file write `F' "- **Auditoria:** \`docs/AUDITORIA_DRAFT7.md\` reproduz os `N_repro_nnum' números das tabelas do draft 7, com `N_repro_ndiff' diferenças acima de 0,001." _n _n
+
+. file write `F' "## Conclusão" _n _n
+
+. file write `F' "A correção do timing enfraquece o resultado principal, e o artigo deve virar uma nota metodológica (cenário **`cen'**)." _n _n
+
+. file write `F' "1. **Timing.** Com a folha medida no último ano do período anterior e todos os controles predeterminados, o coeficiente de médio prazo é `P_T3_own_b'. O p-valor por cluster é `Q_T3_o
+> wn_p', mas o wild cluster bootstrap dá `Q_T3_own_pboot' e o Romano-Wolf `Q_rw_H1'. Pela regra registrada, H1 é não sustentada." _n
+
+. file write `F' "2. **Viés da razão contemporânea.** É nítido e quantificável. Um numerador placebo, que só varia pelo denominador, dá `P_vies_wb_placebo_b', praticamente o coeficiente da razão conte
+> mporânea (`P_vies_wb_b'). A diferença entre a razão contemporânea e a razão sobre a tendência de Hamilton é `P_dif_12_d' (p `Q_dif_12_p', bootstrap)." _n
+
+. file write `F' "3. **Componente de preço (H2).** É o único resultado entre as hipóteses que sobrevive ao wild bootstrap e ao Romano-Wolf: no modelo em logs, `P_d_log_lrw_b' (Romano-Wolf `Q_rw_H2'). 
+> O componente de emprego também é negativo, e o prêmio ajustado não confirma." _n
+
+. file write `F' "4. **Cobertura e instituições.** As duas mensagens do draft 7 não se sustentam na forma em que estavam escritas." _n
+
+. file write `F' "   - Na amostra comum, a diferença entre governo geral e central está nos países unitários, e não nas federações." _n
+
+. file write `F' "   - A mitigação de Oto-Peralías e Romero-Ávila (2013) não depende do timing." _n _n
+
+. file write `F' "## Veredito de cada hipótese" _n _n
+
+. file write `F' "Especificação preferida registrada no plano. IC de 95% normal com o EP por cluster." _n _n
+
+. file write `F' "| Hipótese | Sinal previsto | Coeficiente | IC 95% | p (cluster) | p (wild bootstrap) | p (Romano-Wolf) | Veredito |" _n "|---|---|---|---|---|---|---|---|" _n
+
+. use `VER', clear
+
+. forvalues i = 1/`=_N' {
+  2.     mata: st_local("b", _pt(st_data(`i', "b"), 3))
+  3.     mata: st_local("l", _pt(st_data(`i', "lo"), 3))
+  4.     mata: st_local("u", _pt(st_data(`i', "hi"), 3))
+  5.     mata: st_local("p1", _pp(st_data(`i', "p")))
+  6.     mata: st_local("p2", _pp(st_data(`i', "pboot")))
+  7.     mata: st_local("p3", _pp(st_data(`i', "prw")))
+  8.     local v = verdict[`i']
+  9.     local vpt = cond("`v'" == "Supported", "Sustentada", cond("`v'" == "Inconclusive", "Inconclusiva", "Não sustentada"))
+ 10.     file write `F' "| `=h[`i']': `=lab[`i']' | `=sign[`i']' | `b' | [`l'; `u'] | `p1' | `p2' | `p3' | **`vpt'** |" _n
+ 11. }
+
+. file write `F' _n "Observações sobre as hipóteses:" _n _n
+
+. file write `F' "- **H2:** no mesmo modelo, o log do emprego público também é negativo (`P_d_log_lpe_b', p `Q_d_log_lpe_p'). A parte do enunciado “e o de quantidade não” não se confirma." _n
+
+. file write `F' "   - Controlando pela folha total, o salário relativo é `D_prq' log mais negativo que o emprego (p `Q_d_sepW_lrw_p')." _n
+
+. file write `F' "   - Por desvio-padrão dentro do país, os efeitos são `E_lrw' (salário relativo) e `E_lpe' (emprego) ponto de crescimento." _n
+
+. file write `F' "   - Com o emprego instrumentado pelo ILOSTAT, o instrumento é fraco (F efetivo `D_d_iv_Feff') e o salário relativo perde significância." _n
+
+. file write `F' "   - O prêmio ajustado tem coeficiente `P_d_prem_prem01_b' por 0,1 log (p bootstrap `Q_d_prem_prem01_pboot')." _n
+
+. file write `F' "- **H3:** o efeito mínimo detectável da interação é `P_h3_mde', contra uma magnitude economicamente relevante de `P_h3_relevant'. O teste não tem poder para detectar uma moderação re
+> levante, e o nulo é um nulo mal medido." _n
+
+. file write `F' "- **H5:** a resposta do PIB em h = 4 é mais **favorável** a expansões em ano eleitoral (diferença `P_eplp_dem_h4_diff', p `Q_eplp_dem_h4_p'), sinal oposto ao previsto." _n _n
+
+. file write `F' "## Cenário escolhido (seção 6.2): **`cen'**" _n _n
+
+. file write `F' "| Condição | Valor | Atendida |" _n "|---|---|---|" _n
+
+. file write `F' "| A: H1 sustentada em T3 | veredito: `=cond("`K_verdict_H1'" == "Supported", "sustentada", cond("`K_verdict_H1'" == "Inconclusive", "inconclusiva", "não sustentada"))' | `=cond("`K_v
+> erdict_H1'" == "Supported", "sim", "não")' |" _n
+
+. file write `F' "| A: soma das defasagens 1–5 negativa (p bootstrap < 0,05) | `P_dl_wbL_sum' (p `Q_dl_wbL_sum_pboot') | `=cond(`K_scen_A', "sim", "não")' |" _n
+
+. file write `F' "| B: decomposição nítida (placebo negativo e significativo; contemporânea − Hamilton significativa) | placebo `P_vies_wb_placebo_b' (p `Q_vies_wb_placebo_p'); diferença `P_dif_12_d' 
+> (p `Q_dif_12_p') | `=cond(`K_nitida_dec', "sim", "não")' |" _n
+
+. file write `F' "| B: réplica de Oto-Peralías e Romero-Ávila nítida (S-GMM) | contemporânea `R_opra_icrg_gc_mean_sgmm_b' (p `R_opra_icrg_gc_mean_sgmm_p'); t_p − 1 `R_opra_icrg_gc_m1_sgmm_b' (p `R_opr
+> a_icrg_gc_m1_sgmm_p') | `=cond(`K_nit_opra', "sim", "não")' |" _n
+
+. file write `F' "| B: réplica (aproximada) de Mollick e Vianna nítida | contemporânea `R_mv_gc_fe_dk_b' (p `R_mv_gc_fe_dk_p'); defasada `R_mv_gc_l1_fe_dk_b' (p `R_mv_gc_l1_fe_dk_p') | `=cond(`K_nit_m
+> v', "sim", "não")' |" _n
+
+. file write `F' "| C: primeiro estágio narrativo com F efetivo ≥ 10 | F = `D_afg_fs_Feff' | `=cond(`K_afg_fs_Feff' >= 10, "sim", "não")' |" _n
+
+. file write `F' "| C: resposta do PIB ao corte narrativo de folha em h = 4 significativa | `P_afg_y100_h4_b' (p `Q_afg_y100_h4_p') | `=cond(`K_afg_y100_h4_p' < 0.05, "sim", "não")' |" _n _n
+
+. file write `F' "**Por que o cenário `cen':**" _n _n
+
+. file write `F' "- H1 não sobrevive ao timing correto combinado com a inferência por bootstrap." _n
+
+. file write `F' "- A decomposição do viés atende ao critério registrado de nitidez." _n
+
+. file write `F' "- Das réplicas, só a aproximada de Mollick e Vianna é nítida. A de Oto-Peralías e Romero-Ávila não depende do timing, de modo que o viés não explica a mitigação." _n _n
+
+. file write `F' "O artigo passa a ser uma nota metodológica sobre o viés de razões fiscais contemporâneas e seus efeitos em resultados publicados. O coeficiente de médio prazo sai do resumo." _n _n
+
+. file write `F' "## O que mudou em relação ao draft 7 (ênfase no que enfraqueceu)" _n _n
+
+. file write `F' "**Coeficiente de base.**" _n _n
+
+. file write `F' "- O coeficiente de base do draft 7 (`A1_draft' com os dados originais) passa a `P_T6_own_b' só pela limpeza ampliada pedida pelo parecer. A causa é uma única observação, a inflação d
+> a Bulgária em 1997 (decisão D1)." _n
+
+. file write `F' "- Com a folha em t_p − 1, o coeficiente cai a `P_T1_own_b' (p `Q_T1_own_p')." _n
+
+. file write `F' "- Excluindo o primeiro ano do crescimento, cai a `P_T2_own_b' (p `Q_T2_own_p')." _n
+
+. file write `F' "- Só volta a `P_T3_own_b' com os controles predeterminados, que tiram o investimento e a inflação contemporâneos. Mesmo assim, o wild bootstrap dá p = `Q_T3_own_pboot'." _n _n
+
+. file write `F' "**Fragilidade de T3.**" _n _n
+
+. file write `F' "- Pós-1994: `P_str_post94_b'." _n
+
+. file write `F' "- Painel balanceado: `P_str_balanced_b'." _n
+
+. file write `F' "- Tendências por país: p `Q_str_trend_p'." _n
+
+. file write `F' "- Controle de crises: p `Q_str_crisis_p'." _n
+
+. file write `F' "- Todas as alterações juntas: `P_str_all_b' (p `Q_str_all_p')." _n
+
+. file write `F' "- S-GMM: `P_T3gmm_b'. BC-FE: `P_T3bc_b' (p `Q_T3bc_p')." _n _n
+
+. file write `F' "**Frequências.** O zero anual e o coeficiente de cinco anos não se reconciliam." _n _n
+
+. file write `F' "- A soma das defasagens 1 a 5 é instável, por colinearidade (`P_dl_wbL_sum' em % do PIB; `P_dl_whL_sum' sobre a tendência)." _n
+
+. file write `F' "- A média das defasagens como regressor único é `P_expl_wbLm_b' (p `Q_expl_wbLm_p'; exploratório)." _n
+
+. file write `F' "- A projeção local com a folha em nível nunca é significativa." _n
+
+. file write `F' "- A projeção local do choque tem leads positivos e significativos (h = −3: `L_m3', p `L_m3_p'; h = −2: `L_m2', p `L_m2_p'): as expansões da folha vêm depois de quedas do PIB. No pain
+> el de cinco anos, os leads são nulos (p `Q_lead_wb_tp_lead_p')." _n _n
+
+. file write `F' "**Cobertura.**" _n _n
+
+. file write `F' "- Na amostra comum, governo geral `P_cov_all_gg_b' (p `Q_cov_all_gg_p') contra central `P_cov_all_cg_b'. A diferença, `P_cov_diff_all' (p `Q_cov_diff_all_p'), vem dos países unitário
+> s (`P_cov_diff_uni', p `Q_cov_diff_uni_p')." _n
+
+. file write `F' "- Nas federações, a série central é a mais negativa (`P_cov_fed_cg_b'), o oposto do mecanismo de cobertura." _n _n
+
+. file write `F' "**Instituições.**" _n _n
+
+. file write `F' "- A mitigação de Oto-Peralías e Romero-Ávila com o ICRG (efeitos fixos: `R_opra_icrg_gc_mean_fe_b', p `R_opra_icrg_gc_mean_fe_p') não muda com o consumo em t_p − 1 (`R_opra_icrg_gc_m
+> 1_fe_b', p `R_opra_icrg_gc_m1_fe_p')." _n
+
+. file write `F' "- A amplificação anual (réplica aproximada) some com o consumo defasado, mas sobrevive à tendência de Hamilton (`R_mv_gc_ham_fe_dk_b', p `R_mv_gc_ham_fe_dk_p')." _n
+
+. file write `F' "- A ciclicidade pré-1996 absorve só parte da interação (de `C_base_cyc_pre' para `C_with_cyc_pre')." _n
+
+. file write `F' "- A diferença entre consumo e despesa total é de composição da amostra: na amostra comum, consumo `P_ce_gc_common_bi' e despesa `P_ce_ex_common_bi'." _n _n
+
+. file write `F' "**Mérito alto nas projeções locais.**" _n _n
+
+. file write `F' "- O coeficiente do regime de mérito alto em h = 5 (`P_lpm_base_h5_bhi', com `N_lpm_base_h5_nep' episódios em `N_lpm_base_h5_nc' países) sobrevive sem o euro e com região × ano, mas s
+> ome com todas as alterações (`P_lpm_all_h5_bhi')." _n
+
+. file write `F' "- A diferença alto − baixo em h = 5 tem p bootstrap por país `RWraw_M5' e Romano-Wolf `RW_M5'. O p de Driscoll-Kraay (`Q_lpm_base_h5_pdiff') superestima a precisão." _n _n
+
+. file write `F' "**Longo prazo.** PMG `LR_wbL_pmg' contra CS-ARDL `LR_wbL_csardl' (folha defasada); sobre a tendência, PMG `LR_wbH_pmg' e CS-ARDL `LR_wbH_csardl'. A verificação de Bond falha na amost
+> ra comum (S-GMM `B_draft_gmm' > MQO `B_draft_ols')." _n _n
+
+. file write `F' "**Composição e mecanismos.**" _n _n
+
+. file write `F' "- Restrição orçamentária com participações em t_p − 1: transferências omitidas `P_H1b_tr_b' (p bootstrap `Q_H1b_tr_pboot'); investimento omitido `P_H1b_inv_b'." _n
+
+. file write `F' "- Investimento privado: `P_h4_ipriv_b' (p bootstrap `Q_h4_ipriv_pboot'); PTF: `P_h4_tfp_g_b'." _n _n
+
+. file write `F' "**O que se manteve.**" _n _n
+
+. file write `F' "- A comparação de medidas no painel anual." _n
+
+. file write `F' "- O componente de preço no modelo em logs." _n
+
+. file write `F' "- Na curva de especificações, `N_sc_neg' de `N_sc_n' coeficientes são negativos, mas só `N_sc_negsig' (`SH_sc'%) têm IC abaixo de zero, e nenhum é positivo e significativo (mediana `
+> P_sc_med')." _n _n
+
+. file write `F' "## Ledger de afirmações (seção 6.3)" _n _n
+
+. file write `F' "| Afirmação do draft 7 | Veredito | Redação sugerida | Número que a sustenta |" _n "|---|---|---|---|" _n
+
+. file write `F' "| “explica a maior parte” | Rebaixada | “Com a folha medida no mesmo ano, o coeficiente é `P_vies_wb_b'; um numerador placebo que só varia pelo denominador reproduz `P_vies_wb_placeb
+> o_b'. Com a tendência de Hamilton o coeficiente é `P_vies_wb_ham_b', e com o HP unilateral resta `P_vies_wb_hp1_b' (`SH_hp'% do original).” | Tabela 1; Tabela S3 |" _n
+
+. file write `F' "| “perto de zero com o PIB tendencial” | Rebaixada | “perto de zero com a tendência de Hamilton (`P_vies_wb_ham_b') ou com a folha defasada (`P_vies_wb_l1_b'); com o HP, uni ou bilat
+> eral, o coeficiente fica entre `P_vies_wb_hp1_b' e `P_vies_wb_hp2_b'” | Tabela 1 |" _n
+
+. file write `F' "| “uma ordem de grandeza” | Retirada | “o coeficiente contemporâneo é `R_hp' vezes o obtido com o HP unilateral e `R_t3' vezes o de médio prazo com o timing corrigido” | Tabelas 1 e 
+> 2 |" _n
+
+. file write `F' "| “o mesmo viés explica” (instituições) | Retirada | “a amplificação encontrada com o consumo anual contemporâneo desaparece com o consumo defasado, mas sobrevive à correção do denom
+> inador; a mitigação de Oto-Peralías e Romero-Ávila não depende do timing” | Tabela 6; Figura 4 |" _n
+
+. file write `F' "| “concentrado no salário relativo” | Rebaixada | “no modelo em logs, o salário relativo (`P_d_log_lrw_b') e o emprego público (`P_d_log_lpe_b') estão associados a menor crescimento;
+>  o componente de preço é mais negativo (diferença `D_prq'), e o prêmio ajustado não confirma” | Tabela 5 |" _n
+
+. file write `F' "| “o canal é o preço” | Rebaixada | “a associação é mais forte no componente de preço” | Tabela 5; Tabela S6 |" _n
+
+. file write `F' "| “confirma entre países” | Rebaixada | “é compatível com a regularidade documentada em estudos nacionais” | Tabela 5 |" _n
+
+. file write `F' "| “a cobertura muda a conclusão” | Rebaixada | “na mesma amostra, a série de governo central dá `P_cov_all_cg_b' contra `P_cov_all_gg_b' com a de governo geral, mas a diferença se co
+> ncentra nos países unitários, e nas federações a série central é a mais negativa” | Tabela 4 |" _n
+
+. file write `F' "| “vale sobretudo para renda média e alta” | Retirada | descrever a amostra (“a amostra é composta sobretudo por países de renda média e alta”) sem atribuir ao resultado | Tabela S16
+>  |" _n
+
+. file write `F' "| “reconcilia” | Retirada | “as réplicas mostram que o resultado anual de amplificação depende do timing e que o de mitigação não” | Tabela 6 |" _n
+
+. file write `F' "| “o desenho foi fixado antes da estimação” | Substituída | declaração de pré-especificação baseada no commit \`" "`hash'" "\` (ver \`docs/TEXTO_SUGERIDO.md\`) | \`docs/PLANO_REVISAO
+> .md\` |" _n
+
+. file write `F' "| Comparação de magnitude com Cavalcanti e Santos (2021) | Retirada | sem substituto: objetos não comparáveis | — |" _n
+
+. file write `F' "| “custo” e “efeito” | Rebaixada | “associação” e “coeficiente” em todo o texto, inclusive no título e nos objetivos | — |" _n
+
+. file write `F' "| Afirmações de prioridade (“nenhum estudo...”) | A verificar pelos autores | manter só depois de checar a literatura citada pelo parecer (Fölster e Henrekson, 2001; Lane, 2003; Afon
+> so e Furceri, 2010; Frankel, Végh e Vuletin, 2013) | — |" _n _n
+
+. file write `F' "## Limitações que ainda vão aparecer num parecer" _n _n
+
+. file write `F' "- **Identificação:** não há identificação causal. O primeiro estágio narrativo (16 países da OCDE) tem F efetivo `D_afg_fs_Feff', e o eleitoral `D_ep_dem_Feff' em democracias. MONA e
+>  safras de previsão não foram obtidas." _n
+
+. file write `F' "- **Réplica de Mollick e Vianna:** é aproximada, porque o texto não foi obtido. A réplica de Oto-Peralías e Romero-Ávila usa substitutos públicos do ICRG e não tem a origem legal com
+> o instrumento." _n
+
+. file write `F' "- **Viés com o HP:** o viés medido depende do filtro. Com Hamilton, a correção é quase completa; com o HP unilateral, resta `SH_hp'% do coeficiente contemporâneo." _n
+
+. file write `F' "- **Defasagem e Hamilton:** não são evidências independentes (correlação `D_corr_lag_ham')." _n
+
+. file write `F' "- **H3 sem poder:** o teste não tem poder estatístico, e H5 tem instrumento fraco." _n
+
+. file write `F' "- **Decomposição:** depende do WWBI, de cobertura irregular desde 2000, e de um instrumento fraco." _n
+
+. file write `F' "- **Projeções locais:** com bootstrap por país, as de mérito alto não são significativas após o ajuste para testes múltiplos." _n
+
+. file write `F' "- **Exploratórios:** as análises fora do plano (média das defasagens; ciclicidade 1996–2023) são exploratórias." _n _n
+
+. file write `F' "## Pendências" _n _n
+
+. file write `F' "- **Downloads manuais** (\`docs/DOWNLOADS_MANUAIS.md\`):" _n
+
+. file write `F' "   - MONA;" _n
+
+. file write `F' "   - OECD EO em safras;" _n
+
+. file write `F' "   - Devries et al. (2011), hoje substituída por Alesina, Favero e Giavazzi;" _n
+
+. file write `F' "   - texto de Mollick e Vianna (2023), para a réplica fiel;" _n
+
+. file write `F' "   - ICRG Bureaucracy Quality (pago);" _n
+
+. file write `F' "   - atualização de Laeven e Valencia até 2025." _n
+
+. file write `F' "- **Texto:** reescrever o artigo no cenário `cen', com as sugestões de \`docs/TEXTO_SUGERIDO.md\`, e fazer as correções de redação do parecer (itens 15 e 32–42 de \`docs/RESPOSTA_PAR
+> ECER.md\`)." _n
+
+. file write `F' "- **Literatura:** acrescentar as referências omitidas (item 28)." _n
+
+. file close `F'
+
+. 
+. * =====================================================================================
+. * TEXTO_SUGERIDO.md (cenario B: nota metodologica)
+. * =====================================================================================
+. file open `F' using "$DOCS/TEXTO_SUGERIDO.md", write replace text
+
+. file write `F' "# Texto sugerido (cenário `cen')" _n _n
+
+. file write `F' "Gerado por \`code/revisao/16_relatorio.do\`. Os números vêm do registro do pipeline. São propostas para o resumo, para o parágrafo de resultados da introdução e para a abertura da di
+> scussão, coerentes com o ledger de \`docs/RESULTADOS_REVISAO.md\`. Não reescrevem o artigo inteiro." _n _n
+
+. file write `F' "## Resumo (até 200 palavras)" _n _n
+
+. file write `F' "Regressões de crescimento sobre razões fiscais medidas no mesmo ano misturam o efeito do gasto com o ciclo do PIB, que está no denominador. Quantificamos esse viés com a folha de pag
+> amento do governo geral em painel de países. No painel anual, a razão folha/PIB contemporânea tem coeficiente de `P_vies_wb_b' ponto de crescimento por ponto do PIB. Um numerador placebo, que só var
+> ia pelo denominador, reproduz `P_vies_wb_placebo_b'. Com a folha dividida pela tendência do PIB de Hamilton, ou medida no ano anterior, o coeficiente fica próximo de zero. Nas médias de cinco anos, 
+> medir a folha antes do período e usar controles predeterminados leva o coeficiente a `P_T3_own_b', que não é significativo pelo wild cluster bootstrap. O mesmo timing altera a leitura de resultados 
+> publicados sobre instituições e tamanho do governo: a amplificação encontrada com dados anuais depende da medida contemporânea, enquanto a mitigação em médias de cinco anos não depende. A única asso
+> ciação robusta é a do salário relativo do setor público, mais forte que a do emprego. Recomendamos reportar medidas contemporâneas e predeterminadas em estudos com razões de gasto." _n _n
+
+. file write `F' "## Parágrafo de resultados da introdução" _n _n
+
+. file write `F' "O artigo tem quatro resultados. O primeiro é a dimensão do viés da razão contemporânea. Na mesma amostra anual, o coeficiente da folha é `P_vies_wb_b' com a razão do mesmo ano, `P_vi
+> es_wb_hp1_b' com a folha sobre a tendência do filtro HP unilateral e `P_vies_wb_ham_b' com a tendência de Hamilton; a diferença entre a primeira e a última é `P_dif_12_d' (p `Q_dif_12_p'). Um numera
+> dor placebo que varia só pelo denominador reproduz quase todo o coeficiente (`P_vies_wb_placebo_b'). O segundo é que, medida a folha no último ano do período anterior e com controles predeterminados
+> , a associação de médio prazo cai a `P_T3_own_b' e não é significativa pelo wild cluster bootstrap (p = `Q_T3_own_pboot'); ela é frágil à amostra, à janela e aos estimadores dinâmicos. O terceiro é 
+> que o timing muda a leitura da literatura sobre instituições e tamanho do governo. A amplificação obtida com o consumo anual do mesmo ano desaparece com o consumo defasado (`R_mv_gc_l1_fe_dk_b'), en
+> quanto a mitigação de Oto-Peralías e Romero-Ávila (2013), replicada com um índice público do ICRG, não depende do timing (`R_opra_icrg_gc_m1_fe_b' com o consumo predeterminado). O quarto é que, deco
+> mposta a folha em logs, o salário relativo está associado a menor crescimento (`P_d_log_lrw_b'; p ajustado por Romano-Wolf `Q_rw_H2'), com magnitude maior que a do emprego público. As hipóteses sobr
+> e recrutamento meritocrático e ciclo eleitoral não são sustentadas, e o teste de mérito não tem poder para detectar uma moderação relevante." _n _n
+
+. file write `F' "## Abertura da discussão" _n _n
+
+. file write `F' "A principal mensagem é de medida. Razões de gasto sobre o PIB do mesmo ano produzem coeficientes negativos que vêm quase todos do denominador: o placebo de denominador reproduz o coe
+> ficiente contemporâneo, e a correção pela tendência de Hamilton o elimina. Corrigido o timing, o que resta para a folha é uma associação de médio prazo pequena e frágil, que não deve ser lida como c
+> usto. O mesmo cuidado muda conclusões publicadas: a interação entre instituições e tamanho do governo obtida com dados anuais depende da medida contemporânea, e por isso estudos que interagem razões
+>  de gasto com características dos países deveriam reportar as duas medidas." _n _n
+
+. file write `F' "## Declaração sobre a pré-especificação" _n _n
+
+. file write `F' "As análises do draft 1 ao draft 7, inclusive a dissertação que deu origem ao trabalho, foram exploratórias. As análises desta versão seguem um plano escrito e versionado antes de qua
+> lquer estimação nova (commit `hash', 17 de outubro de 2026, disponível no pacote de replicação), que fixou as especificações, a especificação preferida de cada hipótese e as regras de veredito. As a
+> nálises acrescentadas depois do plano são identificadas como exploratórias." _n
+
+. file close `F'
+
+. 
+. * =====================================================================================
+. * RESPOSTA_PARECER.md: uma linha por item prioritario (1 a 42)
+. * =====================================================================================
+. tempname R
+
+. postfile `R' int item str2000 o_que str2000 resultado str40 status using "$RINT/resposta.dta", replace
+
+. local RS "Resolvido"
+
+. local PR "Parcialmente resolvido"
+
+. local NE "Não executado"
+
+. local TX "A fazer no texto pelos autores"
+
+. post `R' (1) ("Enquadramento escolhido pela regra registrada; réplica de Oto-Peralías e Romero-Ávila; réplica aproximada de Mollick e Vianna; variação exógena narrativa") ("Cenário `cen' (nota metod
+> ológica); Tabela 6, Tabela S10. Sem derivação formal nem simulação de Monte Carlo do viés") ("`PR'")
+
+. post `R' (2) ("H2 reestimada: mesmo ano, logs, DP dentro do país, IV, prêmio na mesma amostra") ("log salário relativo `P_d_log_lrw_b' (Romano-Wolf `Q_rw_H2'); log emprego `P_d_log_lpe_b'; prêmio `P
+> _d_prem_prem01_b' (n.s.); Tabela 5, Tabela S6; redação rebaixada no ledger") ("`RS'")
+
+. post `R' (3) ("Réplicas e ciclicidade fiscal; consumo e despesa na mesma amostra") ("Mitigação de Oto-Peralías e Romero-Ávila não depende do timing; amplificação anual some com a defasagem; Tabela 6
+> , Tabela S7, Figura 4") ("`RS'")
+
+. post `R' (4) ("Numerador placebo e decomposição multiplicativa") ("Placebo `P_vies_wb_placebo_b' contra `P_vies_wb_b' contemporâneo; Tabela S3") ("`RS'")
+
+. post `R' (5) ("Medidas defasada e inicial também sobre o PIB tendencial") ("Defasada sobre Hamilton `P_vies_wbham_l1_b'; diferença para a defasada sem p < 0,05 (p `Q_dif_36_p'); Tabela 1, Tabela S3"
+> ) ("`RS'")
+
+. post `R' (6) ("Diferenças entre medidas testadas por wild bootstrap; correlação entre defasada e Hamilton") ("Contemporânea − Hamilton `P_dif_12_d' (p `Q_dif_12_p'); correlação `D_corr_lag_ham'; Tab
+> ela 1") ("`RS'")
+
+. post `R' (7) ("T1–T6: folha em t_p − 1, crescimento sem o primeiro ano, controles predeterminados, sem investimento, sobre a tendência") ("T3 `P_T3_own_b' (bootstrap `Q_T3_own_pboot'); T1 `P_T1_own_
+> b'; T2 `P_T2_own_b'; Tabela 2, Figura 3") ("`RS'")
+
+. post `R' (8) ("Placebo de denominador e leads (cinco anos e projeção local com h negativo)") ("Leads de cinco anos nulos (p `Q_lead_wb_tp_lead_p'); leads da projeção local positivos (h = −3: `L_m3')
+> ; Tabelas S3–S4, Figura 7") ("`RS'")
+
+. post `R' (9) ("Governo geral × central na amostra comum, por federação; bootstrap pareado; razão por país") ("Diferença `P_cov_diff_all' (p `Q_cov_diff_all_p'), concentrada nos unitários; Tabela 4, 
+> Tabela S5") ("`RS'")
+
+. post `R' (10) ("Defasagens distribuídas 1–5 e projeção local com a folha em nível") ("Soma instável (`P_dl_wbL_sum' / `P_dl_whL_sum') por colinearidade; nível sem resposta significativa; Tabela S4, 
+> Figura 7. As frequências não se reconciliam") ("`PR'")
+
+. post `R' (11) ("Tendências, região × período, envelhecimento, saúde e educação, euro, pós-1994, painel balanceado, crises") ("T3 frágil (pós-1994 `P_str_post94_b'; balanceado `P_str_balanced_b'); Ta
+> bela S8. Transições do GFSM e programas do FMI não executados (dado indisponível)") ("`PR'")
+
+. post `R' (12) ("Números disponíveis para corrigir o resumo") ("Hamilton `P_vies_wb_ham_b'; HP unilateral `P_vies_wb_hp1_b'; ver TEXTO_SUGERIDO") ("`TX'")
+
+. post `R' (13) ("Lista de países refeita sobre a amostra efetiva") ("Tabela S16; causa em AUDITORIA_DRAFT7") ("`RS'")
+
+. post `R' (14) ("H1–H5 enunciadas com sinal previsto e especificação preferida") ("docs/PLANO_REVISAO.md, seção 1; incorporar ao texto") ("`TX'")
+
+. post `R' (15) ("Itens de apresentação") ("Novas tabelas sem códigos internos nem menção à dissertação; figuras renumeradas na ordem de citação. Pendentes no texto: terceiro autor, notas de versão, r
+> eferências completas, crases (“associado à um” → “associado a um”; “Isto pois,” → “Isso porque”)") ("`TX'")
+
+. post `R' (16) ("Termos causais") ("Trocar “custo” e “efeito” por “associação” e “coeficiente”, inclusive no título") ("`TX'")
+
+. post `R' (17) ("Fatores efetivos calculados") ("Contemporâneo/HP unilateral = `R_hp'; contemporâneo/T3 = `R_t3'; retirar “ordem de grandeza”") ("`TX'")
+
+. post `R' (18) ("Alcance por renda") ("Retirar a frase; descrever a amostra (Tabela S16)") ("`TX'")
+
+. post `R' (19) ("Magnitudes pelo DP dentro do país") ("Salário relativo: `E_lrw' por DP; Tabela 5") ("`RS'")
+
+. post `R' (20) ("Auditoria do 0,040") ("Modelos distintos: `K_e1_b12' (N `K_e1_n12') e `K_e1_b1' (N `K_e1_n1'); AUDITORIA_DRAFT7") ("`RS'")
+
+. post `R' (21) ("Modelo de Hansen com a folha defasada") ("No painel balanceado, o coeficiente linear é `P_thr_lin_static' sem controles e `P_thr_lin_controls' com controles; a especificação estática
+>  explica o valor; nota da Tabela S9") ("`RS'")
+
+. post `R' (22) ("Amostras: singletons, Bond na amostra comum, BMA na amostra efetiva, somas de subamostras") ("AUDITORIA_DRAFT7; Tabela S11 (S-GMM `B_draft_gmm' fora dos limites); Tabela S15") ("`RS'
+> ")
+
+. post `R' (23) ("PMG e CS-ARDL lado a lado, com as duas medidas") ("PMG `LR_wbL_pmg', CS-ARDL `LR_wbL_csardl'; sobre a tendência `LR_wbH_pmg' e `LR_wbH_csardl'; Tabela S11; reescrever a frase do text
+> o") ("`RS'")
+
+. post `R' (24) ("Tabelas para os números sem fonte") ("Participação da folha (Tabela 3, col. 4); tercis HMX (S9); p-valores e coeficientes das projeções locais por horizonte (S14); razão GG/GC por pa
+> ís (S5)") ("`RS'")
+
+. post `R' (25) ("Controles predeterminados e versão sem investimento") ("T3 `P_T3_own_b'; T4 `P_T4_own_b'; Tabela 2") ("`RS'")
+
+. post `R' (26) ("Logs, mesmo ano, IV com ILOSTAT, salário relativo sobre a tendência") ("IV fraco (F `D_d_iv_Feff'); salário relativo sobre a tendência `P_d_trend_lrwh_b'; Tabelas 5 e S6") ("`RS'")
+
+. post `R' (27) ("Plano commitado antes das estimações da revisão") ("Commit `hash'; as análises anteriores declaradas exploratórias; não há registro externo (OSF/AEA)") ("`PR'")
+
+. post `R' (28) ("Literatura omitida") ("Incluir Afonso e Furceri (2010), Romero-Ávila e Strauch (2008), Fölster e Henrekson (2001), Lane (2003), Frankel, Végh e Vuletin (2013), Gelb, Knight e Sabot (
+> 1991), Alesina, Baqir e Easterly (2000), Brender e Drazen (2005), Shi e Svensson (2006), Devries et al. (2011) e as referências de métodos e bases") ("`TX'")
+
+. post `R' (29) ("Ideologia, competitividade, idade da democracia, sindicatos, clientelismo, imparcialidade; ciclo em democracias; efeito mínimo detectável de H3") ("Fracionamento `P_ext_frac_bi' (p `
+> Q_ext_frac_pi'); demais nulos; efeito mínimo detectável `P_h3_mde' contra relevante `P_h3_relevant'; Tabela 7, Tabela S9") ("`RS'")
+
+. post `R' (30) ("Wild bootstrap, Romano-Wolf, curva de especificações, F efetivo, projeções locais com defasagens aumentadas e jackknife") ("Tabelas S13–S14, Figura 9 (`N_sc_negsig' de `N_sc_n' com I
+> C abaixo de zero), Tabela 7") ("`RS'")
+
+. post `R' (31) ("Tabelas e figuras refeitas no padrão EJPE") ("N, países, EP e efeitos fixos por coluna; S2 com as amostras de estimação; figuras com N e legíveis em preto e branco") ("`RS'")
+
+. post `R' (32) ("Notação") ("WageShock com fator 100 e deflator (Tabela S1); períodos de três anos corrigidos (1979–2023); numerar equações e escrever as dos modelos de interação e do S-GMM no texto"
+> ) ("`TX'")
+
+. post `R' (33) ("Terminologia") ("Rótulo único “viés da razão contemporânea” (Figura 2); separar mérito (V-Dem) de qualidade institucional (WGI) no texto") ("`TX'")
+
+. post `R' (34) ("Estilo") ("Revisar no texto (contribuições anunciadas duas vezes, primeira pessoa, two-step)") ("`TX'")
+
+. post `R' (35) ("Remissões ao suplemento") ("Usar a nova numeração (output/revisao/MAPA_NUMERACAO.md)") ("`TX'")
+
+. post `R' (36) ("Separadores e sinais") ("Tabelas e figuras novas com U+2212, três casas e ticks com zero à esquerda; uniformizar o texto") ("`TX'")
+
+. post `R' (37) ("Estrelas e efeitos fixos") ("Padronizados em todas as tabelas novas") ("`RS'")
+
+. post `R' (38) ("Siglas e índices") ("Parâmetros do filtro de Hamilton renomeados (H, k) nas notas; definir siglas no texto") ("`TX'")
+
+. post `R' (39) ("Contagens a reconciliar") ("Federações: `N_fed_list' na lista (sem microestados), `N_fed_both_2010s' com as duas séries em 2010–2019, `N_fed_base' na amostra de base (Tabela 4); grup
+> os de renda na Figura 1 e na Tabela S16") ("`RS'")
+
+. post `R' (40) ("Referências") ("Formato Elsevier/Harvard, títulos completos, Alesina e Perotti publicado, grafia de Prüfer") ("`TX'")
+
+. post `R' (41) ("Redação") ("Aplicar os ajustes pontuais do agente 1") ("`TX'")
+
+. post `R' (42) ("Tradução") ("Usar a tabela de equivalentes do parecer (expense × total expenditure; two-step system GMM; evidence incontável)") ("`TX'")
+
+. postclose `R'
+
+. use "$RINT/resposta.dta", clear
+
+. quietly count if status == "`RS'"
+
+. rv_kv resp_resolvido `r(N)'
+
+. quietly count if status == "`PR'"
+
+. rv_kv resp_parcial `r(N)'
+
+. quietly count if status == "`NE'"
+
+. rv_kv resp_naoexec `r(N)'
+
+. quietly count if status == "`TX'"
+
+. rv_kv resp_texto `r(N)'
+
+. file open `F' using "$DOCS/RESPOSTA_PARECER.md", write replace text
+
+. file write `F' "# Resposta aos itens prioritários do parecer" _n _n
+
+. file write `F' "Gerado por \`code/revisao/16_relatorio.do\`. Números lidos do registro do pipeline. Itens só de redação ficam com o status “`TX'”." _n _n
+
+. quietly count if status == "`RS'"
+
+. local a = r(N)
+
+. quietly count if status == "`PR'"
+
+. local b = r(N)
+
+. quietly count if status == "`NE'"
+
+. local c = r(N)
+
+. quietly count if status == "`TX'"
+
+. local d = r(N)
+
+. file write `F' "Resumo: `a' resolvidos, `b' parcialmente resolvidos, `c' não executados e `d' a fazer no texto pelos autores." _n _n
+
+. file write `F' "| Item | O que foi feito | Resultado | Status |" _n "|---|---|---|---|" _n
+
+. forvalues i = 1/`=_N' {
+  2.     file write `F' "| `=item[`i']' | `=o_que[`i']' | `=resultado[`i']' | `=status[`i']' |" _n
+  3. }
+
+. file close `F'
+
+. 
+. * contagem de palavras do resumo (limite de 200)
+. tempname I
+
+. file open `I' using "$DOCS/TEXTO_SUGERIDO.md", read text
+
+. local inabs = 0
+
+. local nw = 0
+
+. file read `I' line
+
+. while r(eof) == 0 {
+  2.     if strpos(`"`macval(line)'"', "## Resumo") local inabs = 1
+  3.     else if strpos(`"`macval(line)'"', "## Parágrafo") local inabs = 0
+  4.     else if `inabs' local nw = `nw' + wordcount(`"`macval(line)'"')
+  5.     file read `I' line
+  6. }
+
+. file close `I'
+
+. di "Palavras no resumo sugerido: `nw'"
+Palavras no resumo sugerido: 181
+
+. rv_kv resumo_palavras `nw'
+
+. 
+. log close
+      name:  <unnamed>
+       log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/logs/16_relatorio.log
+  log type:  text
+ closed on:  17 Oct 2026, 20:56:48
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

@@ -240,7 +240,8 @@ foreach meas in gc gc_ham gc_l1 {
     rv_fmt `=r(mean)' %12.3f
     local cs `"`cs' "(`r(s)')" """'
 }
-rv_row "Government consumption × institutions: contemporaneous / % of trend GDP (Hamilton) / lagged" `cb'
+rv_row "Measure of government consumption" "Contemporaneous" "" "% of trend GDP (Hamilton)" "" "Lagged one year" ""
+rv_row "Government consumption × institutions" `cb'
 rv_row "" `cs'
 quietly summ N if rep == "mv"
 rv_row "Observations (each measure)" "`=string(r(mean), "%9.0fc")'" "" "" "" "" ""

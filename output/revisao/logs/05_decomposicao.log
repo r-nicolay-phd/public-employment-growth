@@ -2,7 +2,7 @@
       name:  <unnamed>
        log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/logs/05_decomposicao.log
   log type:  text
- opened on:  17 Oct 2026, 16:31:58
+ opened on:  17 Oct 2026, 17:24:38
 
 . 
 . global XP "lny0 hc_m1 inv_m1 open_m1 infl_m1 popg_m1 ctot_g_m1"
@@ -209,7 +209,6 @@ Panel variable: id (strongly balanced)
 . tempname P
 
 . postfile `P' str10 spec str10 v double(b se p pboot sdw) long(N nc) using "$RINT/decomp.dta", replace
-(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/decomp.dta not found)
 
 . capture program drop postd
 
@@ -232,11 +231,12 @@ Panel variable: id (strongly balanced)
  15.     local pb = cond(_rc, ., r(p))
  16.     post `P' ("`spec'") ("`v'") (`b') (`se') (`p') (`pb') (`sdw') (`N') (`nc')
  17.     rv_kv d_`spec'_`v'_b `=string(`b', "%9.4f")'
- 18.     rv_kv d_`spec'_`v'_p `=string(`p', "%9.4f")'
- 19.     rv_kv d_`spec'_`v'_pboot `=string(`pb', "%9.4f")'
- 20.     rv_kv d_`spec'_`v'_sdw `=string(`sdw', "%9.4f")'
- 21.     rv_kv d_`spec'_N `N'
- 22. end
+ 18.     rv_kv d_`spec'_`v'_se `=string(`se', "%9.4f")'
+ 19.     rv_kv d_`spec'_`v'_p `=string(`p', "%9.4f")'
+ 20.     rv_kv d_`spec'_`v'_pboot `=string(`pb', "%9.4f")'
+ 21.     rv_kv d_`spec'_`v'_sdw `=string(`sdw', "%9.4f")'
+ 22.     rv_kv d_`spec'_N `N'
+ 23. end
 
 . * (2) niveis, timing comum, controles de T3 (contrapartida do B1)
 . reghdfe g pe_sel relw_sel $XP i.period, absorb(id) vce(cluster id)
@@ -1062,7 +1062,7 @@ Absorbed degrees of freedom:
 
 . import delimited "$RINT/kv.csv", clear varnames(1) stringcols(_all)
 (encoding automatically selected: ISO-8859-1)
-(2 vars, 905 obs)
+(2 vars, 1,350 obs)
 
 . foreach k in pairs_all pairs_exact pairs_other B1d_N {
   2.     quietly levelsof value if key == "`k'", local(`k') clean
@@ -1071,16 +1071,15 @@ Absorbed degrees of freedom:
 
 . rv_out Tab5_decomposition, landscape ///
 >     title("Table 5. Employment or relative pay? Decomposition of the wage bill (revised)") ///
->     notes("Dependent variable: growth of real GDP per capita (%, five-year average), 1979–2023 (WWBI data from 2000). Column 1: total wage bill on the `B1d_N' country-periods of the draft-7 decompos
-> ition (B1), with the draft-7 controls. Columns 2–7: the wage bill and public employment are taken from the same year, the one closest to t_p − 1 (searching t_p − 1 to t_p − 4, then t_p to t_p + 3); 
-> `pairs_all' country-periods have a pair, `pairs_exact' exactly in t_p − 1 (column 4) and `pairs_other' in another year. log WageBill = log PubEmp + log RelWage holds exactly in the data, so the log 
-> coefficients are directly comparable. Columns 3, 6 and 7 use the same harmonized sample (log employment, log relative wage and the adjusted premium all available). Column 5 instruments log WWBI publ
-> ic employment with log ILOSTAT public-sector employment in the same year (country and period fixed effects, clustered errors); with one instrument the effective F of Montiel Olea and Pflueger equals
->  the cluster-robust first-stage F. The premium is the WWBI adjusted public-private wage gap against all private employees, rescaled to 0.1 log point. Within-country SD: standard deviation of the reg
-> ressor after removing country means in the estimation sample. Predetermined controls of Table 2; country and period fixed effects; standard errors clustered by country; wild cluster bootstrap with W
-> ebb weights and 9,999 replications. * p<0.10, ** p<0.05, *** p<0.01.")
-successfully created "C:/Users/Usuario/Dropbox/Papers/Emprego Público e Crescimento/Estimações/output/revisao/tables/Tab5_decomposition.docx"
-(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/logs/captions/Tab5_decomposition.txt not found)
+>     notes("Dependent variable: growth of real GDP per capita (%, five-year average), 1979–2023 (WWBI data from 2000). Column 1: total wage bill (first year of the period) on the country-periods of t
+> he draft-7 decomposition B1 (`B1d_N' country-periods) that also have the first-year wage bill, with the draft-7 controls. Columns 2–7: the wage bill and public employment are taken from the same yea
+> r, the one closest to t_p − 1 (searching t_p − 1 to t_p − 4, then t_p to t_p + 3); `pairs_all' country-periods have a pair, `pairs_exact' exactly in t_p − 1 (column 4) and `pairs_other' in another y
+> ear. log WageBill = log PubEmp + log RelWage holds exactly in the data, so the log coefficients are directly comparable. Columns 3, 6 and 7 use the same harmonized sample (log employment, log relati
+> ve wage and the adjusted premium all available). Column 5 instruments log WWBI public employment with log ILOSTAT public-sector employment in the same year (country and period fixed effects, cluster
+> ed errors); with one instrument the effective F of Montiel Olea and Pflueger equals the cluster-robust first-stage F. The premium is the WWBI adjusted public-private wage gap against all private emp
+> loyees, rescaled to 0.1 log point. Within-country SD: standard deviation of the regressor after removing country means in the estimation sample. Predetermined controls of Table 2; country and period
+>  fixed effects; standard errors clustered by country; wild cluster bootstrap with Webb weights and 9,999 replications. * p<0.10, ** p<0.05, *** p<0.01.")
+successfully replaced "C:/Users/Usuario/Dropbox/Papers/Emprego Público e Crescimento/Estimações/output/revisao/tables/Tab5_decomposition.docx"
 tabela gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/tables/Tab5_decomposition.{tex,docx}
 
 . 
@@ -1111,8 +1110,7 @@ tabela gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\E
 > wage bill as a control (harmonized sample of Table 5). Column 3: relative wage computed over trend GDP per worker (Hamilton filter), which removes the cyclical denominator from the price component. 
 > Column 4: WWBI wage premium against formal private employees (Gindling et al., 2020). Predetermined controls of Table 2, country and period fixed effects, standard errors clustered by country. * p<0
 > .10, ** p<0.05, *** p<0.01.")
-successfully created "C:/Users/Usuario/Dropbox/Papers/Emprego Público e Crescimento/Estimações/output/revisao/tables/TabS_decomposition_bias.docx"
-(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/logs/captions/TabS_decomposition_bias.txt not found)
+successfully replaced "C:/Users/Usuario/Dropbox/Papers/Emprego Público e Crescimento/Estimações/output/revisao/tables/TabS_decomposition_bias.docx"
 tabela gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/tables/TabS_decomposition_bias.{tex,docx}
 
 . 
@@ -1120,5 +1118,5 @@ tabela gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\E
       name:  <unnamed>
        log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/logs/05_decomposicao.log
   log type:  text
- closed on:  17 Oct 2026, 16:32:04
+ closed on:  17 Oct 2026, 17:24:44
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

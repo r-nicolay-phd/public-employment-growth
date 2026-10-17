@@ -1,0 +1,2 @@
+Table 8. Robustness map of the wage bill coefficient
+Coefficient on the general government wage bill (% of GDP) in growth regressions; five-year averages with country and period fixed effects and clustered standard errors unless stated; annual rows use Driscoll-Kraay standard errors; long-run rows report long-run coefficients. p-values from the t distribution (cluster or Driscoll-Kraay) or the normal distribution (GMM, long run). Source: table or figure with the full specification. * p<0.10, ** p<0.05, *** p<0.01.

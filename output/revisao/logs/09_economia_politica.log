@@ -2,7 +2,7 @@
       name:  <unnamed>
        log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/logs/09_economia_politica.log
   log type:  text
- opened on:  17 Oct 2026, 16:56:14
+ opened on:  17 Oct 2026, 17:24:46
 
 . 
 . use "$RINT/anual_rv.dta", clear
@@ -31,10 +31,38 @@ Panel variable: id (strongly balanced)
 (982 missing values generated)
 
 . 
+. mata:
+------------------------------------------------- mata (type end to exit) ------------------------------------------------------------------------------------------------------------------------------
+: string scalar _arfmt(string scalar s)
+> {
+>     string scalar r, m, out
+>     real scalar k
+>     r = s
+>     out = ""
+>     while (ustrregexm(r, "-?[0-9]*\.[0-9]+|-?[0-9]+")) {
+>         m = ustrregexs(0)
+>         k = strpos(r, m)
+>         out = out + substr(r, 1, k - 1) + strofreal(strtoreal(m), "%9.2f")
+>         r = substr(r, k + strlen(m), .)
+>     }
+>     out = out + r
+>     out = subinstr(out, "entire grid", "(" + uchar(8722) + uchar(8734) + ", +" + uchar(8734) + ")")
+>     out = subinstr(out, "+inf", "+" + uchar(8734))
+>     out = subinstr(out, "[ ... ,", "(" + uchar(8722) + uchar(8734) + ",")
+>     out = subinstr(out, "[  ...  ", "(" + uchar(8722) + uchar(8734))
+>     out = subinstr(out, " U ", " " + uchar(8746) + " ")
+>     out = subinstr(out, "-", uchar(8722))
+>     out = stritrim(subinstr(out, "[ ", "["))
+>     return(out)
+> }
+
+: end
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+. 
 . tempname P
 
-. postfile `P' str10 smp double(b se p pboot Feff Fkp) str40 arci long(N nc) using "$RINT/ep_first.dta", replace
-(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/ep_first.dta not found)
+. postfile `P' str10 smp double(b se p pboot Feff Fkp) str80 arci long(N nc) using "$RINT/ep_first.dta", replace
 
 . foreach smp in all dem new old {
   2.     local c = cond("`smp'" == "all", "per", cond("`smp'" == "dem", "per & dem == 1", cond("`smp'" == "new", "per & dem_new == 1", "per & dem == 1 & dem_new == 0")))
@@ -55,12 +83,13 @@ Panel variable: id (strongly balanced)
 .     local ar ""
  16.     capture noisily weakiv ivreg2 g (d_wagebill_real = election_fixed) balance_gdp L_g i.year i.id if `c', cluster(id)
  17.     if !_rc {
- 18.         local ar "`e(ar_cset)'"
- 19.         local ar : subinstr local ar "  ...  ]" " +inf)"
- 20.         local ar : subinstr local ar "[  ...  " "(−inf"
- 21.     }
- 22.     post `P' ("`smp'") (`b') (`se') (`p') (`pb') (`Feff') (`Fkp') ("`ar'") (`N') (`nc')
- 23.     rv_kv ep_`smp'_b `=string(`b', "%9.4f")'
+ 18.         * formato: duas casas, sinal de menos U+2212 e infinito
+.         local ar "`e(ar_cset)'"
+ 19.         mata: st_local("ar", _arfmt(st_local("ar")))
+ 20.     }
+ 21.     post `P' ("`smp'") (`b') (`se') (`p') (`pb') (`Feff') (`Fkp') ("`ar'") (`N') (`nc')
+ 22.     rv_kv ep_`smp'_b `=string(`b', "%9.4f")'
+ 23.     rv_kv ep_`smp'_se `=string(`se', "%9.4f")'
  24.     rv_kv ep_`smp'_p `=string(`p', "%9.4f")'
  25.     rv_kv ep_`smp'_pboot `=string(`pb', "%9.4f")'
  26.     rv_kv ep_`smp'_Feff `=string(`Feff', "%9.2f")'
@@ -785,7 +814,6 @@ Absorbed degrees of freedom:
 . tempname Q
 
 . postfile `Q' str10 smp int h double(bel seel bot seot pdiff) long(N nc) using "$RINT/ep_lp.dta", replace
-(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/ep_lp.dta not found)
 
 . gen sel = d_wagebill_real * (election_fixed == 1) if !missing(election_fixed)
 (4,054 missing values generated)
@@ -849,7 +877,6 @@ Panel variable: id (strongly balanced)
 . tempname E
 
 . postfile `E' str20 v str70 lab double(bi sei pi bmain) long(N nc) using "$RINT/ep_ext.dta", replace
-(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/ep_ext.dta not found)
 
 . foreach v in exec_left maj frac demage union_density clientelism_prog impartial {
   2.     capture drop zc wbxz
@@ -1216,14 +1243,14 @@ Absorbed degrees of freedom:
 
 . list, noobs sep(0)
 
-  +-----------------------------------------------------------------------------------------------------------------------------------+
-  | smp           b          se           p       pboot        Feff         Fkp                                      arci      N   nc |
-  |-----------------------------------------------------------------------------------------------------------------------------------|
-  | all   .08371285   .03631319   .02339794   .02350235    5.314416   5.2424142                         [-1.84265,  +inf)   1512   93 |
-  | dem   .05415462   .03545759   .13132313   .13071307   2.3326657   2.2488775                               entire grid   1208   69 |
-  | new   .09083368   .10898585   .41058608     .420042    .6946301    .7652145   [   ...  ,-4.02408] U [  .06873,  +inf)    288   34 |
-  | old   .05139443   .02906197   .08233787   .07640764   3.1273898   2.9647029                               entire grid    919   58 |
-  +-----------------------------------------------------------------------------------------------------------------------------------+
+  +-------------------------------------------------------------------------------------------------------------------------+
+  | smp           b          se           p       pboot        Feff         Fkp                            arci      N   nc |
+  |-------------------------------------------------------------------------------------------------------------------------|
+  | all   .08371285   .03631319   .02339794   .02350235    5.314416   5.2424142                   [−1.84, ... ]   1512   93 |
+  | dem   .05415462   .03545759   .13132313   .13071307   2.3326657   2.2488775                        (−∞, +∞)   1208   69 |
+  | new   .09083368   .10898585   .41058608     .420042    .6946301    .7652145   [ ... ,−4.02] ∪ [ 0.07, ... ]    288   34 |
+  | old   .05139443   .02906197   .08233787   .07640764   3.1273898   2.9647029                        (−∞, +∞)    919   58 |
+  +-------------------------------------------------------------------------------------------------------------------------+
 
 . quietly count if Feff >= 10
 
@@ -1353,8 +1380,7 @@ Absorbed degrees of freedom:
 > Driscoll-Kraay standard errors (maximum lag 3). Panel C: five-year averages, preferred H1 specification (T3) with the wage bill in t_p − 1 interacted with each characteristic in t_p − 1 (centred at 
 > its sample mean), one model per row; standard errors clustered by country. Staggered subnational elections in federations: not executed (no public subnational election calendar in the project data).
 >  * p<0.10, ** p<0.05, *** p<0.01.")
-successfully created "C:/Users/Usuario/Dropbox/Papers/Emprego Público e Crescimento/Estimações/output/revisao/tables/Tab7_political_economy.docx"
-(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/logs/captions/Tab7_political_economy.txt not found)
+successfully replaced "C:/Users/Usuario/Dropbox/Papers/Emprego Público e Crescimento/Estimações/output/revisao/tables/Tab7_political_economy.docx"
 tabela gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/tables/Tab7_political_economy.{tex,docx}
 
 . 
@@ -1362,5 +1388,5 @@ tabela gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\E
       name:  <unnamed>
        log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/logs/09_economia_politica.log
   log type:  text
- closed on:  17 Oct 2026, 16:56:25
+ closed on:  17 Oct 2026, 17:24:56
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

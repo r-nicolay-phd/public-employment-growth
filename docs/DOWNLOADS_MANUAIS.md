@@ -13,3 +13,19 @@ Fontes que não puderam ser baixadas automaticamente. Nenhuma foi substituída p
 | UNU-WIDER Government Revenue Dataset | Variáveis `ictd_*` redistribuídas no QoG Standard Dataset (jan. 2026), que é a versão ICTD/UNU-WIDER do GRD | O site do UNU-WIDER exige formulário de registro para o download |
 | QoG Expert Survey | Arquivo agregado de 2020 (`qog_exp_agg_20.csv`) | É a onda mais recente; as ondas 2008–2012 e 2014 estão em arquivos de nível individual |
 | OCDE e CEPALSTAT (checagem cruzada da folha) | Eurostat `gov_10a_main` (D1PAY, S13) | Os países da OCDE estão quase todos no GFS do FMI e no Eurostat; a checagem cruzada com Eurostat cobre o objetivo. CEPALSTAT fica como extensão possível |
+
+## Revisão EJPE (2026-10-17)
+
+Fontes pedidas pelo parecer. Todas as análises que dependem de fontes sem download aparecem como "não executada – dado indisponível" nas tabelas.
+
+| Fonte | Endereço | Onde colocar | Status |
+|---|---|---|---|
+| Laeven e Valencia (2018), crises bancárias sistêmicas | https://www.imf.org/en/Publications/WP/Issues/2018/09/14/Systemic-Banking-Crises-Revisited-46232 | `data/raw/laeven_valencia/` | **Obtido** por cópia pública no Harvard Dataverse (o FMI devolve 403). A atualização até 2025 (IMF WP/26/94) pode substituir a base se for baixada à mão; ela cobriria 2018–2023, hoje ausentes. |
+| Devries, Guajardo, Leigh e Pescatori (2011), consolidações por ações | https://www.imf.org/external/pubs/cat/longres.aspx?sk=24892.0 | `data/raw/devries/` | **Não obtido** (403). Substituído pela base de Alesina, Favero e Giavazzi (2019), em `data/raw/afg/`, que traz o componente de salários. |
+| Condicionalidades do FMI, MONA (2002–) | https://www.imf.org/external/np/pdr/mona/ | `data/raw/mona/` (exportar a tabela "Combined SPC PA SB" em formato tabulado) | **Não obtido**: download bloqueado (403); a exportação exige navegação manual. Bloco 4.9, item 2: não executado. |
+| OECD Economic Outlook em safras (previsões da remuneração de empregados) | https://data-explorer.oecd.org/ (safras anteriores) | `data/raw/oecd_eo_vintages/` | **Não obtido**: não há série pública de safras dessa variável acessível ao projeto. Bloco 4.9, item 3: não executado. |
+| ICRG Bureaucracy Quality | https://www.prsgroup.com/ | `data/raw/icrg/` | **Pago.** Substituído pelo índice ICRG de qualidade de governo da QoG e pelo WGI. |
+| Polity5 (restrições ao executivo) | https://www.systemicpeace.org/inscr/p5v2018.xls | `data/raw/polity/` | **Não obtido** (406). Usado só como robustez por Oto-Peralías e Romero-Ávila; a réplica não depende dele. |
+| Mollick e Vianna (2023), texto | https://doi.org/10.1007/s11127-023-01121-5 | `Consensus/` | **Não obtido** (acesso pago). Réplica aproximada. Com o PDF, a réplica fiel pode ser feita no bloco 4.5. |
+| OCDE, Government at a Glance (emprego público) | https://data-explorer.oecd.org/ | `data/raw/oecd_gag/` | **Não obtido**; o emprego público do ILOSTAT foi usado como instrumento. |
+| IMF GFS COFOG (saúde e educação) | https://data.imf.org/ | `data/raw/imf_cofog/` | **Não obtido**; substituído pelo gasto em saúde e educação do WDI. |

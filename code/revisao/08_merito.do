@@ -270,8 +270,8 @@ rv_fig Fig6_marginal_merit, width(190) height(120)
 * =====================================================================================
 * Tabela suplementar: moderacao (H3)
 * =====================================================================================
-rv_new, ncol(8) head1("(1)" "(2)" "(3)" "(4)" "(5)" "(6)" "(7)" "(8)") ///
-    head2("Linear (preferred)" "Bins (HMX)" "Split: tercile 1" "Split: tercile 2" "Split: tercile 3" "Split: below median" "Split: above median" "")
+rv_new, ncol(7) head1("(1)" "(2)" "(3)" "(4)" "(5)" "(6)" "(7)") ///
+    head2("Linear (preferred)" "Bins (HMX)" "Split: tercile 1" "Split: tercile 2" "Split: tercile 3" "Split: below median" "Split: above median")
 rv_estrow "Wage bill (% of GDP), t_p − 1", models(H3 . H3_split1 H3_split2 H3_split3 H3_med0 H3_med1) vars(wb_m1)
 rv_estrow "Wage bill × merit (centred)", models(H3 . . . . . .) vars(wbxm)
 rv_estrow "Marginal effect, tercile 1 (median of bin)", models(. H3_bins . . . . .) vars(DG1)
@@ -285,10 +285,10 @@ foreach k in h3_merit_mean h3_pboot h3_wald_p h3_mde h3_relevant h3_p1090 h3_q10
     quietly levelsof value if key == "`k'", local(`k') clean
     local `k' : word 1 of ``k''
 }
-rv_row "Wild cluster bootstrap p (interaction)" "`h3_pboot'" "" "" "" "" "" "" ""
-rv_row "HMX Wald test of linearity, p" "" "`h3_wald_p'" "" "" "" "" "" ""
-rv_row "Minimum detectable interaction (80% power)" "`h3_mde'" "" "" "" "" "" "" ""
-rv_row "Economically relevant interaction" "`h3_relevant'" "" "" "" "" "" "" ""
+rv_row "Wild cluster bootstrap p (interaction)" "`=string(real("`h3_pboot'"), "%5.3f")'" "" "" "" "" "" ""
+rv_row "HMX Wald test of linearity, p" "" "`=string(real("`h3_wald_p'"), "%5.3f")'" "" "" "" "" ""
+rv_row "Minimum detectable interaction (80% power)" "`=string(real("`h3_mde'"), "%5.3f")'" "" "" "" "" "" ""
+rv_row "Economically relevant interaction" "`=string(real("`h3_relevant'"), "%5.3f")'" "" "" "" "" "" ""
 rv_out TabS_moderation, landscape ///
     title("Table S9. Does meritocratic recruitment moderate the wage bill coefficient? (H3)") ///
     notes("Dependent variable: growth of real GDP per capita (%, five-year average). Wage bill and merit (V-Dem v2stcritrecadm; higher values = more merit-based) in t_p − 1; merit is centred at its estimation-sample mean (`h3_merit_mean'), so the main effect in column 1 is evaluated at average merit. Predetermined controls of Table 2, country and period fixed effects, standard errors clustered by country. Column 2: binning estimator of Hainmueller, Mummolo and Xu (2019), one model with bin-specific intercepts and slopes and common controls and fixed effects; marginal effects at the median of each tercile; the Wald test compares it with the linear model. Columns 3–7: separate regressions in each tercile or half, each with its own fixed effects (singletons dropped within each subsample), which is why they differ from column 2. Minimum detectable effect: (1.96 + 0.84) × standard error of the interaction. Economically relevant interaction: half of the preferred H1 coefficient (T3) divided by the distance between the 10th and 90th percentiles of merit (`h3_q10' to `h3_q90'). Threshold models (annual balanced panels, wage bill and merit lagged one year): Seo and Shin (2016), 2015–2019, linearity bootstrap p = `thr_ss_2015_p'; Hansen (1999), 2000–2019, p = `thr_hansen_p'. In the Hansen panel the linear fixed-effects coefficient of the lagged wage bill is `thr_lin_static' without controls and `thr_lin_controls' with the controls and lagged growth of Table 1, so the large regime coefficients reflect the static specification, not the threshold. * p<0.10, ** p<0.05, *** p<0.01.")

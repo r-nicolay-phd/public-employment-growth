@@ -312,7 +312,7 @@ rv_mid
 use "$RINT/vies_diferencas.dta", clear
 rv_row "Tested differences (annual, stacked model)" "Difference" "" "95% CI (bootstrap)" "Bootstrap p" ""
 forvalues i = 1/`=_N' {
-    rv_fmt `=d[`i']' %12.3f
+    rv_fmt `=d[`i']' %12.3f `=p[`i']'
     local dd "`r(s)'"
     rv_fmt `=lo[`i']' %12.3f
     local l "`r(s)'"

@@ -124,6 +124,7 @@ tempfile T5
 save `T5'
 use "$RINT/estrutural_lp.dta", clear
 keep if h == 5
+rename (N nc) (N_lp nc_lp)
 replace spec = "regper" if spec == "regyear"
 merge 1:1 spec using `T5', nogen
 sort ord
