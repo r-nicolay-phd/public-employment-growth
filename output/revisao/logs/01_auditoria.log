@@ -2,7 +2,7 @@
       name:  <unnamed>
        log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/logs/01_auditoria.log
   log type:  text
- opened on:  17 Oct 2026, 16:13:40
+ opened on:  17 Oct 2026, 20:57:07
 
 . capture erase "$RINT/kv.csv"
 
@@ -45,6 +45,7 @@ xij variables:
 . label var govcons_real "General government final consumption (constant 2015 USD), WDI"
 
 . save "$RINT/wdi_rev.dta", replace
+(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/wdi_rev.dta not found)
 file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/wdi_rev.dta saved
 
 . 
@@ -91,7 +92,7 @@ end: contains nonnumeric characters; replaced as int
 . tempfile LV
 
 . save `LV'
-file C:\Users\Usuario\AppData\Local\Temp\ST_e78_000001.tmp saved as .dta format
+file C:\Users\Usuario\AppData\Local\Temp\ST_7508_000001.tmp saved as .dta format
 
 . use "$FINAL/painel_anual.dta", clear
 
@@ -115,7 +116,7 @@ Duplicates in terms of all variables
 . tempfile WB
 
 . save `WB'
-file C:\Users\Usuario\AppData\Local\Temp\ST_e78_000002.tmp saved as .dta format
+file C:\Users\Usuario\AppData\Local\Temp\ST_7508_000002.tmp saved as .dta format
 
 . use `LV', clear
 
@@ -233,6 +234,7 @@ Laeven-Valencia: episodios sem pais casado:
 . label var crisis_bank "Systemic banking crisis (Laeven and Valencia 2018), start to end year"
 
 . save "$RINT/laeven_valencia.dta", replace
+(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/laeven_valencia.dta not found)
 file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/laeven_valencia.dta saved
 
 . 
@@ -312,6 +314,7 @@ afg_spend_a already numeric; no replace
   87
 
 . save "$RINT/afg.dta", replace
+(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/afg.dta not found)
 file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/afg.dta saved
 
 . 
@@ -333,6 +336,7 @@ union_density already numeric; no replace
 . label var union_density "Trade union density (% of employees), ILOSTAT"
 
 . save "$RINT/ilo_ud.dta", replace
+(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/ilo_ud.dta not found)
 file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/ilo_ud.dta saved
 
 . 
@@ -357,6 +361,7 @@ note: label truncated to 80 characters
 . keep iso3 year clientelism_prog v2x_regime
 
 . save "$RINT/vdem_rev.dta", replace
+(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/vdem_rev.dta not found)
 file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/vdem_rev.dta saved
 
 . 
@@ -409,6 +414,7 @@ Duplicates in terms of iso3 year
 (0 observations are duplicates)
 
 . save "$RINT/dpi_rev.dta", replace
+(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/dpi_rev.dta not found)
 file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/dpi_rev.dta saved
 
 . 
@@ -432,6 +438,7 @@ Duplicates in terms of iso3 year
 . label var icrg_qog "ICRG indicator of quality of government (0-1), via QoG"
 
 . save "$RINT/qog_rev.dta", replace
+(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/qog_rev.dta not found)
 file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/qog_rev.dta saved
 
 . 
@@ -536,6 +543,7 @@ Panel variable: id (strongly balanced)
 . tempname R
 
 . file open `R' using "$RINT/limpeza_revisao.csv", write replace text
+(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/limpeza_revisao.csv not found)
 
 . file write `R' "regra,obs_pais_ano" _n
 
@@ -788,6 +796,7 @@ Panel variable: id (strongly balanced)
   (127,656 bytes saved)
 
 . save "$RINT/anual_rv.dta", replace
+(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/anual_rv.dta not found)
 file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/anual_rv.dta saved
 
 . 
@@ -1155,6 +1164,7 @@ Panel variable: id (strongly balanced)
   variable ng was double now byte
   variable ng_x1 was double now byte
   (90,423 bytes saved)
+(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/p5_rv.dta not found)
 file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/p5_rv.dta saved
 
 . rv_painel 3
@@ -1433,6 +1443,7 @@ Panel variable: id (strongly balanced)
   variable ng was double now byte
   variable ng_x1 was double now byte
   (150,705 bytes saved)
+(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/p3_rv.dta not found)
 file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/p3_rv.dta saved
 
 . 
@@ -1504,6 +1515,7 @@ Absorbed degrees of freedom:
 . keep id period S5_base S5_bond S5_common_GC
 
 . save "$RINT/amostras5.dta", replace
+(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/amostras5.dta not found)
 file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/amostras5.dta saved
 
 . 
@@ -1528,6 +1540,7 @@ Panel variable: id (strongly balanced)
 . keep id year S1_base
 
 . save "$RINT/amostras1.dta", replace
+(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/amostras1.dta not found)
 file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/amostras1.dta saved
 
 . 
@@ -2032,6 +2045,7 @@ Absorbed degrees of freedom:
 . tempname F
 
 . file open `F' using "$RINT/reproducao.csv", write replace text
+(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/reproducao.csv not found)
 
 . file write `F' "tabela,numeros_draft7,numeros_reproduzidos,diferencas_maiores_0001,maior_diferenca" _n
 
@@ -2206,5 +2220,5 @@ maior_dife~a |         21           0           0          0          0
       name:  <unnamed>
        log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/logs/01_auditoria.log
   log type:  text
- closed on:  17 Oct 2026, 16:13:54
+ closed on:  17 Oct 2026, 20:57:23
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

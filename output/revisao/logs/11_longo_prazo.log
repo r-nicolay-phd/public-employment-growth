@@ -2,7 +2,7 @@
       name:  <unnamed>
        log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/logs/11_longo_prazo.log
   log type:  text
- opened on:  17 Oct 2026, 17:01:04
+ opened on:  17 Oct 2026, 21:06:14
 
 . 
 . global XD "lny0 hc_tp inv open infl popg ctot_g"
@@ -31,6 +31,7 @@ Panel variable: id (strongly balanced)
 . tempname P
 
 . postfile `P' str6 tim str6 est double(rho serho b se) long(N nc) using "$RINT/bond.dta", replace
+(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/bond.dta not found)
 
 . foreach tim in draft T3 {
   2.     local w = cond("`tim'" == "draft", "wb_tp", "wb_m1")
@@ -462,6 +463,7 @@ Fixed-effects model                          Obs per group:    min =         3
 . keep id period S5_bond_draft S5_bond_T3
 
 . save "$RINT/amostra_bond.dta", replace
+(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/amostra_bond.dta not found)
 file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/amostra_bond.dta saved
 
 . restore
@@ -503,6 +505,7 @@ Panel variable: id (strongly balanced)
 . tempname L
 
 . postfile `L' str4 w str10 m double(b se) long(N ng) double(hp) using "$RINT/longo.dta", replace
+(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/longo.dta not found)
 
 . foreach W in wbL wbH {
   2.     capture drop X
@@ -1653,7 +1656,7 @@ end of do-file
       name:  <unnamed>
        log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/logs/11_longo_prazo.log
   log type:  text
- opened on:  17 Oct 2026, 17:03:26
+ opened on:  17 Oct 2026, 21:08:35
 
 . 
 . * =====================================================================================
@@ -1685,6 +1688,7 @@ Panel variable: id (strongly balanced)
 . tempname C
 
 . postfile `C' str10 m double(cd p) long(N) using "$RINT/cdtest.dta", replace
+(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/cdtest.dta not found)
 
 . foreach v in wb wb_ham wb_l1 {
   2.     quietly reghdfe g `v' g_l1 lny_l1 hc inv open infl popg ctot_g, absorb(id year) resid(r_`v')
@@ -1887,7 +1891,7 @@ References
 
 . import delimited "$RINT/kv.csv", clear varnames(1) stringcols(_all)
 (encoding automatically selected: ISO-8859-1)
-(2 vars, 1,189 obs)
+(2 vars, 579 obs)
 
 . foreach k in lr_wbL_hausman lr_wbH_hausman cd_wb cd_wb_p cd_wb_l1 cd_wb_l1_p bond_draft_N bond_T3_N {
   2.     quietly levelsof value if key == "`k'", local(`k') clean
@@ -1914,5 +1918,5 @@ tabela gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\E
       name:  <unnamed>
        log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/logs/11_longo_prazo.log
   log type:  text
- closed on:  17 Oct 2026, 17:03:31
+ closed on:  17 Oct 2026, 21:08:38
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

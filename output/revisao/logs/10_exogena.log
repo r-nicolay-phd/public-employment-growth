@@ -2,7 +2,7 @@
       name:  <unnamed>
        log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/logs/10_exogena.log
   log type:  text
- opened on:  17 Oct 2026, 16:57:15
+ opened on:  17 Oct 2026, 21:06:07
 
 . 
 . use "$RINT/anual_rv.dta", clear
@@ -290,5 +290,5 @@ figura gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\E
       name:  <unnamed>
        log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/logs/10_exogena.log
   log type:  text
- closed on:  17 Oct 2026, 16:57:25
+ closed on:  17 Oct 2026, 21:06:14
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

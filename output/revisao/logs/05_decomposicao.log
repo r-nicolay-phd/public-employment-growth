@@ -2,7 +2,7 @@
       name:  <unnamed>
        log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/logs/05_decomposicao.log
   log type:  text
- opened on:  17 Oct 2026, 17:24:38
+ opened on:  17 Oct 2026, 21:01:01
 
 . 
 . global XP "lny0 hc_m1 inv_m1 open_m1 infl_m1 popg_m1 ctot_g_m1"
@@ -209,6 +209,7 @@ Panel variable: id (strongly balanced)
 . tempname P
 
 . postfile `P' str10 spec str10 v double(b se p pboot sdw) long(N nc) using "$RINT/decomp.dta", replace
+(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/decomp.dta not found)
 
 . capture program drop postd
 
@@ -1062,7 +1063,7 @@ Absorbed degrees of freedom:
 
 . import delimited "$RINT/kv.csv", clear varnames(1) stringcols(_all)
 (encoding automatically selected: ISO-8859-1)
-(2 vars, 1,350 obs)
+(2 vars, 390 obs)
 
 . foreach k in pairs_all pairs_exact pairs_other B1d_N {
   2.     quietly levelsof value if key == "`k'", local(`k') clean
@@ -1079,7 +1080,8 @@ Absorbed degrees of freedom:
 > ed errors); with one instrument the effective F of Montiel Olea and Pflueger equals the cluster-robust first-stage F. The premium is the WWBI adjusted public-private wage gap against all private emp
 > loyees, rescaled to 0.1 log point. Within-country SD: standard deviation of the regressor after removing country means in the estimation sample. Predetermined controls of Table 2; country and period
 >  fixed effects; standard errors clustered by country; wild cluster bootstrap with Webb weights and 9,999 replications. * p<0.10, ** p<0.05, *** p<0.01.")
-successfully replaced "C:/Users/Usuario/Dropbox/Papers/Emprego Público e Crescimento/Estimações/output/revisao/tables/Tab5_decomposition.docx"
+successfully created "C:/Users/Usuario/Dropbox/Papers/Emprego Público e Crescimento/Estimações/output/revisao/tables/Tab5_decomposition.docx"
+(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/logs/captions/Tab5_decomposition.txt not found)
 tabela gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/tables/Tab5_decomposition.{tex,docx}
 
 . 
@@ -1110,7 +1112,8 @@ tabela gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\E
 > wage bill as a control (harmonized sample of Table 5). Column 3: relative wage computed over trend GDP per worker (Hamilton filter), which removes the cyclical denominator from the price component. 
 > Column 4: WWBI wage premium against formal private employees (Gindling et al., 2020). Predetermined controls of Table 2, country and period fixed effects, standard errors clustered by country. * p<0
 > .10, ** p<0.05, *** p<0.01.")
-successfully replaced "C:/Users/Usuario/Dropbox/Papers/Emprego Público e Crescimento/Estimações/output/revisao/tables/TabS_decomposition_bias.docx"
+successfully created "C:/Users/Usuario/Dropbox/Papers/Emprego Público e Crescimento/Estimações/output/revisao/tables/TabS_decomposition_bias.docx"
+(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/logs/captions/TabS_decomposition_bias.txt not found)
 tabela gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/tables/TabS_decomposition_bias.{tex,docx}
 
 . 
@@ -1118,5 +1121,5 @@ tabela gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\E
       name:  <unnamed>
        log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/logs/05_decomposicao.log
   log type:  text
- closed on:  17 Oct 2026, 17:24:44
+ closed on:  17 Oct 2026, 21:01:06
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

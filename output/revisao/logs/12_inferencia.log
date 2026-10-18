@@ -2,7 +2,7 @@
       name:  <unnamed>
        log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/logs/12_inferencia.log
   log type:  text
- opened on:  17 Oct 2026, 17:06:14
+ opened on:  17 Oct 2026, 21:08:38
 
 . 
 . global XP "lny0 hc_m1 inv_m1 open_m1 infl_m1 popg_m1 ctot_g_m1"
@@ -644,7 +644,7 @@ Duplicates in terms of all variables
 . tempfile ids
 
 . save `ids'
-file C:\Users\Usuario\AppData\Local\Temp\ST_3798_000001.tmp saved as .dta format
+file C:\Users\Usuario\AppData\Local\Temp\ST_7508_000001.tmp saved as .dta format
 
 . set seed 20261017
 
@@ -1363,10 +1363,32 @@ BMA estimates                                       Number of obs =     346
 
 . rv_kv bma_b_wb `=string(BB[1, colnumb(BB, "r_wb_m1")], "%6.3f")'
 
-. capture noisily wals r_g, auxiliary(`aux') noconstant
-                       *:  3200  conformability error
-              walsmata():     -  function returned error
-                 <istmt>:     -  function returned error
+. local auxw : subinstr local aux "r_wb_m1" "", all
+
+. * WALS: a folha como regressor focal (sempre incluido) e os demais como auxiliares
+. capture noisily wals r_g r_wb_m1, auxiliary(`auxw') noconstant
+
+WALS estimates - Laplace prior               Number of obs =     346
+                                             k1            =       1
+                                             k2            =       9
+                                             q             =  1.0000
+                                             c             =  0.6931
+                                             kappa         =     2.3
+--------------------------------------------------------------------
+         r_g |      Coef.   Std. Err.      t     [1-Std. Err. Bands]
+-------------+------------------------------------------------------
+     r_wb_m1 |  -.1305786   .0508037    -2.57    -.1813823  -.079775   
+-------------+------------------------------------------------------
+      r_lny0 |  -5.241398   .6227651    -8.42    -5.864163 -4.618633   
+     r_hc_m1 |   1.323078   .9466835     1.40     .3763944  2.269761   
+    r_inv_m1 |  -.0413632   .0210882    -1.96    -.0624514  -.020275   
+   r_open_m1 |     .02702   .0043977     6.14     .0226223  .0314177   
+   r_infl_m1 |  -.0199728   .0078031    -2.56    -.0277759 -.0121697   
+   r_popg_m1 |  -.5304619   .1275222    -4.16     -.657984 -.4029397   
+ r_ctot_g_m1 |   .1743149    .059422     2.93     .1148929  .2337368   
+   r_debt_m1 |  -.0032832   .0035153    -0.93    -.0067985  .0002321   
+  r_merit_m1 |   .4858863   .2550345     1.91     .2308518  .7409208   
+--------------------------------------------------------------------
 
 . if !_rc {
 .     rv_kv wals_b_wb `=string(_b[r_wb_m1], "%6.3f")'
@@ -1437,5 +1459,5 @@ file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações
       name:  <unnamed>
        log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/logs/12_inferencia.log
   log type:  text
- closed on:  17 Oct 2026, 17:23:47
+ closed on:  17 Oct 2026, 21:25:02
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

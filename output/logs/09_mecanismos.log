@@ -3,7 +3,7 @@
        log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Esti
 > mações/output/logs/09_mecanismos.log
   log type:  text
- opened on:  15 Oct 2026, 00:17:10
+ opened on:  17 Oct 2026, 16:04:33
 
 . 
 . global X5 "lny0 hc0 inv open infl popg ctot_g"
@@ -194,7 +194,7 @@ Panel variable: id (strongly balanced)
 
 . lpirf, y(ipriv) shocks(d_wagebill_real) saving("$INTERIM/lp_E1.dta") h(6) con
 > d(inrange(year, 1996, 2023))
-(file C:\Users\Usuario\AppData\Local\Temp\ST_847c_000001.tmp not found)
+(file C:\Users\Usuario\AppData\Local\Temp\ST_6b20_000001.tmp not found)
 file C:\Users\Usuario\Dropbox\Papers\Emprego Público e
     Crescimento\Estimações/data/interim/lp_E1.dta saved
 
@@ -256,7 +256,7 @@ file C:\Users\Usuario\Dropbox\Papers\Emprego Público e
 
 . lpirf, y(tfp100) shocks(d_wagebill_real) saving("$INTERIM/lp_E2.dta") h(6) co
 > nd(inrange(year, 1996, 2023))
-(file C:\Users\Usuario\AppData\Local\Temp\ST_847c_000001.tmp not found)
+(file C:\Users\Usuario\AppData\Local\Temp\ST_6b20_000001.tmp not found)
 file C:\Users\Usuario\Dropbox\Papers\Emprego Público e
     Crescimento\Estimações/data/interim/lp_E2.dta saved
 
@@ -318,7 +318,7 @@ file C:\Users\Usuario\Dropbox\Papers\Emprego Público e
 
 . lpirf, y(pemp100) shocks(d_wagebill_real) saving("$INTERIM/lp_E3.dta") h(6) c
 > ond(inrange(year, 1996, 2023))
-(file C:\Users\Usuario\AppData\Local\Temp\ST_847c_000001.tmp not found)
+(file C:\Users\Usuario\AppData\Local\Temp\ST_6b20_000001.tmp not found)
 file C:\Users\Usuario\Dropbox\Papers\Emprego Público e
     Crescimento\Estimações/data/interim/lp_E3.dta saved
 
@@ -497,5 +497,5 @@ file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações
        log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Esti
 > mações/output/logs/09_mecanismos.log
   log type:  text
- closed on:  15 Oct 2026, 00:17:20
+ closed on:  17 Oct 2026, 16:04:43
 -------------------------------------------------------------------------------

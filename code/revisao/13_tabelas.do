@@ -382,7 +382,7 @@ use "$RINT/p5_rv.dta", clear
 keep if micro == 0
 merge 1:1 id period using "$RINT/amostra_T3.dta", keep(master match) nogen
 keep if S5_T3
-rv_row "B. Five-year panel, T3 estimation sample" "" "" "" "" "" "" "" ""
+rv_row "A. Five-year panel, T3 estimation sample" "" "" "" "" "" "" "" ""
 descrow g "GDP per capita growth (%, period mean)"
 descrow wb_m1 "Wage bill, general government (% of GDP), t_p − 1"
 descrow wb_ham_m1 "Wage bill (% of trend GDP, Hamilton), t_p − 1"
@@ -399,7 +399,7 @@ use "$RINT/anual_rv.dta", clear
 keep if micro == 0 & inrange(year, 1996, 2023)
 merge 1:1 id year using "$RINT/amostras1.dta", keep(master match) nogen
 keep if S1_base
-rv_row "C. Annual panel, Table 1 sample" "" "" "" "" "" "" "" ""
+rv_row "B. Annual panel, Table 1 sample" "" "" "" "" "" "" "" ""
 descrow g "GDP per capita growth (%)"
 descrow wb "Wage bill, general government (% of GDP)"
 descrow wb_ham "Wage bill (% of trend GDP, Hamilton)"
@@ -410,7 +410,7 @@ descrow balance_gdp "Fiscal balance (% of GDP)"
 descrow infl "Inflation (%)"
 rv_out TabS2_descriptives, landscape ///
     title("Table S2. Descriptive statistics of the estimation samples") ///
-    notes("Panel B: country-periods of the preferred H1 specification (T3). Panel C: country-years of the annual rows of Table 1. SD between: standard deviation of country means; SD within: standard deviation after removing country means, the relevant variation with country fixed effects. Values follow the extended cleaning rules (revenue above 100% of GDP, fiscal balance outside ±50% of GDP and inflation above 1,000% treated as missing; growth and inflation winsorized at the 1st and 99th percentiles of the non-microstate sample, 1980–2023).")
+    notes("Panel A: country-periods of the preferred H1 specification (T3). Panel B: country-years of the annual rows of Table 1. SD between: standard deviation of country means; SD within: standard deviation after removing country means, the relevant variation with country fixed effects. Values follow the extended cleaning rules (revenue above 100% of GDP, fiscal balance outside ±50% of GDP and inflation above 1,000% treated as missing; growth and inflation winsorized at the 1st and 99th percentiles of the non-microstate sample, 1980–2023).")
 
 * =====================================================================================
 * Tabela S14b: paises da amostra efetiva (T3), por grupo de renda de 1996

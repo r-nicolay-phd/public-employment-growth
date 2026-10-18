@@ -2,7 +2,7 @@
       name:  <unnamed>
        log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/logs/15_documentos.log
   log type:  text
- opened on:  17 Oct 2026, 17:25:01
+ opened on:  17 Oct 2026, 21:32:14
 
 . 
 . capture program drop kvload
@@ -20,8 +20,8 @@
 
 . kvload
 (encoding automatically selected: ISO-8859-1)
-(2 vars, 1,410 obs)
-(764 observations deleted)
+(2 vars, 712 obs)
+(59 observations deleted)
 
 . 
 . * =====================================================================================
@@ -87,8 +87,8 @@ tabela gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\E
 . * =====================================================================================
 . kvload
 (encoding automatically selected: ISO-8859-1)
-(2 vars, 1,410 obs)
-(764 observations deleted)
+(2 vars, 712 obs)
+(59 observations deleted)
 
 . tempname C
 
@@ -293,5 +293,5 @@ tabela gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\E
       name:  <unnamed>
        log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/logs/15_documentos.log
   log type:  text
- closed on:  17 Oct 2026, 17:25:02
+ closed on:  17 Oct 2026, 21:32:15
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

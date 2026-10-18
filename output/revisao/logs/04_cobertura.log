@@ -2,7 +2,7 @@
       name:  <unnamed>
        log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/logs/04_cobertura.log
   log type:  text
- opened on:  17 Oct 2026, 16:27:09
+ opened on:  17 Oct 2026, 20:57:54
 
 . 
 . global XP "lny0 hc_m1 inv_m1 open_m1 infl_m1 popg_m1 ctot_g_m1"
@@ -507,14 +507,14 @@ Absorbed degrees of freedom:
  30.     restore
  31. }
 (1,161 observations deleted)
-file C:\Users\Usuario\AppData\Local\Temp\ST_5b6c_000003.tmp saved as .dta format
-(file C:\Users\Usuario\AppData\Local\Temp\ST_5b6c_000004.tmp not found)
+file C:\Users\Usuario\AppData\Local\Temp\ST_7508_000003.tmp saved as .dta format
+(file C:\Users\Usuario\AppData\Local\Temp\ST_7508_000004.tmp not found)
 (1,439 observations deleted)
-file C:\Users\Usuario\AppData\Local\Temp\ST_5b6c_000006.tmp saved as .dta format
-(file C:\Users\Usuario\AppData\Local\Temp\ST_5b6c_000007.tmp not found)
+file C:\Users\Usuario\AppData\Local\Temp\ST_7508_000006.tmp saved as .dta format
+(file C:\Users\Usuario\AppData\Local\Temp\ST_7508_000007.tmp not found)
 (1,234 observations deleted)
-file C:\Users\Usuario\AppData\Local\Temp\ST_5b6c_000009.tmp saved as .dta format
-(file C:\Users\Usuario\AppData\Local\Temp\ST_5b6c_00000a.tmp not found)
+file C:\Users\Usuario\AppData\Local\Temp\ST_7508_000009.tmp saved as .dta format
+(file C:\Users\Usuario\AppData\Local\Temp\ST_7508_00000a.tmp not found)
 
 . postclose `B'
 
@@ -726,7 +726,7 @@ Absorbed degrees of freedom:
 
 . import delimited "$RINT/kv.csv", clear varnames(1) stringcols(_all)
 (encoding automatically selected: ISO-8859-1)
-(2 vars, 827 obs)
+(2 vars, 299 obs)
 
 . foreach k in fed_list fed_both_2010s fed_base ratio_fed_med ratio_uni_med uni_both_2010s {
   2.     quietly levelsof value if key == "`k'", local(`k') clean
@@ -778,5 +778,5 @@ tabela gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\E
       name:  <unnamed>
        log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/logs/04_cobertura.log
   log type:  text
- closed on:  17 Oct 2026, 16:30:34
+ closed on:  17 Oct 2026, 21:01:01
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

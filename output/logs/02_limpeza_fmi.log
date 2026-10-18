@@ -3,7 +3,7 @@
        log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Esti
 > mações/output/logs/02_limpeza_fmi.log
   log type:  text
- opened on:  15 Oct 2026, 00:10:25
+ opened on:  17 Oct 2026, 15:57:58
 
 . 
 . * ---------------------------------------------------------------- GFS, demon
@@ -444,7 +444,7 @@ file C:\Users\Usuario\Dropbox\Papers\Emprego Público e
 (1 real change made)
 .     tempfile univ
 .     save `univ'
-file C:\Users\Usuario\AppData\Local\Temp\ST_847c_000001.tmp saved as .dta
+file C:\Users\Usuario\AppData\Local\Temp\ST_6b20_000001.tmp saved as .dta
     format
 .     import excel "$MANUAL/`frfile'", sheet("Rules") cellrange(B5:O4924) clear
 >  allstring
@@ -576,5 +576,5 @@ file C:\Users\Usuario\Dropbox\Papers\Emprego Público e
        log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Esti
 > mações/output/logs/02_limpeza_fmi.log
   log type:  text
- closed on:  15 Oct 2026, 00:10:36
+ closed on:  17 Oct 2026, 15:58:09
 -------------------------------------------------------------------------------

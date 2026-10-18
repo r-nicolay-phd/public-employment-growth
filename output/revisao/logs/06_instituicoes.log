@@ -2,12 +2,13 @@
       name:  <unnamed>
        log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/logs/06_instituicoes.log
   log type:  text
- opened on:  17 Oct 2026, 16:34:12
+ opened on:  17 Oct 2026, 21:01:07
 
 . 
 . tempname P
 
 . postfile `P' str14 rep str10 meas str8 est double(bi sei pi bg seg) long(N nc nins) using "$RINT/replicas.dta", replace
+(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/replicas.dta not found)
 
 . 
 . * =====================================================================================
@@ -1008,6 +1009,7 @@ maximum lag: 3                                   Prob > F          =    0.0000
 . tempname C
 
 . postfile `C' str12 spec double(bi sei pi bc sec pc) long(N nc) using "$RINT/ciclicidade.dta", replace
+(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/ciclicidade.dta not found)
 
 . foreach cv in cyc_pre cyc_in {
   2.     capture drop G
@@ -1620,7 +1622,9 @@ maximum lag: 3                                   Prob > F          =    0.0000
   9.     local cs `"`cs' "(`r(s)')" """'
  10. }
 
-. rv_row "Government consumption × institutions: contemporaneous / % of trend GDP (Hamilton) / lagged" `cb'
+. rv_row "Measure of government consumption" "Contemporaneous" "" "% of trend GDP (Hamilton)" "" "Lagged one year" ""
+
+. rv_row "Government consumption × institutions" `cb'
 
 . rv_row "" `cs'
 
@@ -1694,7 +1698,7 @@ tabela gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\E
 
 . import delimited "$RINT/kv.csv", clear varnames(1) stringcols(_all)
 (encoding automatically selected: ISO-8859-1)
-(2 vars, 933 obs)
+(2 vars, 409 obs)
 
 . foreach k in cyc_corr_pre cyc_corr_pre_n cyc_corr_in cyc_resp_inter cyc_resp_inter_p {
   2.     quietly levelsof value if key == "`k'", local(`k') clean
@@ -1778,5 +1782,5 @@ figura gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\E
       name:  <unnamed>
        log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/logs/06_instituicoes.log
   log type:  text
- closed on:  17 Oct 2026, 16:34:22
+ closed on:  17 Oct 2026, 21:01:15
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

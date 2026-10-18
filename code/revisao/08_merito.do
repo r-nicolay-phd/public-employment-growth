@@ -283,7 +283,11 @@ rv_stat "Countries", models(H3 H3_bins H3_split1 H3_split2 H3_split3 H3_med0 H3_
 import delimited "$RINT/kv.csv", clear varnames(1) stringcols(_all)
 foreach k in h3_merit_mean h3_pboot h3_wald_p h3_mde h3_relevant h3_p1090 h3_q10 h3_q90 thr_ss_2015_p thr_hansen_p thr_lin_static thr_lin_controls {
     quietly levelsof value if key == "`k'", local(`k') clean
-    local `k' : word 1 of ``k''
+    local `k' : word `: word count ``k''' of ``k''
+}
+foreach k in h3_merit_mean h3_q10 h3_q90 thr_lin_static thr_lin_controls {
+    local `k' = subinstr(string(real("``k''"), "%9.3f"), "-", "−", 1)
+    local `k' = strtrim("``k''")
 }
 rv_row "Wild cluster bootstrap p (interaction)" "`=string(real("`h3_pboot'"), "%5.3f")'" "" "" "" "" "" ""
 rv_row "HMX Wald test of linearity, p" "" "`=string(real("`h3_wald_p'"), "%5.3f")'" "" "" "" "" ""

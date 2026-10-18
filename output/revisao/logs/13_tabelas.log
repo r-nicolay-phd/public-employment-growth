@@ -2,7 +2,7 @@
       name:  <unnamed>
        log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/logs/13_tabelas.log
   log type:  text
- opened on:  17 Oct 2026, 17:24:58
+ opened on:  17 Oct 2026, 21:32:08
 
 . 
 . * registro chave-valor em macros KV_<chave>
@@ -21,8 +21,8 @@
 
 . kvload
 (encoding automatically selected: ISO-8859-1)
-(2 vars, 1,396 obs)
-(762 observations deleted)
+(2 vars, 692 obs)
+(39 observations deleted)
 
 . 
 . * =====================================================================================
@@ -133,8 +133,8 @@
 . * enquadramento (secao 2.2 do plano)
 . kvload
 (encoding automatically selected: ISO-8859-1)
-(2 vars, 1,403 obs)
-(764 observations deleted)
+(2 vars, 699 obs)
+(46 observations deleted)
 
 . local H1v "`KV_verdict_H1'"
 
@@ -261,8 +261,7 @@ Cenario: B (A = 0, B = 1, C = 0; decomposicao nitida = 1; OPRA = 0; MV = 1)
 >  columns 5–6 add the shares of goods and services, interest, other expense and either public investment (5) or transfers (6), total expenditure and revenue, so the wage-bill coefficient measures a r
 > eallocation of one percentage point of spending from the omitted category; the fiscal balance is implied. Shares, revenue and expenditure follow the extended cleaning rules (Table S1). Wild cluster 
 > bootstrap: Webb weights, 9,999 replications, clustered by country. Countries row: clusters (columns 1, 4–6) or groups (columns 2–3). * p<0.10, ** p<0.05, *** p<0.01.")
-successfully created "C:/Users/Usuario/Dropbox/Papers/Emprego Público e Crescimento/Estimações/output/revisao/tables/Tab3_baseline_composition.docx"
-(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/logs/captions/Tab3_baseline_composition.txt not found)
+successfully replaced "C:/Users/Usuario/Dropbox/Papers/Emprego Público e Crescimento/Estimações/output/revisao/tables/Tab3_baseline_composition.docx"
 tabela gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/tables/Tab3_baseline_composition.{tex,docx}
 
 . 
@@ -293,8 +292,7 @@ tabela gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\E
 >     notes("Five-year averages of the dependent variable, 1979–2023: private investment (IMF Investment and Capital Stock Dataset, available to 2019), TFP growth (Penn World Table 11.0) and private e
 > mployment growth (ILOSTAT, total minus public employment from the same survey). Wage bill in t_p − 1; predetermined controls of Table 2 without investment, which is the mediator; country and period 
 > fixed effects; standard errors clustered by country. * p<0.10, ** p<0.05, *** p<0.01.")
-successfully created "C:/Users/Usuario/Dropbox/Papers/Emprego Público e Crescimento/Estimações/output/revisao/tables/TabS_mechanisms.docx"
-(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/logs/captions/TabS_mechanisms.txt not found)
+successfully replaced "C:/Users/Usuario/Dropbox/Papers/Emprego Público e Crescimento/Estimações/output/revisao/tables/TabS_mechanisms.docx"
 tabela gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/tables/TabS_mechanisms.{tex,docx}
 
 . 
@@ -318,8 +316,7 @@ tabela gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\E
 >  country copies). Verdict rule: supported if the coefficient has the predicted sign, the bootstrap p-value is below 0.05 and the Romano-Wolf p-value is below 0.05; inconclusive if the sign is right 
 > and the bootstrap p-value is between 0.05 and 0.10, or below 0.05 without surviving Romano-Wolf; not supported otherwise. H3 predicts mitigation (positive interaction); H5 uses the first stage in de
 > mocracies.")
-successfully created "C:/Users/Usuario/Dropbox/Papers/Emprego Público e Crescimento/Estimações/output/revisao/tables/TabS_inference_summary.docx"
-(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/logs/captions/TabS_inference_summary.txt not found)
+successfully replaced "C:/Users/Usuario/Dropbox/Papers/Emprego Público e Crescimento/Estimações/output/revisao/tables/TabS_inference_summary.docx"
 tabela gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/tables/TabS_inference_summary.{tex,docx}
 
 . 
@@ -334,7 +331,7 @@ tabela gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\E
 . tempfile LPM
 
 . save `LPM'
-file C:\Users\Usuario\AppData\Local\Temp\ST_5204_000002.tmp saved as .dta format
+file C:\Users\Usuario\AppData\Local\Temp\ST_7600_000002.tmp saved as .dta format
 
 . use "$RINT/rw_lpmerit_adj.dta", clear
 
@@ -434,8 +431,7 @@ file C:\Users\Usuario\AppData\Local\Temp\ST_5204_000002.tmp saved as .dta format
 > iel Olea and Plagborg-Møller, 2021): one extra lag of the shock and of growth and heteroskedasticity-robust standard errors. Half-panel jackknife: 2 × full-sample estimate minus the average of the 1
 > 996–2009 and 2010–2023 estimates, a correction for the small-T fixed-effects bias; there is no Stata implementation of Herbst and Johannsen (2024), so their correction is not applied. * p<0.10, ** p
 > <0.05, *** p<0.01.")
-successfully created "C:/Users/Usuario/Dropbox/Papers/Emprego Público e Crescimento/Estimações/output/revisao/tables/TabS_lp_horizons.docx"
-(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/logs/captions/TabS_lp_horizons.txt not found)
+successfully replaced "C:/Users/Usuario/Dropbox/Papers/Emprego Público e Crescimento/Estimações/output/revisao/tables/TabS_lp_horizons.docx"
 tabela gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/tables/TabS_lp_horizons.{tex,docx}
 
 . 
@@ -444,13 +440,12 @@ tabela gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\E
 . * =====================================================================================
 . kvload
 (encoding automatically selected: ISO-8859-1)
-(2 vars, 1,410 obs)
-(764 observations deleted)
+(2 vars, 706 obs)
+(53 observations deleted)
 
 . tempname M
 
 . postfile `M' str70 lab double(b se p) long(N) str30 src using "$RINT/mapa.dta", replace
-(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/mapa.dta not found)
 
 . capture program drop addm
 
@@ -540,8 +535,7 @@ tabela gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\E
 >     notes("Coefficient on the general government wage bill (% of GDP) in growth regressions; five-year averages with country and period fixed effects and clustered standard errors unless stated; ann
 > ual rows use Driscoll-Kraay standard errors; long-run rows report long-run coefficients. p-values from the t distribution (cluster or Driscoll-Kraay) or the normal distribution (GMM, long run). Sour
 > ce: table or figure with the full specification. * p<0.10, ** p<0.05, *** p<0.01.")
-successfully created "C:/Users/Usuario/Dropbox/Papers/Emprego Público e Crescimento/Estimações/output/revisao/tables/Tab8_robustness_map.docx"
-(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/logs/captions/Tab8_robustness_map.txt not found)
+successfully replaced "C:/Users/Usuario/Dropbox/Papers/Emprego Público e Crescimento/Estimações/output/revisao/tables/Tab8_robustness_map.docx"
 tabela gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/tables/Tab8_robustness_map.{tex,docx}
 
 . 
@@ -569,8 +563,7 @@ tabela gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\E
 >     notes("Bayesian model averaging (De Luca and Magnus, 2011) over all 2^10 combinations of the regressors, all treated as auxiliary, after removing country and period fixed effects from every vari
 > able (Frisch-Waugh) in the effective T3 sample (`KV_bma_N' observations, singletons excluded). The posterior inclusion probability measures robustness to the choice of controls; it says nothing abou
 > t endogeneity. Weighted-average least squares (WALS) on the same data: wage-bill coefficient `KV_wals_b_wb' (t = `KV_wals_t_wb').")
-successfully created "C:/Users/Usuario/Dropbox/Papers/Emprego Público e Crescimento/Estimações/output/revisao/tables/TabS_bma.docx"
-(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/logs/captions/TabS_bma.txt not found)
+successfully replaced "C:/Users/Usuario/Dropbox/Papers/Emprego Público e Crescimento/Estimações/output/revisao/tables/TabS_bma.docx"
 tabela gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/tables/TabS_bma.{tex,docx}
 
 . 
@@ -621,7 +614,7 @@ tabela gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\E
 . keep if S5_T3
 (1,157 observations deleted)
 
-. rv_row "B. Five-year panel, T3 estimation sample" "" "" "" "" "" "" "" ""
+. rv_row "A. Five-year panel, T3 estimation sample" "" "" "" "" "" "" "" ""
 
 . descrow g "GDP per capita growth (%, period mean)"
 
@@ -664,7 +657,7 @@ tabela gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\E
 . keep if S1_base
 (3,111 observations deleted)
 
-. rv_row "C. Annual panel, Table 1 sample" "" "" "" "" "" "" "" ""
+. rv_row "B. Annual panel, Table 1 sample" "" "" "" "" "" "" "" ""
 
 . descrow g "GDP per capita growth (%)"
 
@@ -684,11 +677,10 @@ tabela gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\E
 
 . rv_out TabS2_descriptives, landscape ///
 >     title("Table S2. Descriptive statistics of the estimation samples") ///
->     notes("Panel B: country-periods of the preferred H1 specification (T3). Panel C: country-years of the annual rows of Table 1. SD between: standard deviation of country means; SD within: standard
+>     notes("Panel A: country-periods of the preferred H1 specification (T3). Panel B: country-years of the annual rows of Table 1. SD between: standard deviation of country means; SD within: standard
 >  deviation after removing country means, the relevant variation with country fixed effects. Values follow the extended cleaning rules (revenue above 100% of GDP, fiscal balance outside ±50% of GDP a
 > nd inflation above 1,000% treated as missing; growth and inflation winsorized at the 1st and 99th percentiles of the non-microstate sample, 1980–2023).")
-successfully created "C:/Users/Usuario/Dropbox/Papers/Emprego Público e Crescimento/Estimações/output/revisao/tables/TabS2_descriptives.docx"
-(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/logs/captions/TabS2_descriptives.txt not found)
+successfully replaced "C:/Users/Usuario/Dropbox/Papers/Emprego Público e Crescimento/Estimações/output/revisao/tables/TabS2_descriptives.docx"
 tabela gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/tables/TabS2_descriptives.{tex,docx}
 
 . 
@@ -733,8 +725,7 @@ tabela gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\E
 >     title("Table S16. Countries in the preferred five-year estimation sample (T3), by 1996 income group") ///
 >     notes("Countries with at least one country-period in the T3 estimation sample (after singletons are dropped). World Bank income group in 1996. The draft-7 table listed the 101 countries with a g
 > eneral government wage bill in any period rather than the estimation sample.")
-successfully created "C:/Users/Usuario/Dropbox/Papers/Emprego Público e Crescimento/Estimações/output/revisao/tables/TabS16_countries.docx"
-(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/logs/captions/TabS16_countries.txt not found)
+successfully replaced "C:/Users/Usuario/Dropbox/Papers/Emprego Público e Crescimento/Estimações/output/revisao/tables/TabS16_countries.docx"
 tabela gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/tables/TabS16_countries.{tex,docx}
 
 . 
@@ -742,5 +733,5 @@ tabela gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\E
       name:  <unnamed>
        log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/logs/13_tabelas.log
   log type:  text
- closed on:  17 Oct 2026, 17:24:59
+ closed on:  17 Oct 2026, 21:32:10
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

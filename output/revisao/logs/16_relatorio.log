@@ -2,7 +2,7 @@
       name:  <unnamed>
        log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/logs/16_relatorio.log
   log type:  text
- opened on:  17 Oct 2026, 20:56:47
+ opened on:  17 Oct 2026, 21:32:15
 
 . 
 . * numero em portugues: casas decimais, virgula, sinal de menos U+2212 e ponto de milhar
@@ -41,12 +41,12 @@
 
 . import delimited "$RINT/kv.csv", clear varnames(1) stringcols(_all)
 (encoding automatically selected: ISO-8859-1)
-(2 vars, 1,415 obs)
+(2 vars, 712 obs)
 
 . gen long n = _n
 
 . bysort key (n): keep if _n == _N
-(764 observations deleted)
+(59 observations deleted)
 
 . forvalues i = 1/`=_N' {
   2.     local k = key[`i']
@@ -135,7 +135,7 @@
 . tempfile VER
 
 . save `VER'
-file C:\Users\Usuario\AppData\Local\Temp\ST_1398_000002.tmp saved as .dta format
+file C:\Users\Usuario\AppData\Local\Temp\ST_7600_000002.tmp saved as .dta format
 
 . * coeficiente de base do draft 7 com as variaveis originais (sem a limpeza ampliada)
 . use "$FINAL/painel_5anos.dta", clear
@@ -472,8 +472,9 @@ file C:\Users\Usuario\AppData\Local\Temp\ST_1398_000002.tmp saved as .dta format
 > amento do governo geral em painel de países. No painel anual, a razão folha/PIB contemporânea tem coeficiente de `P_vies_wb_b' ponto de crescimento por ponto do PIB. Um numerador placebo, que só var
 > ia pelo denominador, reproduz `P_vies_wb_placebo_b'. Com a folha dividida pela tendência do PIB de Hamilton, ou medida no ano anterior, o coeficiente fica próximo de zero. Nas médias de cinco anos, 
 > medir a folha antes do período e usar controles predeterminados leva o coeficiente a `P_T3_own_b', que não é significativo pelo wild cluster bootstrap. O mesmo timing altera a leitura de resultados 
-> publicados sobre instituições e tamanho do governo: a amplificação encontrada com dados anuais depende da medida contemporânea, enquanto a mitigação em médias de cinco anos não depende. A única asso
-> ciação robusta é a do salário relativo do setor público, mais forte que a do emprego. Recomendamos reportar medidas contemporâneas e predeterminadas em estudos com razões de gasto." _n _n
+> publicados sobre instituições e tamanho do governo: numa réplica aproximada, a amplificação encontrada com dados anuais depende da medida contemporânea, enquanto a mitigação em médias de cinco anos 
+> não depende. A única associação robusta é a do salário relativo do setor público, mais forte que a do emprego. Recomendamos reportar medidas contemporâneas e predeterminadas em estudos com razões de
+>  gasto." _n _n
 
 . file write `F' "## Parágrafo de resultados da introdução" _n _n
 
@@ -481,10 +482,10 @@ file C:\Users\Usuario\AppData\Local\Temp\ST_1398_000002.tmp saved as .dta format
 > es_wb_hp1_b' com a folha sobre a tendência do filtro HP unilateral e `P_vies_wb_ham_b' com a tendência de Hamilton; a diferença entre a primeira e a última é `P_dif_12_d' (p `Q_dif_12_p'). Um numera
 > dor placebo que varia só pelo denominador reproduz quase todo o coeficiente (`P_vies_wb_placebo_b'). O segundo é que, medida a folha no último ano do período anterior e com controles predeterminados
 > , a associação de médio prazo cai a `P_T3_own_b' e não é significativa pelo wild cluster bootstrap (p = `Q_T3_own_pboot'); ela é frágil à amostra, à janela e aos estimadores dinâmicos. O terceiro é 
-> que o timing muda a leitura da literatura sobre instituições e tamanho do governo. A amplificação obtida com o consumo anual do mesmo ano desaparece com o consumo defasado (`R_mv_gc_l1_fe_dk_b'), en
-> quanto a mitigação de Oto-Peralías e Romero-Ávila (2013), replicada com um índice público do ICRG, não depende do timing (`R_opra_icrg_gc_m1_fe_b' com o consumo predeterminado). O quarto é que, deco
-> mposta a folha em logs, o salário relativo está associado a menor crescimento (`P_d_log_lrw_b'; p ajustado por Romano-Wolf `Q_rw_H2'), com magnitude maior que a do emprego público. As hipóteses sobr
-> e recrutamento meritocrático e ciclo eleitoral não são sustentadas, e o teste de mérito não tem poder para detectar uma moderação relevante." _n _n
+> que o timing muda a leitura da literatura sobre instituições e tamanho do governo. Na réplica aproximada de Mollick e Vianna (2023), a amplificação obtida com o consumo anual do mesmo ano desaparece
+>  com o consumo defasado (`R_mv_gc_l1_fe_dk_b'), enquanto a mitigação de Oto-Peralías e Romero-Ávila (2013), replicada com um índice público do ICRG, não depende do timing (`R_opra_icrg_gc_m1_fe_b' c
+> om o consumo predeterminado). O quarto é que, decomposta a folha em logs, o salário relativo está associado a menor crescimento (`P_d_log_lrw_b'; p ajustado por Romano-Wolf `Q_rw_H2'), com magnitude
+>  maior que a do emprego público. As hipóteses sobre recrutamento meritocrático e ciclo eleitoral não são sustentadas, e o teste de mérito não tem poder para detectar uma moderação relevante." _n _n
 
 . file write `F' "## Abertura da discussão" _n _n
 
@@ -695,7 +696,7 @@ file C:\Users\Usuario\AppData\Local\Temp\ST_1398_000002.tmp saved as .dta format
 . file close `I'
 
 . di "Palavras no resumo sugerido: `nw'"
-Palavras no resumo sugerido: 181
+Palavras no resumo sugerido: 184
 
 . rv_kv resumo_palavras `nw'
 
@@ -704,5 +705,5 @@ Palavras no resumo sugerido: 181
       name:  <unnamed>
        log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/logs/16_relatorio.log
   log type:  text
- closed on:  17 Oct 2026, 20:56:48
+ closed on:  17 Oct 2026, 21:32:16
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

@@ -41,7 +41,7 @@ From the project folder (`Estimações`):
    ```
    StataMP-64.exe /e do code/revisao/master.do
    ```
-   The total running time is reported at the end of `master.log`. The Romano-Wolf bootstrap in `12_inferencia.do` takes most of it.
+   The total running time is reported at the end of `master.log`: 1,686 seconds (about 28 minutes) on the final run from scratch, on a Windows 11 desktop with StataMP 17. The Romano-Wolf bootstrap in `12_inferencia.do` takes most of it (984 seconds).
 
 Each do-file sets `version 17` and `set seed 20261017`, and writes a text log to `output/revisao/logs/`. Every number in the tables, figures, captions and reports is read from files written by the do-files, in particular `data/interim/revisao/kv.csv`.
 

@@ -2,29 +2,29 @@
 \begin{table}[htbp]\centering\footnotesize
 \providecommand{\sym}[1]{\ensuremath{^{#1}}}
 \caption{Table S9. Does meritocratic recruitment moderate the wage bill coefficient? (H3)}\label{tab:TabS_moderation}
-\begin{tabular}{l*{8}{c}}
+\begin{tabular}{l*{7}{c}}
 \toprule
- & (1) & (2) & (3) & (4) & (5) & (6) & (7) & (8) \\
- & Linear (preferred) & Bins (HMX) & Split: tercile 1 & Split: tercile 2 & Split: tercile 3 & Split: below median & Split: above median &  \\
+ & (1) & (2) & (3) & (4) & (5) & (6) & (7) \\
+ & Linear (preferred) & Bins (HMX) & Split: tercile 1 & Split: tercile 2 & Split: tercile 3 & Split: below median & Split: above median \\
 \midrule
-Wage bill (\% of GDP), t\_p $-$ 1 & $-$0.107\sym{*} &  & $-$0.236 & $-$0.231\sym{***} & $-$0.086 & $-$0.147 & $-$0.116 &  \\
- & (0.054) &  & (0.153) & (0.074) & (0.103) & (0.120) & (0.074) &  \\
-Wage bill $\times$ merit (centred) & 0.066 &  &  &  &  &  &  &  \\
- & (0.048) &  &  &  &  &  &  &  \\
-Marginal effect, tercile 1 (median of bin) &  & $-$0.182 &  &  &  &  &  &  \\
- &  & (0.159) &  &  &  &  &  &  \\
-Marginal effect, tercile 2 (median of bin) &  & $-$0.060 &  &  &  &  &  &  \\
- &  & (0.065) &  &  &  &  &  &  \\
-Marginal effect, tercile 3 (median of bin) &  & $-$0.060 &  &  &  &  &  &  \\
- &  & (0.088) &  &  &  &  &  &  \\
+Wage bill (\% of GDP), t\_p $-$ 1 & $-$0.107\sym{*} &  & $-$0.236 & $-$0.231\sym{***} & $-$0.086 & $-$0.147 & $-$0.116 \\
+ & (0.054) &  & (0.153) & (0.074) & (0.103) & (0.120) & (0.074) \\
+Wage bill $\times$ merit (centred) & 0.066 &  &  &  &  &  &  \\
+ & (0.048) &  &  &  &  &  &  \\
+Marginal effect, tercile 1 (median of bin) &  & $-$0.182 &  &  &  &  &  \\
+ &  & (0.159) &  &  &  &  &  \\
+Marginal effect, tercile 2 (median of bin) &  & $-$0.060 &  &  &  &  &  \\
+ &  & (0.065) &  &  &  &  &  \\
+Marginal effect, tercile 3 (median of bin) &  & $-$0.060 &  &  &  &  &  \\
+ &  & (0.088) &  &  &  &  &  \\
 \midrule
-Observations & 350 & 350 & 114 & 117 & 112 & 169 & 171 &  \\
-Countries & 68 & 68 & 32 & 24 & 18 & 42 & 28 &  \\
-Wild cluster bootstrap p (interaction) & 0.3815 &  &  &  &  &  &  &  \\
-HMX Wald test of linearity, p &  & 0.5300 &  &  &  &  &  &  \\
-Minimum detectable interaction (80\% power) & 0.1333 &  &  &  &  &  &  &  \\
-Economically relevant interaction & 0.0291 &  &  &  &  &  &  &  \\
+Observations & 350 & 350 & 114 & 117 & 112 & 169 & 171 \\
+Countries & 68 & 68 & 32 & 24 & 18 & 42 & 28 \\
+Wild cluster bootstrap p (interaction) & 0.382 &  &  &  &  &  &  \\
+HMX Wald test of linearity, p &  & 0.530 &  &  &  &  &  \\
+Minimum detectable interaction (80\% power) & 0.133 &  &  &  &  &  &  \\
+Economically relevant interaction & 0.029 &  &  &  &  &  &  \\
 \bottomrule
 \end{tabular}
-\begin{minipage}{0.95\linewidth}\vspace{4pt}\scriptsize \textit{Notes:} Dependent variable: growth of real GDP per capita (\%, five-year average). Wage bill and merit (V-Dem v2stcritrecadm; higher values = more merit-based) in t\_p $-$ 1; merit is centred at its estimation-sample mean (1.320), so the main effect in column 1 is evaluated at average merit. Predetermined controls of Table 2, country and period fixed effects, standard errors clustered by country. Column 2: binning estimator of Hainmueller, Mummolo and Xu (2019), one model with bin-specific intercepts and slopes and common controls and fixed effects; marginal effects at the median of each tercile; the Wald test compares it with the linear model. Columns 3--7: separate regressions in each tercile or half, each with its own fixed effects (singletons dropped within each subsample), which is why they differ from column 2. Minimum detectable effect: (1.96 + 0.84) $\times$ standard error of the interaction. Economically relevant interaction: half of the preferred H1 coefficient (T3) divided by the distance between the 10th and 90th percentiles of merit (-0.101 to 2.349). Threshold models (annual balanced panels, wage bill and merit lagged one year): Seo and Shin (2016), 2015--2019, linearity bootstrap p = 0.912; Hansen (1999), 2000--2019, p = 0.286. In the Hansen panel the linear fixed-effects coefficient of the lagged wage bill is -0.7233 without controls and -0.4042 with the controls and lagged growth of Table 1, so the large regime coefficients reflect the static specification, not the threshold. * p<0.10, ** p<0.05, *** p<0.01.\end{minipage}
+\begin{minipage}{0.95\linewidth}\vspace{4pt}\scriptsize \textit{Notes:} Dependent variable: growth of real GDP per capita (\%, five-year average). Wage bill and merit (V-Dem v2stcritrecadm; higher values = more merit-based) in t\_p $-$ 1; merit is centred at its estimation-sample mean (1.320), so the main effect in column 1 is evaluated at average merit. Predetermined controls of Table 2, country and period fixed effects, standard errors clustered by country. Column 2: binning estimator of Hainmueller, Mummolo and Xu (2019), one model with bin-specific intercepts and slopes and common controls and fixed effects; marginal effects at the median of each tercile; the Wald test compares it with the linear model. Columns 3--7: separate regressions in each tercile or half, each with its own fixed effects (singletons dropped within each subsample), which is why they differ from column 2. Minimum detectable effect: (1.96 + 0.84) $\times$ standard error of the interaction. Economically relevant interaction: half of the preferred H1 coefficient (T3) divided by the distance between the 10th and 90th percentiles of merit ($-$0.101 to 2.349). Threshold models (annual balanced panels, wage bill and merit lagged one year): Seo and Shin (2016), 2015--2019, linearity bootstrap p = 0.912; Hansen (1999), 2000--2019, p = 0.286. In the Hansen panel the linear fixed-effects coefficient of the lagged wage bill is $-$0.723 without controls and $-$0.404 with the controls and lagged growth of Table 1, so the large regime coefficients reflect the static specification, not the threshold. * p<0.10, ** p<0.05, *** p<0.01.\end{minipage}
 \end{table}

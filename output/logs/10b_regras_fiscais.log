@@ -3,7 +3,7 @@
        log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Esti
 > mações/output/logs/10b_regras_fiscais.log
   log type:  text
- opened on:  15 Oct 2026, 00:17:29
+ opened on:  17 Oct 2026, 16:04:53
 
 . 
 . capture confirm file "$INTERIM/fiscal_rules.dta"
@@ -814,5 +814,5 @@ file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações
        log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Esti
 > mações/output/logs/10b_regras_fiscais.log
   log type:  text
- closed on:  15 Oct 2026, 00:17:31
+ closed on:  17 Oct 2026, 16:04:54
 -------------------------------------------------------------------------------

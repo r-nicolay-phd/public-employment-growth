@@ -2,7 +2,7 @@
       name:  <unnamed>
        log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/logs/02_timing.log
   log type:  text
- opened on:  17 Oct 2026, 16:19:26
+ opened on:  17 Oct 2026, 20:57:23
 
 . 
 . global XD  "lny0 hc_tp inv open infl popg ctot_g"
@@ -36,6 +36,7 @@ Panel variable: id (strongly balanced)
 . tempname P
 
 . postfile `P' str8 spec str8 smp double(b se p pboot lo hi) long(N nc) using "$RINT/timing.dta", replace
+(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/timing.dta not found)
 
 . * spec: dependente, folha, controles
 . local s_T1 "g wb_m1 $XD"
@@ -618,6 +619,7 @@ Absorbed degrees of freedom:
 (results T3_own are active now)
 
 . estimates save "$RINT/est_T3", replace
+(note: file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/est_T3.ster not found)
 file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/est_T3.ster saved
 
 . * amostra da especificacao preferida (usada nos blocos seguintes)
@@ -633,6 +635,7 @@ file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações
 . keep id period S5_T3
 
 . save "$RINT/amostra_T3.dta", replace
+(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/amostra_T3.dta not found)
 file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/amostra_T3.dta saved
 
 . restore
@@ -1078,7 +1081,8 @@ maximum lag: 3                                   Prob > F          =    0.0000
 > rrors clustered by country (t distribution with G − 1 degrees of freedom), except column 8 (Driscoll-Kraay, maximum lag 3, t distribution with T − 1 degrees of freedom). Wild cluster bootstrap p-val
 > ues: Webb weights, 9,999 replications, clustered by country. The second panel restricts each specification to the draft-7 baseline sample (365 country-periods), keeping the country-periods that also
 >  have the variables of that column. Microstates excluded. * p<0.10, ** p<0.05, *** p<0.01.")
-successfully replaced "C:/Users/Usuario/Dropbox/Papers/Emprego Público e Crescimento/Estimações/output/revisao/tables/Tab2_timing.docx"
+successfully created "C:/Users/Usuario/Dropbox/Papers/Emprego Público e Crescimento/Estimações/output/revisao/tables/Tab2_timing.docx"
+(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/logs/captions/Tab2_timing.txt not found)
 tabela gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/tables/Tab2_timing.{tex,docx}
 
 . 
@@ -1125,6 +1129,7 @@ tabela gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\E
 
 . rv_fig Fig3_timing, width(190) height(90)
 file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/figures/Fig3_timing.pdf saved as PDF format
+(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/figures/Fig3_timing.png not found)
 file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/figures/Fig3_timing.png saved as PNG format
 figura gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/figures/Fig3_timing.{pdf,png} (190 x 90 mm)
 
@@ -1133,5 +1138,5 @@ figura gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\E
       name:  <unnamed>
        log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/logs/02_timing.log
   log type:  text
- closed on:  17 Oct 2026, 16:19:35
+ closed on:  17 Oct 2026, 20:57:33
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

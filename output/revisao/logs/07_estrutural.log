@@ -2,7 +2,7 @@
       name:  <unnamed>
        log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/logs/07_estrutural.log
   log type:  text
- opened on:  17 Oct 2026, 16:35:48
+ opened on:  17 Oct 2026, 21:01:15
 
 . 
 . global XP "lny0 hc_m1 inv_m1 open_m1 infl_m1 popg_m1 ctot_g_m1"
@@ -734,12 +734,14 @@ Panel variable: id (strongly balanced)
 . tempfile T5
 
 . save `T5'
-file C:\Users\Usuario\AppData\Local\Temp\ST_6c6c_000001.tmp saved as .dta format
+file C:\Users\Usuario\AppData\Local\Temp\ST_7508_000001.tmp saved as .dta format
 
 . use "$RINT/estrutural_lp.dta", clear
 
 . keep if h == 5
 (54 observations deleted)
+
+. rename (N nc) (N_lp nc_lp)
 
 . replace spec = "regper" if spec == "regyear"
 (1 real change made)
@@ -835,5 +837,5 @@ figura gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\E
       name:  <unnamed>
        log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/logs/07_estrutural.log
   log type:  text
- closed on:  17 Oct 2026, 16:36:48
+ closed on:  17 Oct 2026, 21:02:15
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
