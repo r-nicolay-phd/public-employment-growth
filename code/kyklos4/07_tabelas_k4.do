@@ -42,8 +42,13 @@ end
 capture program drop kv4
 program define kv4, rclass
     args key
-    kget "$RINT/kv.csv" `key'
-    return local v "`r(v)'"
+    * valor completo (inclusive com espacos) da ultima ocorrencia da chave; kget devolve so a ultima palavra
+    preserve
+    quietly import delimited "$RINT/kv.csv", clear varnames(1) stringcols(_all)
+    quietly keep if key == "`key'"
+    local v = cond(_N > 0, value[_N], "")
+    restore
+    return local v "`v'"
 end
 
 * =====================================================================================
@@ -57,7 +62,7 @@ foreach m in wb wb_l1 wb_ham sdw ar1 {
 }
 use "$RINT/gk_choice.dta", clear
 rv_new, ncol(7) head1("k*" "Share of the same-year coefficient at k*" "k within 10% of the minimum distance (shares)" "Lagged ratio at k* [2.5–97.5]" "Ratio over Hamilton trend GDP at k* [2.5–97.5]" "Reproduces both" "")
-rv_row "H. Moment-matched calibration (observed: lagged `=subinstr(string(`o_wb_l1', "%5.3f"), "-", uchar(8722), 1)', Hamilton `=subinstr(string(`o_wb_ham', "%5.3f"), "-", uchar(8722), 1)')" "" "" "" "" "" "" ""
+rv_row "K. Moment-matched calibration (observed: lagged `=subinstr(string(`o_wb_l1', "%5.3f"), "-", uchar(8722), 1)', Hamilton `=subinstr(string(`o_wb_ham', "%5.3f"), "-", uchar(8722), 1)')" "" "" "" "" "" "" ""
 forvalues i = 1/`=_N' {
     local lab = cond(des[`i'] == "sep", "Separate real and price elasticities", "ε = " + string(eps[`i'], "%4.2f"))
     fpc `=share[`i']'
@@ -78,7 +83,7 @@ forvalues i = 1/`=_N' {
     rv_row "   `lab'" "`=string(kstar[`i'], "%4.2f")'" "`sh'" "`rg'" "`cl'" "`ch'" "`rp'" ""
 }
 use "$RINT/psi_final_sum.dta", clear
-rv_row "I. Residual correlated with real growth (ψ), chosen jointly with k" "k, ψ" "Share" "" "Lagged ratio [2.5–97.5]" "Hamilton [2.5–97.5]" "Reproduces both" ""
+rv_row "L. Residual correlated with real growth (ψ), chosen jointly with k" "k, ψ" "Share" "" "Lagged ratio [2.5–97.5]" "Hamilton [2.5–97.5]" "Reproduces both" ""
 foreach e in 0.48 0.71 {
     quietly summ k if abs(eps - `e') < 1e-6
     local kk = r(mean)
@@ -104,7 +109,7 @@ foreach e in 0.48 0.71 {
     local el = string(`e', "%4.2f")
     rv_row "   ε = `el'" "`kpl'" "`sh'" "" "`c_wb_l1'" "`c_wb_ham'" "`rp'" ""
 }
-rv_row "J. Analytic reference (no simulation)" "λ = Var(A)/Var(Δln s)" "Implied share" "" "" "" "" ""
+rv_row "M. Analytic reference (no simulation)" "λ = Var(A)/Var(Δln s)" "Implied share" "" "" "" "" ""
 foreach e in 048 071 {
     kv4 b1_an_`e'_lambda
     local la = real("`r(v)'")
@@ -121,16 +126,18 @@ kv4 b1_eps_price
 local ep = real("`r(v)'")
 kv4 b1_eps_price_se
 local eps_ = real("`r(v)'")
-rv_row "   Elasticity of the nominal wage bill to real GDP growth (SE); to deflator inflation (SE)" "`=string(`er', "%5.3f") + " (" + string(`ers', "%5.3f") + ")'" "`=string(`ep', "%5.3f") + " (" + string(`eps_', "%5.3f") + ")'" "" "" "" "" ""
+local c_er = string(`er', "%5.3f") + " (" + string(`ers', "%5.3f") + ")"
+local c_ep = string(`ep', "%5.3f") + " (" + string(`eps_', "%5.3f") + ")"
+rv_row "   Elasticity of the nominal wage bill to real GDP growth (SE); to deflator inflation (SE)" "`c_er'" "`c_ep'" "" "" "" "" ""
 kv4 b1_rule
 local r1 "`r(v)'"
 kv4 b1_share48
 local s48 = real("`r(v)'")
-local t4 = cond("`r1'" == "full range", "no design reproduces the lagged and Hamilton coefficients, so the accounting share is not pinned down by the moments", ///
+local t4 = cond("`r1'" == "full range", "at the central elasticity (ε = 0.48) no value of k reproduces both the lagged and the Hamilton coefficients, so the moments do not pin down the accounting share", ///
     cond("`r1'" == "at least half", "the moment-matched design reproduces the data and accounts for at least half of the same-year coefficient", ///
     "the moment-matched design reproduces the data and accounts for " + string(100 * `s48', "%3.0f") + "% of the same-year coefficient"))
 rv_out Table_A4_part_moment_matched, landscape title("Table A4 (continued). Moment-matched calibration: `t4'") ///
-    notes("Panel H: anchored design (the synthetic ratio starts each year from the observed ratio of the previous year and moves with nominal GDP with elasticity ε), with the drawn residuals multiplied by k ∈ {0, 0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.40, 0.50, 0.75, 1}; 1,000 replications per cell. k* minimises the sum of the absolute deviations between simulated mean and observed value, each divided by its simulated standard deviation, of four moments: within-country SD of the ratio, its AR(1), the coefficient of the lagged ratio and the coefficient of the ratio over Hamilton trend GDP; the same-year coefficient does not enter. Share: simulated mean of the same-year coefficient over the observed one (−0.723). Reproduces both: the observed lagged and Hamilton coefficients lie inside the 2.5–97.5 percentiles of their simulated distributions at k*. Separate elasticities: Δln s = (ε_r − 1) Δln real GDP + (ε_p − 1) deflator inflation + k u, with the elasticities of panel J. Panel I: the numerator residual has a component ψ × real per-capita growth; k and ψ (grid −0.5 to 0.5) chosen by the same distance with 200 replications per cell, then 1,000 replications at the chosen point. Panel J: within-country and within-year variation in the Table 1 sample; A = −(1 − ε) Δln nominal GDP; implied share = cov(growth, A) / cov(growth, Δln s); elasticities from 100 × Δln W on 100 × Δln real GDP and deflator inflation, country and year fixed effects, Driscoll-Kraay standard errors. Regressions in each replication as in Table 1 (controls of Table 1, country and year fixed effects). $ADD")
+    notes("Panel K: anchored design (the synthetic ratio starts each year from the observed ratio of the previous year and moves with nominal GDP with elasticity ε), with the drawn residuals multiplied by k ∈ {0, 0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.40, 0.50, 0.75, 1}; 1,000 replications per cell. k* minimises the sum of the absolute deviations between simulated mean and observed value, each divided by its simulated standard deviation, of four moments: within-country SD of the ratio, its AR(1), the coefficient of the lagged ratio and the coefficient of the ratio over Hamilton trend GDP; the same-year coefficient does not enter. Share: simulated mean of the same-year coefficient over the observed one (−0.723). Reproduces both: the observed lagged and Hamilton coefficients lie inside the 2.5–97.5 percentiles of their simulated distributions at k*. Separate elasticities: Δln s = (ε_r − 1) Δln real GDP + (ε_p − 1) deflator inflation + k u, with the elasticities of panel M. Panel L: the numerator residual has a component ψ × real per-capita growth; k and ψ (grid −0.5 to 0.5) chosen by the same distance with 200 replications per cell, then 1,000 replications at the chosen point. Panel M: within-country and within-year variation in the Table 1 sample; A = −(1 − ε) Δln nominal GDP; implied share = cov(growth, A) / cov(growth, Δln s); elasticities from 100 × Δln W on 100 × Δln real GDP and deflator inflation, country and year fixed effects, Driscoll-Kraay standard errors. Regressions in each replication as in Table 1 (controls of Table 1, country and year fixed effects). $ADD")
 
 * =====================================================================================
 * Tabela A8: quais pais-periodos movem a estimativa quinquenal (Bloco 2)
@@ -142,7 +149,7 @@ local b311 = real("`r(v)'")
 kv4 b2_Lg_recovered
 local nrec = real("`r(v)'")
 rv_new, ncol(5) head1("Lost (44)" "Kept (311)" "Difference" "p-value" "")
-rv_row "K. Which country-periods drive the five-year estimate (`=subinstr(string(`b355', "%5.3f"), "-", uchar(8722), 1)' on 355; `=subinstr(string(`b311', "%5.3f"), "-", uchar(8722), 1)' on 311)" "" "" "" "" ""
+rv_row "Which country-periods drive the five-year estimate (`=subinstr(string(`b355', "%5.3f"), "-", uchar(8722), 1)' on 355; `=subinstr(string(`b311', "%5.3f"), "-", uchar(8722), 1)' on 311)" "" "" "" "" ""
 use "$RINT/q5_desc.dta", clear
 forvalues i = 1/`=_N' {
     local v = v[`i']
@@ -262,11 +269,17 @@ forvalues i = 1/`=_N' {
         local c "`x' `r(s)'"
     }
     fp `=p[`i']'
-    rv_row "   `lab'" "`c'" "`r(s)'" "" "" ""
+    local pc "`r(s)'"
+    if "`pr'" == "lp − t3" {
+        local lab "Local projection − five-year"
+        local c "Not computed: the projection is not identified"
+        local pc ""
+    }
+    rv_row "   `lab'" "`c'" "`pc'" "" "" ""
 }
 kv4 b3_holm_family
 local nf = "`r(v)'"
-kv4 b3_holm_p334
+kv4 b3_holm_p_334
 local h334 = real("`r(v)'")
 kv4 b3_holm_p_logc
 local hlc = real("`r(v)'")
@@ -292,7 +305,10 @@ foreach c in m1 mean {
     forvalues i = 1/`=_N' {
         if ctrl[`i'] != "`c'" continue
         local d = dif[`i']
-        local lab = cond("`d'" == "trend", "Linear trend in timing (slope per step: period mean → t_p → t_p − 1)", "`d'")
+        * rotulos completos (a variavel dif chega truncada em "(t_p")
+        local lab = cond("`d'" == "trend", "Linear trend in timing (slope per step: period mean → t_p → t_p − 1)", ///
+            cond("`d'" == "mean − t_p", "Period mean − t_p", cond("`d'" == "t_p − (t_p", "t_p − (t_p − 1)", ///
+            cond("`d'" == "mean − (t_p", "Period mean − (t_p − 1)", "`d'"))))
         f3 `=d[`i']'
         local x "`r(s)'"
         fci `=lo[`i']' `=hi[`i']'
@@ -322,7 +338,7 @@ foreach pr in 8604 8623 {
         rv_row "   `lab'" "`x'" "`cc'" "`r(s)'" "`=ci[`i']'" "`=string(N[`i'], "%9.0f")'`nc'"
     }
 }
-rv_out Table_A6_rows_five_year_tests, landscape title("Table A6 (continued). Mollick and Cabral: the predetermined five-year coefficient is negative and smaller than the period-mean one") ///
+rv_out Table_A6_rows_five_year_tests, landscape title("Table A6 (continued). Mollick and Cabral: the predetermined five-year coefficient is negative and smaller in absolute value than the period-mean one") ///
     notes("Approximate replication of Mollick and Cabral (2011), five-year blocks: log GDP per capita at the end of the block on its lag, population growth, log investment and log government consumption / GDP measured in the last year of the previous block (t_p − 1) or as the block mean. Fixed effects: country fixed effects, standard errors clustered by country, wild cluster bootstrap CI and p (Webb weights, 9,999 replications). System GMM: two-step, Windmeijer-corrected standard errors, normal CI. Difference: the two measures stacked with measure-specific controls and country × measure fixed effects, wild cluster bootstrap. $ADD")
 
 * =====================================================================================
@@ -423,7 +439,7 @@ twoway (connected shs k if abs(eps - 0.25) < 1e-6, sort lcolor(gs11) mcolor(gs11
     (connected shs k if abs(eps - 0.71) < 1e-6, sort lcolor(gs4) mcolor(gs4) msymbol(T) lpattern(shortdash)) ///
     (scatter shk k, msymbol(Sh) msize(large) mcolor(black)), $GOPT ///
     title("(a) Share of the same-year coefficient", size(9pt)) xtitle("k (scale of the numerator residual)", size(8pt)) ytitle("Simulated / observed (%)", size(8pt)) ///
-    xlabel(0(0.25)1, format(%4.2f) labsize(8pt)) legend(order(1 "ε = 0.25" 2 "ε = 0.48" 3 "ε = 0.52" 4 "ε = 0.71" 5 "Chosen k") cols(1) ring(0) pos(1) size(6.5pt) symxsize(5) region(lcolor(none) fcolor(white))) ///
+    xlabel(0(0.25)1, format(%4.2f) labsize(8pt)) legend(order(1 "ε = 0.25" 2 "ε = 0.48" 3 "ε = 0.52" 4 "ε = 0.71" 5 "Chosen k") cols(3) ring(1) pos(6) size(6.5pt) symxsize(5) region(lcolor(none) fcolor(white))) ///
     name(a, replace) nodraw
 restore
 keep if abs(eps - 0.48) < 1e-6 & inlist(meas, "wb_l1", "wb_ham")
@@ -434,8 +450,8 @@ local oh = r(mean)
 twoway (rarea p025 p975 k if meas == "wb_l1", sort color(gs13)) (connected mean k if meas == "wb_l1", sort lcolor(black) mcolor(black) msymbol(O)) ///
     (rarea p025 p975 k if meas == "wb_ham", sort color(gs14%60)) (connected mean k if meas == "wb_ham", sort lcolor(gs6) mcolor(gs6) msymbol(D) lpattern(dash)), $GOPT ///
     yline(`ol', lcolor(black) lpattern(shortdash)) yline(`oh', lcolor(gs6) lpattern(dot)) ///
-    title("(b) Predicted lagged and Hamilton coefficients, ε = 0.48", size(9pt)) xtitle("k", size(8pt)) ytitle("Coefficient", size(8pt)) xlabel(0(0.25)1, format(%4.2f) labsize(8pt)) ///
-    legend(order(2 "Lagged ratio" 4 "Ratio over Hamilton trend GDP") cols(1) ring(0) pos(11) size(6.5pt) symxsize(5) region(lcolor(none) fcolor(white))) name(b, replace) nodraw
+    title("(b) Predicted coefficients, ε = 0.48", size(9pt)) xtitle("k", size(8pt)) ytitle("Coefficient", size(8pt)) xlabel(0(0.25)1, format(%4.2f) labsize(8pt)) ///
+    legend(order(2 "Lagged ratio" 4 "Ratio over Hamilton trend GDP") cols(1) ring(1) pos(6) size(6.5pt) symxsize(5) region(lcolor(none) fcolor(white))) name(b, replace) nodraw
 use "$RINT/inst_mm_draws.dta", clear
 keep if spec == "D" & meas == "c" & inlist(des, "mm556G", "mm556C")
 append using "$KIN2/siminst_draws.dta"
@@ -446,8 +462,8 @@ local xl = floor(min(`oD', -2.5))
 twoway (kdensity b if des == "mm556G", lcolor(black)) (kdensity b if des == "mm556C", lcolor(black) lpattern(dash)) ///
     (kdensity b if des == "G", lcolor(gs10)) (kdensity b if des == "C", lcolor(gs10) lpattern(dash)), $GOPT ///
     xline(`oD', lcolor(black) lpattern(shortdash)) xline(-0.811, lcolor(gs8) lpattern(dot)) xline(0, lcolor(gs12)) xscale(range(`xl' 0.25)) xlabel(`xl'(1)0, format(%3.0f) labsize(8pt)) ///
-    title("(c) Consumption × institutions, published specification", size(9pt)) xtitle("Same-year interaction", size(8pt)) ytitle("Density", size(8pt)) ///
-    legend(order(1 "Moment-matched, gradient" 2 "Moment-matched, no gradient" 3 "Anchored, gradient" 4 "Anchored, no gradient") cols(1) ring(0) pos(11) size(6.5pt) symxsize(5) region(lcolor(none) fcolor(white))) name(c, replace) nodraw
+    title("(c) Consumption × institutions", size(9pt)) xtitle("Same-year interaction", size(8pt)) ytitle("Density", size(8pt)) ///
+    legend(order(1 "Moment-matched, gradient" 2 "Moment-matched, no gradient" 3 "Anchored, gradient" 4 "Anchored, no gradient") cols(2) ring(1) pos(6) size(6.5pt) symxsize(5) region(lcolor(none) fcolor(white))) name(c, replace) nodraw
 graph combine a b c, cols(3) graphregion(color(white))
 rv_fig Figure_1_simulation, width(190) height(80)
 
