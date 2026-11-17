@@ -118,6 +118,7 @@ PRE = [  # antes da renumeracao
 POST = [  # depois da renumeracao e da limpeza
     ("(STRUCTROW)", f"(structural-explanations table, line 7; replication package README, list of tables and programs, row {RM_MAIN.get('Table S8', '')})"),
     ("A. Anchored on the observed ratio of t − 1 (main)", "A. Anchored on the observed ratio of t − 1, unscaled residuals"),
+    ("A (main): ", "A (anchored design, unscaled residuals): "),
     ("C: design of the earlier version of this table", "C: the design registered in the first addendum"),
     ("C. Registered design (random walk in the wage bill), rerun on the same grid", "C. Design registered in the first addendum (random walk in the wage bill), on the same grid"),
     ("Replaces the bias panel of the earlier version. ", ""),
@@ -277,6 +278,14 @@ def build():
                         for t in cells[2]._tc.iter(W + "t"):
                             if t.text.strip() == OLD_T3P:
                                 t.text = T3P
+            if num == "A15" and fn == "Table_A17_new_columns":
+                # p de bootstrap do -1,858 (amostra estrita, folha fixa): o mesmo valor da coluna principal da Tabela A15
+                for row in d.tables[0].rows:
+                    tx = [c.text.strip() for c in row.cells]
+                    if tx[0] == "Bootstrap p" and tx[-2:] == ["0.064", "0.070"] and tx[-3] == "0.022":
+                        for t in row.cells[-2]._tc.iter(W + "t"):
+                            if t.text.strip() == "0.064":
+                                t.text = "0.063"
             if num == "A2" and i == 0:
                 nf3.drop_panel_b(d)
             if num == "A10":
@@ -304,6 +313,8 @@ def build():
                     t = t.replace(tex_esc(a), tex_esc(b))
             if num == "A15" and fn == "Table_A15_panel_size":
                 t = t.replace(f"$-$0.142 [$-$0.284; $-$0.001] & {OLD_T3P}", f"$-$0.142 [$-$0.284; $-$0.001] & {T3P}")
+            if num == "A15" and fn == "Table_A17_new_columns":
+                t = t.replace("0.022 & 0.064 & 0.070", "0.022 & 0.063 & 0.070")
             if num == "A2" and i == 0:
                 t = re.sub(r"\nB\. Annual panel.*?(?=\\bottomrule)", "\n", t, flags=re.S)
             if num == "A10":
@@ -323,6 +334,7 @@ def build():
 FORBID = nf3.FORBID + [r"(?i)earlier round", r"(?i)earlier version", r"(?i)\breplaces\b", r"plan addendum", r"a supplementary (table|figure)",
                        r"(?i)earlier panel"]
 FORBID = [p for p in FORBID if p != r"Figures? A[3-9]\b"] + [r"Figures? A[4-9]\b"]
+FORBID += [r"\(main\)", r"\bmain design\b"]
 
 
 def verify():
