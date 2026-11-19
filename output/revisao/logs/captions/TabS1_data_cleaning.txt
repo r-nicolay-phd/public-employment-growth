@@ -1,2 +1,2 @@
 Table S1. Data sources, definitions and cleaning rules
-Full variable definitions and download dates in docs/README_REPLICACAO.md and data/raw/*/_SOURCE.txt. The extended cleaning rules of the revision leave the five-year baseline sample unchanged (365 country-periods) but change one influential value (Bulgaria, 1997 inflation), which moves the draft-7 baseline coefficient (see docs/DECISOES_REVISAO.md, D1).
+Full variable definitions and download dates in the replication README and data/raw/*/_SOURCE.txt. The extended cleaning rules leave the five-year baseline sample unchanged (365 country-periods) but change one influential value (Bulgaria, 1997 inflation), which moves the conventional-specification coefficient.

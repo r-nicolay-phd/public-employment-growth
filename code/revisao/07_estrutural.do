@@ -28,7 +28,7 @@ program define est5
     reghdfe g wb_m1 $XP `extra' i.period if `cond', absorb(`absorb') vce(cluster id)
     estimates store S_`spec'
     post `P' ("`spec'") ("`lab'") (_b[wb_m1]) (_se[wb_m1]) (2 * ttail(e(df_r), abs(_b[wb_m1] / _se[wb_m1]))) (e(N)) (e(N_clust))
-    rv_kv str_`spec'_b `=string(_b[wb_m1], "%9.4f")'
+    rv_kv str_`spec'_b `=string(_b[wb_m1], "%12.8f")'
     rv_kv str_`spec'_p `=string(2 * ttail(e(df_r), abs(_b[wb_m1] / _se[wb_m1])), "%9.4f")'
     rv_kv str_`spec'_N `e(N)'
 end
@@ -36,7 +36,8 @@ est5 `P' base "Preferred specification (T3)" "1" "" ""
 est5 `P' trend "1. Country-specific linear trends" "1" "" "id id#c.period"
 est5 `P' regper "2. Region × period fixed effects" "1" "" "id region_id#period"
 est5 `P' oldage "3. Old-age dependency ratio (t_p − 1)" "1" "oldage_dep_m1" ""
-est5 `P' healthedu "4. Health and education spending share (t_p − 1)" "1" "health_edu_share_m1" ""
+est5 `P' healthedu "4a. Health and education spending share, WDI substitute (t_p − 1)" "1" "health_edu_share_m1" ""
+est5 `P' healthcofog "4b. Health and education spending share, IMF COFOG (t_p − 1)" "1" "health_edu_cofog_m1" ""
 est5 `P' noeuro "5. Excluding euro-area members in 2009–2013" "!excl_euro" "" ""
 est5 `P' post94 "6. Periods from 1994–1998 onwards" "year0 >= 1994" "" ""
 est5 `P' balanced "8a. Balanced panel (countries in every period of T3)" "balanced" "" ""
@@ -63,15 +64,17 @@ quietly summ nyr
 gen byte balanced = nyr == r(max)
 gen oldage_l1 = L.oldage_dep
 gen healthedu_l1 = L.health_edu_share
+gen healthcofog_l1 = L.health_edu_cofog
 tempname Q
 postfile `Q' str12 spec int h double(bhi sehi blo selo pdiff) long(N nc nep_hi nc_hi) using "$RINT/estrutural_lp.dta", replace
-foreach spec in base trend regyear oldage healthedu noeuro balanced crisis all {
+foreach spec in base trend regyear oldage healthedu healthcofog noeuro balanced crisis all {
     local extra ""
     local cond "inrange(year, 1996, 2023)"
     if "`spec'" == "trend" local extra "i.id#c.year"
     if "`spec'" == "regyear" local extra "i.region_id#i.year"
     if "`spec'" == "oldage" local extra "oldage_l1"
     if "`spec'" == "healthedu" local extra "healthedu_l1"
+    if "`spec'" == "healthcofog" local extra "healthcofog_l1"
     if "`spec'" == "noeuro" local cond "`cond' & !excl_euro"
     if "`spec'" == "balanced" local cond "`cond' & balanced"
     if "`spec'" == "crisis" local extra "crisis_bank"
@@ -158,7 +161,7 @@ rv_row "7. GFSM transition years" "Not executed: change-of-manual metadata by co
 rv_row "9b. IMF programmes (MONA)" "Not executed: MONA download blocked" "" "" "" "" ""
 rv_out TabS_structural, landscape ///
     title("Table S8. Structural and crisis explanations") ///
-    notes("Columns 1–3: preferred specification of H1 (T3: five-year averages 1979–2023, wage bill in t_p − 1, predetermined controls, country and period fixed effects, standard errors clustered by country) with one change at a time; the last row combines all changes except the balanced-panel restriction. Columns 4–6: local projections of 100 × log GDP per capita at h = 5 on the real wage bill shock interacted with merit above the median in the year before the shock (draft-7 specification), annual panel 1996–2023, country and year fixed effects, two lags of the shock and of growth, Driscoll-Kraay standard errors (maximum lag 3); in the local projections, row 2 uses region × year fixed effects, row 5 drops euro-area members in 2008–2013, and there is no post-1994 variant because the annual panel starts in 1996. Episodes: country-years with a non-zero shock in the high-merit regime in the estimation sample at h = 5. Region: World Bank regions. Old-age dependency ratio and health and education spending from the WDI (the COFOG/GFS series were not available; health and education spending is divided by GFS total expenditure). * p<0.10, ** p<0.05, *** p<0.01.")
+    notes("Columns 1–3: preferred specification of H1 (T3: five-year averages 1979–2023, wage bill in t_p − 1, predetermined controls, country and period fixed effects, standard errors clustered by country) with one change at a time; the last row combines all changes except the balanced-panel restriction. Columns 4–6: local projections of 100 × log GDP per capita at h = 5 on the real wage bill shock interacted with merit above the median in the year before the shock (conventional specification), annual panel 1996–2023, country and year fixed effects, two lags of the shock and of growth, Driscoll-Kraay standard errors (maximum lag 3); in the local projections, row 2 uses region × year fixed effects, row 5 drops euro-area members in 2008–2013, and there is no post-1994 variant because the annual panel starts in 1996. Episodes: country-years with a non-zero shock in the high-merit regime in the estimation sample at h = 5. Region: World Bank regions. Old-age dependency ratio from the WDI. Row 4a: government health and education spending from the WDI divided by GFS total expenditure, the substitute declared in the plan while the COFOG series were unavailable; row 4b: the planned measure, general government health (GF07) and education (GF09) spending as a share of total outlays from the IMF GFS COFOG database (downloaded on 13 November 2026); the combined row keeps the WDI measure. * p<0.10, ** p<0.05, *** p<0.01.")
 
 * =====================================================================================
 * Figura suplementar: coeficientes de T3 por alteracao

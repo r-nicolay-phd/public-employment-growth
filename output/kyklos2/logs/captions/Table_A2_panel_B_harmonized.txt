@@ -1,0 +1,2 @@
+Table A2 (panel B, harmonized). Descriptive statistics, annual panel, exact Table 1 sample
+Panel B of Table A2 recomputed on the 1,621 country-years of Table 1 (the earlier panel B used 1,593 country-years, a sample that differs from Table 1 by 28 country-years, which is why its within-country SD of the wage bill, 0.97, differed from the 0.98 reported in Table A5). SD between: standard deviation of country means; SD within: standard deviation after removing country means. Cleaning rules as in Table A2.

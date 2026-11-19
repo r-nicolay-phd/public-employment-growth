@@ -1,0 +1,20 @@
+Source: QoG Standard Dataset, time series (January 2026), including the ICRG indicator of quality of government, Polity and BMR democracy variables and the ICTD/UNU-WIDER Government Revenue Dataset
+Citation: The Quality of Government Institute. (2026). The QoG Standard Dataset, time-series (Version Jan26) [Data set]. University of Gothenburg. https://www.gu.se/en/quality-government/qog-data
+URL: https://www.qogdata.pol.gu.se/data/qog_std_ts_jan26.csv
+Licence or terms: QoG terms: free for academic, non-commercial use; redistribution not allowed; ICRG variables are proprietary (PRS Group)
+Access date: 2026-10-07
+Redistributed in this package: no
+Files: data/raw/qog/qog_std_ts_jan26.csv (download instructions in README)
+
+Source: QoG Expert Survey 2020 (aggregate)
+Citation: The Quality of Government Institute. (2021). The QoG Expert Survey 2020, aggregate data [Data set]. University of Gothenburg. https://www.gu.se/en/quality-government/qog-data
+URL: https://www.qogdata.pol.gu.se/data/qog_exp_agg_20.csv
+Licence or terms: QoG terms: redistribution not allowed
+Access date: 2026-10-07
+Redistributed in this package: no
+Files: data/raw/qog/qog_exp_agg_20.csv (download instructions in README)
+
+This file is NOT included because the provider does not allow redistribution or its terms are
+uncertain. Download it from the URL above and save it in this folder with exactly this name:
+    data/raw/qog/qog_std_ts_jan26.csv
+    data/raw/qog/qog_exp_agg_20.csv

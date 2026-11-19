@@ -2,7 +2,7 @@
       name:  <unnamed>
        log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/logs/08_merito.log
   log type:  text
- opened on:  17 Oct 2026, 21:28:39
+ opened on:  13 Nov 2026, 18:49:33
 
 . 
 . global XP "lny0 hc_m1 inv_m1 open_m1 infl_m1 popg_m1 ctot_g_m1"
@@ -612,7 +612,7 @@ file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações
 . tempfile base
 
 . save `base'
-file C:\Users\Usuario\AppData\Local\Temp\ST_7600_000002.tmp saved as .dta format
+file C:\Users\Usuario\AppData\Local\Temp\ST_8980_000002.tmp saved as .dta format
 
 . forvalues j = 1/25 {
   2.     local z0 = `e0' + (`e1' - `e0') * (`j' - 1) / 24
@@ -640,31 +640,31 @@ file C:\Users\Usuario\AppData\Local\Temp\ST_7600_000002.tmp saved as .dta format
  24.     quietly _pctile me, p(2.5 97.5)
  25.     post `K' (`z0' + `mbar') (`me0') (r(r1)) (r(r2))
  26. }
-(file C:\Users\Usuario\AppData\Local\Temp\ST_7600_000003.tmp not found)
-(file C:\Users\Usuario\AppData\Local\Temp\ST_7600_000004.tmp not found)
-(file C:\Users\Usuario\AppData\Local\Temp\ST_7600_000005.tmp not found)
-(file C:\Users\Usuario\AppData\Local\Temp\ST_7600_000006.tmp not found)
-(file C:\Users\Usuario\AppData\Local\Temp\ST_7600_000007.tmp not found)
-(file C:\Users\Usuario\AppData\Local\Temp\ST_7600_000008.tmp not found)
-(file C:\Users\Usuario\AppData\Local\Temp\ST_7600_000009.tmp not found)
-(file C:\Users\Usuario\AppData\Local\Temp\ST_7600_00000a.tmp not found)
-(file C:\Users\Usuario\AppData\Local\Temp\ST_7600_00000b.tmp not found)
-(file C:\Users\Usuario\AppData\Local\Temp\ST_7600_00000c.tmp not found)
-(file C:\Users\Usuario\AppData\Local\Temp\ST_7600_00000d.tmp not found)
-(file C:\Users\Usuario\AppData\Local\Temp\ST_7600_00000e.tmp not found)
-(file C:\Users\Usuario\AppData\Local\Temp\ST_7600_00000f.tmp not found)
-(file C:\Users\Usuario\AppData\Local\Temp\ST_7600_00000g.tmp not found)
-(file C:\Users\Usuario\AppData\Local\Temp\ST_7600_00000h.tmp not found)
-(file C:\Users\Usuario\AppData\Local\Temp\ST_7600_00000i.tmp not found)
-(file C:\Users\Usuario\AppData\Local\Temp\ST_7600_00000j.tmp not found)
-(file C:\Users\Usuario\AppData\Local\Temp\ST_7600_00000k.tmp not found)
-(file C:\Users\Usuario\AppData\Local\Temp\ST_7600_00000l.tmp not found)
-(file C:\Users\Usuario\AppData\Local\Temp\ST_7600_00000m.tmp not found)
-(file C:\Users\Usuario\AppData\Local\Temp\ST_7600_00000n.tmp not found)
-(file C:\Users\Usuario\AppData\Local\Temp\ST_7600_00000o.tmp not found)
-(file C:\Users\Usuario\AppData\Local\Temp\ST_7600_00000p.tmp not found)
-(file C:\Users\Usuario\AppData\Local\Temp\ST_7600_00000q.tmp not found)
-(file C:\Users\Usuario\AppData\Local\Temp\ST_7600_00000r.tmp not found)
+(file C:\Users\Usuario\AppData\Local\Temp\ST_8980_000003.tmp not found)
+(file C:\Users\Usuario\AppData\Local\Temp\ST_8980_000004.tmp not found)
+(file C:\Users\Usuario\AppData\Local\Temp\ST_8980_000005.tmp not found)
+(file C:\Users\Usuario\AppData\Local\Temp\ST_8980_000006.tmp not found)
+(file C:\Users\Usuario\AppData\Local\Temp\ST_8980_000007.tmp not found)
+(file C:\Users\Usuario\AppData\Local\Temp\ST_8980_000008.tmp not found)
+(file C:\Users\Usuario\AppData\Local\Temp\ST_8980_000009.tmp not found)
+(file C:\Users\Usuario\AppData\Local\Temp\ST_8980_00000a.tmp not found)
+(file C:\Users\Usuario\AppData\Local\Temp\ST_8980_00000b.tmp not found)
+(file C:\Users\Usuario\AppData\Local\Temp\ST_8980_00000c.tmp not found)
+(file C:\Users\Usuario\AppData\Local\Temp\ST_8980_00000d.tmp not found)
+(file C:\Users\Usuario\AppData\Local\Temp\ST_8980_00000e.tmp not found)
+(file C:\Users\Usuario\AppData\Local\Temp\ST_8980_00000f.tmp not found)
+(file C:\Users\Usuario\AppData\Local\Temp\ST_8980_00000g.tmp not found)
+(file C:\Users\Usuario\AppData\Local\Temp\ST_8980_00000h.tmp not found)
+(file C:\Users\Usuario\AppData\Local\Temp\ST_8980_00000i.tmp not found)
+(file C:\Users\Usuario\AppData\Local\Temp\ST_8980_00000j.tmp not found)
+(file C:\Users\Usuario\AppData\Local\Temp\ST_8980_00000k.tmp not found)
+(file C:\Users\Usuario\AppData\Local\Temp\ST_8980_00000l.tmp not found)
+(file C:\Users\Usuario\AppData\Local\Temp\ST_8980_00000m.tmp not found)
+(file C:\Users\Usuario\AppData\Local\Temp\ST_8980_00000n.tmp not found)
+(file C:\Users\Usuario\AppData\Local\Temp\ST_8980_00000o.tmp not found)
+(file C:\Users\Usuario\AppData\Local\Temp\ST_8980_00000p.tmp not found)
+(file C:\Users\Usuario\AppData\Local\Temp\ST_8980_00000q.tmp not found)
+(file C:\Users\Usuario\AppData\Local\Temp\ST_8980_00000r.tmp not found)
 
 . postclose `K'
 
@@ -681,6 +681,8 @@ p value of Wald test: 0.5739
 file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/figures/FigS_interflex_binning.png saved as PNG format
 .     graph export "$RFIG/FigS_interflex_binning.pdf", replace
 file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/figures/FigS_interflex_binning.pdf saved as PDF format
+.     graph export "$RFIG/FigS_interflex_binning.eps", replace as(eps)
+file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/figures/FigS_interflex_binning.eps saved as EPS format
 . }
 
 . restore
@@ -1034,7 +1036,7 @@ Number of observations (_N) was 0, now 61.
 . tempfile ME
 
 . save `ME'
-file C:\Users\Usuario\AppData\Local\Temp\ST_7600_00000t.tmp saved as .dta format
+file C:\Users\Usuario\AppData\Local\Temp\ST_8980_00000t.tmp saved as .dta format
 
 . use "$RINT/h3_bins.dta", clear
 
@@ -1066,7 +1068,8 @@ file C:\Users\Usuario\AppData\Local\Temp\ST_7600_00000t.tmp saved as .dta format
 . rv_fig Fig6_marginal_merit, width(190) height(120)
 file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/figures/Fig6_marginal_merit.pdf saved as PDF format
 file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/figures/Fig6_marginal_merit.png saved as PNG format
-figura gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/figures/Fig6_marginal_merit.{pdf,png} (190 x 120 mm)
+file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/figures/Fig6_marginal_merit.eps saved as EPS format
+figura gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/figures/Fig6_marginal_merit.{pdf,png,eps} (190 x 120 mm)
 
 . 
 . * =====================================================================================
@@ -1093,7 +1096,7 @@ figura gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\E
 
 . import delimited "$RINT/kv.csv", clear varnames(1) stringcols(_all)
 (encoding automatically selected: ISO-8859-1)
-(2 vars, 692 obs)
+(2 vars, 615 obs)
 
 . foreach k in h3_merit_mean h3_pboot h3_wald_p h3_mde h3_relevant h3_p1090 h3_q10 h3_q90 thr_ss_2015_p thr_hansen_p thr_lin_static thr_lin_controls {
   2.     quietly levelsof value if key == "`k'", local(`k') clean
@@ -1132,5 +1135,5 @@ tabela gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\E
       name:  <unnamed>
        log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/logs/08_merito.log
   log type:  text
- closed on:  17 Oct 2026, 21:32:08
+ closed on:  13 Nov 2026, 18:57:22
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

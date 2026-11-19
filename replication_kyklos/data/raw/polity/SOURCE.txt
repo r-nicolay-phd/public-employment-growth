@@ -1,0 +1,11 @@
+Source: Polity5
+Citation: Marshall, M. G., & Gurr, T. R. (2020). Polity5: Political regime characteristics and transitions, 1800-2018 [Data set]. Center for Systemic Peace. https://www.systemicpeace.org/inscrdata.html
+URL: https://www.systemicpeace.org/inscrdata.html
+Licence or terms: Copyright Center for Systemic Peace; redistribution not allowed without written permission
+Access date: 2026-11-13
+Redistributed in this package: no
+Files: data/raw/polity/p5v2018.xls (download instructions in README)
+
+This file is NOT included because the provider does not allow redistribution or its terms are
+uncertain. Download it from the URL above and save it in this folder with exactly this name:
+    data/raw/polity/p5v2018.xls

@@ -1,0 +1,7 @@
+Source: Worldwide Governance Indicators
+Citation: World Bank. (n.d.). Worldwide Governance Indicators [Data set]. Retrieved October 7, 2026, from https://www.worldbank.org/en/publication/worldwide-governance-indicators
+URL: https://api.worldbank.org/v2 (source 3)
+Licence or terms: Creative Commons Attribution 4.0 (CC BY 4.0), World Bank open data terms (https://www.worldbank.org/en/about/legal/terms-of-use-for-datasets)
+Access date: 2026-10-07
+Redistributed in this package: yes
+Files: data/raw/wgi/wgi.csv

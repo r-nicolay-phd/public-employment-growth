@@ -1,0 +1,7 @@
+Source: World Development Indicators
+Citation: World Bank. (n.d.). World Development Indicators [Data set]. Retrieved October 7, October 17 and November 13, 2026, from https://databank.worldbank.org/source/world-development-indicators
+URL: https://api.worldbank.org/v2
+Licence or terms: Creative Commons Attribution 4.0 (CC BY 4.0), World Bank open data terms (https://www.worldbank.org/en/about/legal/terms-of-use-for-datasets)
+Access date: 2026-10-07; 2026-10-17; 2026-11-13
+Redistributed in this package: yes
+Files: data/raw/wdi/wdi.csv; data/raw/wdi/wdi_paises.csv; data/raw/wdi_rev/wdi_rev.csv; data/raw/wdi_rev/wdi_rev_mv.csv

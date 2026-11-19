@@ -27,7 +27,7 @@ program define opra_painel
         gen `v'_m1 = L.`v' if first
     }
     drop if year < `y0'
-    collapse (mean) g gc_mean = govcons_gdp icrg = icrg_qog wgi6 wgi_ge secenr inv dependency ///
+    collapse (mean) g gc_mean = govcons_gdp icrg = icrg_qog wgi6 wgi_ge xconst secenr inv dependency ///
         (firstnm) gc_tp = govcons_gdp_tp gc_m1 = govcons_gdp_m1 lny0 = lny_m1 iso3 oecd, by(id period)
     xtset id period
 end
@@ -76,6 +76,15 @@ keep if sW
 count
 foreach meas in gc_mean gc_tp gc_m1 {
     opra_est `P' opra_wgi wgi_ge `meas'
+}
+* A4. [exploratoria, depois do plano: Polity5 obtido em 2026-11-13] restricoes ao executivo (Polity5, 1-7), a
+* medida da robustez de Oto-Peralias e Romero-Avila (secao IV.3 do working paper), janela 1981-2005
+opra_painel 1981 2005
+gen byte sX = !missing(g, gc_mean, gc_tp, gc_m1, xconst, lny0, secenr, inv)
+keep if sX
+count
+foreach meas in gc_mean gc_tp gc_m1 {
+    opra_est `P' opra_xc xconst `meas'
 }
 
 * =====================================================================================
@@ -175,6 +184,108 @@ postclose `C'
 postclose `P'
 
 * =====================================================================================
+* B2. Replica fiel de Mollick e Vianna (Public Choice, 2024, 198: 189-207; online em 2023), texto obtido em
+* 2026-11-13 [exploratoria: acrescentada depois do plano registrado, que previa so a replica aproximada]
+* Eq. (1) e Tabela 2 do artigo: crescimento do PIB real (%) sobre o proprio lag, ln(G/Y) (consumo final do governo,
+* NE.CON.GOVT.ZS), instituicao do WGI (GE, CC ou RL, em nivel), ln(G/Y) x instituicao, ln(I/Y) (formacao bruta de
+* capital, NE.GDI.TOTL.ZS) e crescimento populacional; efeitos fixos de pais e ano; erros de White; 1996-2019;
+* os 138 paises listados na nota da Tabela 1. Depois troca-se so a medida de G/Y: sobre o PIB tendencial (Hamilton)
+* e defasada um ano, na mesma amostra
+* =====================================================================================
+local mvpaises ALB DZA ATG ARG ARM AUS AUT AZE BHS BHR BGD BRB BLR BEL BLZ BEN BTN BOL BWA BRA BRN BGR BFA BDI ///
+    KHM CMR TCD CHL CHN COL COM COD COG CRI CIV HRV CYP CZE DNK DOM ECU EGY SLV EST SWZ FJI FIN FRA GAB GMB GEO ///
+    DEU GHA GRC GTM GIN GNB HND HKG HUN ISL IND IDN IRN IRL ISR ITA JAM JPN JOR KAZ KEN KOR KWT KGZ LVA LBN LTU ///
+    LUX MAC MDG MYS MLI MLT MRT MUS MEX MDA MNG MAR MOZ NAM NPL NLD NZL NIC NER NGA MKD NOR OMN PAK PAN PRY PER ///
+    PHL POL PRT PRI ROU RUS RWA SAU SEN SRB SLE SGP SVK SVN ZAF ESP LKA SDN SWE CHE TJK TZA THA TGO TUN TUR UGA ///
+    UKR GBR USA UZB VNM PSE
+use "$RINT/anual_rv.dta", clear
+gen byte mv138 = 0
+foreach c of local mvpaises {
+    replace mv138 = 1 if iso3 == "`c'"
+}
+egen tmv = tag(iso3) if mv138
+count if tmv
+rv_kv mvf_list_n `r(N)'
+keep if mv138 & inrange(year, 1995, 2019)
+xtset id year
+gen gy = gdp_growth_mv
+gen gy_l1 = L.gy
+gen lgy = ln(govcons_gdp_mv) if govcons_gdp_mv > 0
+gen lgy_l1 = L.lgy
+gen lgy_ham = lgy + lnY - lnY_ham
+gen liy = ln(gcf_gdp_mv) if gcf_gdp_mv > 0
+* o WGI nao tem 1997, 1999 e 2001; o N publicado (3.141, cerca de 137 paises x 23 anos) implica que esses anos
+* entram: interpolacao linear entre os anos vizinhos, so nesses tres anos
+foreach i in ge cc rl {
+    by id: ipolate wgi_`i' year, gen(_ip)
+    replace wgi_`i' = _ip if missing(wgi_`i') & inlist(year, 1997, 1999, 2001)
+    drop _ip
+}
+keep if inrange(year, 1996, 2019)
+tempname M
+postfile `M' str2 inst str4 per str6 smp str7 meas double(bG seG bI seI bX seX pX pXcl r2) long(N nc) ///
+    using "$RINT/mv_fiel.dta", replace
+* valores publicados (Tabela 2 de Mollick e Vianna): coeficiente, erro-padrao, N e paises
+foreach r in "ge full -0.772 0.166 2.378 0.463 -0.811 0.169 3141 137 0.243" "cc full -0.867 0.175 2.290 0.420 -0.814 0.156 3141 137 0.242" ///
+    "rl full -0.878 0.184 2.213 0.425 -0.835 0.153 3141 137 0.243" "ge pre -0.886 0.247 2.889 0.833 -0.755 0.292 1498 137 0.153" ///
+    "ge post -1.611 0.327 3.288 0.890 -1.253 0.316 1643 137 0.270" {
+    tokenize `r'
+    post `M' ("`1'") ("`2'") ("pub") ("lgy") (`3') (`4') (`5') (`6') (`7') (`8') (2 * normal(-abs(`7' / `8'))) (.) (`11') (`9') (`10')
+    rv_kv mvf_pub_`1'_`2'_bX `7'
+    rv_kv mvf_pub_`1'_`2'_pX `=string(2 * normal(-abs(`7' / `8')), "%9.4f")'
+    rv_kv mvf_pub_`1'_`2'_N `9'
+}
+foreach i in ge cc rl {
+    capture drop I
+    gen I = wgi_`i'
+    gen byte sC_`i' = !missing(gy, gy_l1, I, lgy, lgy_l1, lgy_ham, liy, popg)
+    foreach per in full pre post {
+        if "`i'" != "ge" & "`per'" != "full" continue
+        local cp = cond("`per'" == "full", "1", cond("`per'" == "pre", "year <= 2007", "year >= 2008"))
+        foreach k in "own lgy" "common lgy" "common lgy_ham" "common lgy_l1" {
+            tokenize `k'
+            local smp `1'
+            local meas `2'
+            capture drop G
+            capture drop GX
+            gen G = `meas'
+            gen GX = G * I
+            local sm = cond("`smp'" == "own", "1", "sC_`i'")
+            * efeitos de ano como regressores: o R2 within inclui os efeitos de ano, como no xtreg, fe do artigo
+            quietly reghdfe gy gy_l1 I G GX liy popg i.year if `sm' & `cp', absorb(id) vce(cluster id)
+            local pcl = 2 * ttail(e(df_r), abs(_b[GX] / _se[GX]))
+            reghdfe gy gy_l1 I G GX liy popg i.year if `sm' & `cp', absorb(id) vce(robust)
+            capture drop tgN
+            egen tgN = tag(id) if e(sample)
+            quietly count if tgN == 1
+            local nc = r(N)
+            post `M' ("`i'") ("`per'") ("`smp'") ("`meas'") (_b[G]) (_se[G]) (_b[I]) (_se[I]) (_b[GX]) (_se[GX]) ///
+                (2 * ttail(e(df_r), abs(_b[GX] / _se[GX]))) (`pcl') (e(r2_within)) (e(N)) (`nc')
+            local mm = cond("`meas'" == "lgy", "c", cond("`meas'" == "lgy_l1", "l", "h"))
+            rv_kv mvf_`i'_`per'_`smp'_`mm'_bX `=string(_b[GX], "%9.4f")'
+            rv_kv mvf_`i'_`per'_`smp'_`mm'_pX `=string(2 * ttail(e(df_r), abs(_b[GX] / _se[GX])), "%9.4f")'
+            rv_kv mvf_`i'_`per'_`smp'_`mm'_pXcl `=string(`pcl', "%9.4f")'
+            rv_kv mvf_`i'_`per'_`smp'_`mm'_bG `=string(_b[G], "%9.4f")'
+            rv_kv mvf_`i'_`per'_`smp'_`mm'_N `e(N)'
+        }
+    }
+}
+postclose `M'
+* razao entre a interacao replicada (amostra propria) e a publicada, periodo inteiro
+preserve
+use "$RINT/mv_fiel.dta", clear
+keep if per == "full" & meas == "lgy" & inlist(smp, "pub", "own")
+keep inst smp bX
+reshape wide bX, i(inst) j(smp) string
+gen ratio = bXown / bXpub
+quietly summ ratio
+rv_kv mvf_ratio_min `=string(r(min), "%9.4f")'
+rv_kv mvf_ratio_max `=string(r(max), "%9.4f")'
+local rmin = string(r(min), "%3.1f")
+local rmax = string(r(max), "%3.1f")
+restore
+
+* =====================================================================================
 * Tabela 6 (texto principal): replicas
 * =====================================================================================
 use "$RINT/replicas.dta", clear
@@ -225,7 +336,7 @@ foreach rep in opra_icrg opra_wgi {
     rv_row "Countries" `cc'
     rv_mid
 }
-rv_row "C. Approximate replication of Mollick and Vianna (2023): annual 1996–2019, mean of six WGI indicators" "" "" "" "" "" ""
+rv_row "C. Approximate replication of Mollick and Vianna (2024): annual 1996–2019, mean of six WGI indicators" "" "" "" "" "" ""
 local cb ""
 local cs ""
 local cg ""
@@ -245,9 +356,165 @@ rv_row "Government consumption × institutions" `cb'
 rv_row "" `cs'
 quietly summ N if rep == "mv"
 rv_row "Observations (each measure)" "`=string(r(mean), "%9.0fc")'" "" "" "" "" ""
+rv_mid
+* painel D: replica fiel (texto obtido depois do plano), GE, mesma amostra para as tres medidas
+preserve
+use "$RINT/mv_fiel.dta", clear
+rv_row "D. Mollick and Vianna (2024), published specification (exploratory): annual 1996–2019, government effectiveness" "" "" "" "" "" ""
+local cb ""
+local cs ""
+foreach meas in lgy lgy_ham lgy_l1 {
+    quietly summ bX if inst == "ge" & per == "full" & smp == "common" & meas == "`meas'"
+    local b = r(mean)
+    quietly summ pX if inst == "ge" & per == "full" & smp == "common" & meas == "`meas'"
+    rv_fmt `b' %12.3f `=r(mean)'
+    local cb `"`cb' "`r(s)'" """'
+    quietly summ seX if inst == "ge" & per == "full" & smp == "common" & meas == "`meas'"
+    rv_fmt `=r(mean)' %12.3f
+    local cs `"`cs' "(`r(s)')" """'
+}
+rv_row "Measure of government consumption (log)" "Contemporaneous" "" "% of trend GDP (Hamilton)" "" "Lagged one year" ""
+rv_row "Government consumption × institutions" `cb'
+rv_row "" `cs'
+quietly summ N if inst == "ge" & per == "full" & smp == "common" & meas == "lgy"
+rv_row "Observations (each measure)" "`=string(r(mean), "%9.0fc")'" "" "" "" "" ""
+restore
 rv_out Tab6_replications, landscape ///
     title("Table 6. Institutions and government size: replications with contemporaneous and predetermined measures") ///
-    notes("Dependent variable: growth of real GDP per capita (%). Panels A and B follow the panel specification of Oto-Peralías and Romero-Ávila (2013, working-paper version INFER 2012/3): five-year averages, growth on government final consumption (% of GDP, WDI), institutional quality and their interaction, with initial log GDP per capita, secondary school enrolment and investment, and period effects. Their ICRG bureaucracy-quality index is proprietary; panel A uses the public ICRG quality-of-government index distributed by QoG (0–1, from 1984) and panel B the WGI government effectiveness estimate (from 1996), as required by the revision protocol; legal origin, one of their excluded instruments, is not available and is dropped. System GMM: two-step, collapsed instruments, consumption, interaction and investment endogenous (lags 2 and deeper), income, enrolment and institutions predetermined (lags 1 and deeper), period dummies and the population dependency ratio as standard instruments; Windmeijer-corrected standard errors. Fixed effects: country and period fixed effects, standard errors clustered by country. Only the timing of government consumption changes across column pairs (period mean, first year of the period, last year of the previous period); each panel uses the same sample for all measures. A positive interaction means that better institutions mitigate the growth cost of government size. Panel C: annual panel 1996–2019 (the window of Mollick and Vianna, 2023), government consumption interacted with the mean of the six WGI indicators (centred), country and year fixed effects, lagged growth and the controls of Table 1, Driscoll-Kraay standard errors (maximum lag 3); the published text was not available, so the specification follows the description in the draft and is an approximate replication only. * p<0.10, ** p<0.05, *** p<0.01.")
+    notes("Dependent variable: growth of real GDP per capita (%) in panels A–C; growth of real GDP (%) in panel D. Panels A and B follow the panel specification of Oto-Peralías and Romero-Ávila (2013, working-paper version INFER 2012/3): five-year averages, growth on government final consumption (% of GDP, WDI), institutional quality and their interaction, with initial log GDP per capita, secondary school enrolment and investment, and period effects. Their ICRG bureaucracy-quality index is proprietary; panel A uses the public ICRG quality-of-government index distributed by QoG (0–1, from 1984) and panel B the WGI government effectiveness estimate (from 1996), as specified in the analysis plan; legal origin, one of their excluded instruments, is not available and is dropped. System GMM: two-step, collapsed instruments, consumption, interaction and investment endogenous (lags 2 and deeper), income, enrolment and institutions predetermined (lags 1 and deeper), period dummies and the population dependency ratio as standard instruments; Windmeijer-corrected standard errors. Fixed effects: country and period fixed effects, standard errors clustered by country. Only the timing of government consumption changes across column pairs (period mean, first year of the period, last year of the previous period); each panel uses the same sample for all measures. A positive interaction means that better institutions mitigate the growth cost of government size. Panel C: annual panel 1996–2019 (the window of Mollick and Vianna, 2024), government consumption interacted with the mean of the six WGI indicators (centred), country and year fixed effects, lagged growth and the controls of Table 1, Driscoll-Kraay standard errors (maximum lag 3); this is the specification registered in the analysis plan, written when the published text was not available, and it is an approximate replication only. Panel D (exploratory, added after the plan when the text was obtained): the published specification of Mollick and Vianna (2024, Table 2), with growth of real GDP (%) on its lag, log government consumption, WGI government effectiveness, their interaction, log investment and population growth, country and year fixed effects, heteroskedasticity-robust (White) standard errors, their 138 countries; only the measure of government consumption changes across columns, on the same sample. Full results in Table S17. * p<0.10, ** p<0.05, *** p<0.01.")
+
+* =====================================================================================
+* Tabela S17: replica fiel de Mollick e Vianna (exploratoria)
+* =====================================================================================
+use "$RINT/mv_fiel.dta", clear
+list, noobs sep(0)
+local cols `""ge full" "cc full" "rl full" "ge pre" "ge post""'
+rv_new, ncol(5) head1("GE" "CC" "RL" "GE" "GE") head2("1996–2019" "1996–2019" "1996–2019" "1996–2007" "2008–2019")
+foreach k in "pub lgy" "own lgy" {
+    tokenize `k'
+    local smp `1'
+    local meas `2'
+    local ttl = cond("`smp'" == "pub", "A. Published (Mollick and Vianna, 2024, Table 2)", "B. Replication: published specification, contemporaneous consumption")
+    rv_row "`ttl'" "" "" "" "" ""
+    foreach row in G I X {
+        local cb ""
+        local cs ""
+        foreach c of local cols {
+            tokenize `c'
+            quietly summ b`row' if inst == "`1'" & per == "`2'" & smp == "`smp'" & meas == "`meas'"
+            local b = r(mean)
+            quietly summ se`row' if inst == "`1'" & per == "`2'" & smp == "`smp'" & meas == "`meas'"
+            local se = r(mean)
+            rv_fmt `b' %12.3f `=2 * normal(-abs(`b' / `se'))'
+            local cb `"`cb' "`r(s)'""'
+            rv_fmt `se' %12.3f
+            local cs `"`cs' "(`r(s)')""'
+        }
+        local lab = cond("`row'" == "G", "Log government consumption (% of GDP)", cond("`row'" == "I", "Institutions (WGI)", "Log government consumption × institutions"))
+        rv_row "`lab'" `cb'
+        rv_row "" `cs'
+    }
+    foreach st in N nc r2 {
+        local cn ""
+        foreach c of local cols {
+            tokenize `c'
+            quietly summ `st' if inst == "`1'" & per == "`2'" & smp == "`smp'" & meas == "`meas'"
+            rv_fmt `=r(mean)' `=cond("`st'" == "r2", "%12.3f", "%12.0fc")'
+            local cn `"`cn' "`r(s)'""'
+        }
+        local lab = cond("`st'" == "N", "Observations", cond("`st'" == "nc", "Countries", "Within R² (including year effects)"))
+        rv_row "`lab'" `cn'
+    }
+    rv_mid
+}
+rv_row "C. Same sample for the three measures: log government consumption × institutions" "" "" "" "" ""
+foreach meas in lgy lgy_ham lgy_l1 {
+    local cb ""
+    local cs ""
+    local cp ""
+    foreach c of local cols {
+        tokenize `c'
+        quietly summ bX if inst == "`1'" & per == "`2'" & smp == "common" & meas == "`meas'"
+        local b = r(mean)
+        quietly summ pX if inst == "`1'" & per == "`2'" & smp == "common" & meas == "`meas'"
+        rv_fmt `b' %12.3f `=r(mean)'
+        local cb `"`cb' "`r(s)'""'
+        quietly summ seX if inst == "`1'" & per == "`2'" & smp == "common" & meas == "`meas'"
+        rv_fmt `=r(mean)' %12.3f
+        local cs `"`cs' "(`r(s)')""'
+        quietly summ pXcl if inst == "`1'" & per == "`2'" & smp == "common" & meas == "`meas'"
+        rv_fmt `=r(mean)' %12.3f
+        local cp `"`cp' "[`r(s)']""'
+    }
+    local lab = cond("`meas'" == "lgy", "Contemporaneous", cond("`meas'" == "lgy_ham", "% of trend GDP (Hamilton)", "Lagged one year"))
+    rv_row "`lab'" `cb'
+    rv_row "" `cs'
+    rv_row "" `cp'
+}
+local cn ""
+foreach c of local cols {
+    tokenize `c'
+    quietly summ N if inst == "`1'" & per == "`2'" & smp == "common" & meas == "lgy"
+    rv_fmt `=r(mean)' %12.0fc
+    local cn `"`cn' "`r(s)'""'
+}
+rv_row "Observations (each measure)" `cn'
+quietly summ N if inst == "ge" & per == "full" & smp == "own" & meas == "lgy"
+local nown = string(r(mean), "%9.0fc")
+quietly summ N if inst == "ge" & per == "full" & smp == "pub"
+local npub = string(r(mean), "%9.0fc")
+use "$RINT/mv_fiel.dta", clear
+keep if per == "full" & meas == "lgy" & inlist(smp, "pub", "own")
+keep inst smp bX
+reshape wide bX, i(inst) j(smp) string
+gen ratio = bXown / bXpub
+quietly summ ratio
+local rmin = string(r(min), "%3.1f")
+local rmax = string(r(max), "%3.1f")
+rv_out TabS_mv_faithful, landscape ///
+    title("Table S17. Mollick and Vianna (2024) with the published specification (exploratory)") ///
+    notes("Mollick and Vianna (2024, Public Choice 198: 189–207), equation (1) and Table 2: growth of real GDP (%, WDI NY.GDP.MKTP.KD.ZG) on its own lag, log general government final consumption (% of GDP, NE.CON.GOVT.ZS), institutional quality (WGI government effectiveness GE, control of corruption CC or rule of law RL, in levels), the interaction of the last two, log gross capital formation (% of GDP, NE.GDI.TOTL.ZS) and population growth, with country and year fixed effects and heteroskedasticity-robust (White) standard errors in parentheses, on the 138 countries listed in their Table 1 (Puerto Rico is not in the project data). WDI series downloaded on 13 November 2026; WGI has no estimates for 1997, 1999 and 2001, which are linearly interpolated because the published number of observations implies that those years are included. Panel A: published coefficients and standard errors (stars from the normal distribution). Panels B and C: this replication; stars from the White standard errors; in panel C, p-values with standard errors clustered by country in brackets. The replication comes close to the published sample (`nown' against `npub' observations with GE) and within R², and reproduces the signs and significance of the full-period estimates, but its interaction coefficients are `rmin' to `rmax' times the published ones; without the authors' code the difference cannot be traced (later vintages of the WDI series are one candidate). Panel C changes only the measure of government consumption (log of consumption over trend GDP, Hamilton filter; or consumption lagged one year) on the same country-years. The analysis was added after the registered plan, when the published text became available, and is exploratory. * p<0.10, ** p<0.05, *** p<0.01.")
+
+* =====================================================================================
+* Tabela S18: Oto-Peralias e Romero-Avila com restricoes ao executivo (Polity5), exploratoria
+* =====================================================================================
+use "$RINT/replicas.dta", clear
+rv_new, ncol(6) head1("Period mean (contemporaneous)" "" "First year (t_p)" "" "t_p − 1" "") ///
+    head2("System GMM" "Fixed effects" "System GMM" "Fixed effects" "System GMM" "Fixed effects")
+foreach row in i g {
+    local cb ""
+    local cs ""
+    foreach meas in gc_mean gc_tp gc_m1 {
+        foreach est in sgmm fe {
+            quietly summ b`row' if rep == "opra_xc" & meas == "`meas'" & est == "`est'"
+            local b = r(mean)
+            quietly summ se`row' if rep == "opra_xc" & meas == "`meas'" & est == "`est'"
+            local se = r(mean)
+            rv_fmt `b' %12.3f `=2 * normal(-abs(`b' / `se'))'
+            local cb `"`cb' "`r(s)'""'
+            rv_fmt `se' %12.3f
+            local cs `"`cs' "(`r(s)')""'
+        }
+    }
+    local lab = cond("`row'" == "i", "Government consumption × executive constraints", "Government consumption (% of GDP)")
+    rv_row "`lab'" `cb'
+    rv_row "" `cs'
+}
+foreach st in N nc nins {
+    local cn ""
+    foreach meas in gc_mean gc_tp gc_m1 {
+        foreach est in sgmm fe {
+            quietly summ `st' if rep == "opra_xc" & meas == "`meas'" & est == "`est'"
+            rv_fmt `=r(mean)' %12.0fc
+            local cn `"`cn' "`r(s)'""'
+        }
+    }
+    local lab = cond("`st'" == "N", "Observations", cond("`st'" == "nc", "Countries", "Instruments"))
+    rv_row "`lab'" `cn'
+}
+rv_out TabS_opra_xconst, landscape ///
+    title("Table S18. Oto-Peralías and Romero-Ávila (2013) with executive constraints (Polity5, exploratory)") ///
+    notes("Same specification, window (five-year averages 1981–1985 to 2001–2005) and estimators as Table 6, panel A, with institutional quality measured by executive constraints (Polity5, xconst, 1–7, period mean), the indicator of the robustness section of Oto-Peralías and Romero-Ávila (working-paper version, section IV.3). Polity codes −66, −77 and −88 (interruption, interregnum, transition) set to missing; Polity5 country codes matched to ISO3 through the Correlates of War codes in QoG, with explicit matches for Ethiopia, Vietnam, Serbia, Montenegro, South Sudan, West Germany and North Yemen. Polity5 downloaded on 13 November 2026, after the registered plan; the table is exploratory. A positive interaction means that stronger constraints mitigate the growth cost of government size. * p<0.10, ** p<0.05, *** p<0.01.")
 
 * =====================================================================================
 * Tabela suplementar: ciclicidade fiscal e consumo x despesa total
@@ -292,30 +559,45 @@ rv_out TabS_cyclicality, landscape ///
 * =====================================================================================
 * Figura 4: reconciliacao institucional (interacoes por medida)
 * =====================================================================================
+use "$RINT/mv_fiel.dta", clear
+keep if inst == "ge" & per == "full" & smp == "common"
+gen str14 rep = "mvf"
+gen str8 est = "fe_w"
+rename (bX seX pX) (bi sei pi)
+keep rep meas est bi sei pi N nc
+tempfile mvf
+save `mvf'
 use "$RINT/replicas.dta", clear
+append using `mvf'
 gen lo = bi - 1.96 * sei
 gen hi = bi + 1.96 * sei
 gen str60 lab = ""
 gen ord = .
 local i = 0
 foreach k in "opra_icrg gc_mean sgmm" "opra_icrg gc_tp sgmm" "opra_icrg gc_m1 sgmm" "opra_icrg gc_mean fe" "opra_icrg gc_tp fe" "opra_icrg gc_m1 fe" ///
-    "opra_wgi gc_mean fe" "opra_wgi gc_tp fe" "opra_wgi gc_m1 fe" "mv gc fe_dk" "mv gc_ham fe_dk" "mv gc_l1 fe_dk" {
+    "opra_wgi gc_mean fe" "opra_wgi gc_tp fe" "opra_wgi gc_m1 fe" "mv gc fe_dk" "mv gc_ham fe_dk" "mv gc_l1 fe_dk" ///
+    "mvf lgy fe_w" "mvf lgy_ham fe_w" "mvf lgy_l1 fe_w" {
     local ++i
     tokenize `k'
-    replace ord = 13 - `i' if rep == "`1'" & meas == "`2'" & est == "`3'"
+    replace ord = 16 - `i' if rep == "`1'" & meas == "`2'" & est == "`3'"
 }
 keep if !missing(ord)
 * intervalos padronizados por escala da instituicao nao sao comparaveis entre paineis: um painel por replica
-gen grp = cond(rep == "mv", 3, cond(rep == "opra_wgi", 2, 1))
+gen grp = cond(rep == "mvf", 4, cond(rep == "mv", 3, cond(rep == "opra_wgi", 2, 1)))
 twoway (rcap lo hi ord if grp == 1, horizontal lcolor(black)) (scatter ord bi if grp == 1, msymbol(O) mcolor(black) msize(small)) ///
        (rcap lo hi ord if grp == 2, horizontal lcolor(gs7) lpattern(dash)) (scatter ord bi if grp == 2, msymbol(Dh) mcolor(gs5) msize(small)) ///
-       (rcap lo hi ord if grp == 3, horizontal lcolor(black) lpattern(shortdash)) (scatter ord bi if grp == 3, msymbol(T) mcolor(black) msize(small)), ///
+       (rcap lo hi ord if grp == 3, horizontal lcolor(black) lpattern(shortdash)) (scatter ord bi if grp == 3, msymbol(T) mcolor(black) msize(small)) ///
+       (rcap lo hi ord if grp == 4, horizontal lcolor(gs7)) (scatter ord bi if grp == 4, msymbol(S) mcolor(gs5) msize(small)), ///
        $GOPT xline(0, lcolor(gs10) lpattern(shortdash)) ///
-       ylabel(12 "OPRA, S-GMM: period mean" 11 "OPRA, S-GMM: t{sub:p}" 10 "OPRA, S-GMM: t{sub:p} − 1" 9 "OPRA, FE: period mean" 8 "OPRA, FE: t{sub:p}" 7 "OPRA, FE: t{sub:p} − 1" ///
-              6 "OPRA (WGI), FE: period mean" 5 "OPRA (WGI), FE: t{sub:p}" 4 "OPRA (WGI), FE: t{sub:p} − 1" 3 "MV (approx.): contemporaneous" 2 "MV (approx.): % of trend GDP" 1 "MV (approx.): lagged", ///
-              angle(0) labsize(7.5pt) nogrid) xlabel(, format(%3.1f) labsize(8pt)) ytitle("") yscale(range(0.5 12.5)) ///
-       legend(order(2 "ICRG (QoG), 1981–2005" 4 "WGI, 1996–2020" 6 "WGI mean, annual 1996–2019") rows(1) pos(6) size(7.5pt)) ///
-       xtitle("Interaction: government consumption × institutions (95% CI)", size(8pt))
-rv_fig Fig4_reconciliation, width(190) height(110)
+       ylabel(15 "Oto-Peralías & Romero-Ávila, S-GMM: period mean" 14 "Oto-Peralías & Romero-Ávila, S-GMM: t{sub:p}" 13 "Oto-Peralías & Romero-Ávila, S-GMM: t{sub:p} − 1" ///
+              12 "Oto-Peralías & Romero-Ávila, FE: period mean" 11 "Oto-Peralías & Romero-Ávila, FE: t{sub:p}" 10 "Oto-Peralías & Romero-Ávila, FE: t{sub:p} − 1" ///
+              9 "Oto-Peralías & Romero-Ávila (WGI), FE: period mean" 8 "Oto-Peralías & Romero-Ávila (WGI), FE: t{sub:p}" 7 "Oto-Peralías & Romero-Ávila (WGI), FE: t{sub:p} − 1" ///
+              6 "Mollick & Vianna (approx.): contemporaneous" 5 "Mollick & Vianna (approx.): % of trend GDP" 4 "Mollick & Vianna (approx.): lagged" ///
+              3 "Mollick & Vianna (published): contemporaneous" 2 "Mollick & Vianna (published): % of trend GDP" 1 "Mollick & Vianna (published): lagged", ///
+              angle(0) labsize(7.5pt) nogrid) xlabel(, format(%3.1f) labsize(8pt)) ytitle("") yscale(range(0.5 15.5)) ///
+       legend(order(2 "ICRG (QoG), 1981–2005" 4 "WGI, 1996–2020" 6 "WGI mean, annual" 8 "WGI GE, published spec.") rows(2) pos(6) span size(7.5pt)) ///
+       xtitle("Interaction: government consumption × institutions (95% CI)", size(8pt)) ///
+       graphregion(margin(l=18 r=2 t=2 b=2))
+rv_fig Fig4_reconciliation, width(190) height(150)
 
 log close

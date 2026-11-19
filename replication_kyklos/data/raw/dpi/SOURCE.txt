@@ -1,0 +1,7 @@
+Source: Database of Political Institutions 2020
+Citation: Cruz, C., Keefer, P., & Scartascini, C. (2021). Database of Political Institutions 2020 [Data set]. Inter-American Development Bank. https://data.iadb.org/dataset/the-database-of-political-institutions-dpi-2020
+URL: https://data.iadb.org/dataset/the-database-of-political-institutions-dpi-2020
+Licence or terms: Creative Commons Attribution-NonCommercial-NoDerivs 3.0 IGO (unmodified file redistributed for non-commercial use)
+Access date: 2026-10-07
+Redistributed in this package: yes (unmodified)
+Files: data/raw/dpi/DPI2020_stata13.dta

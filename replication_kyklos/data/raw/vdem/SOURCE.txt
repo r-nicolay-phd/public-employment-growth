@@ -1,0 +1,7 @@
+Source: V-Dem Country-Year Dataset v16
+Citation: Coppedge, M., Gerring, J., Knutsen, C. H., Lindberg, S. I., Teorell, J., et al. (2026). V-Dem Country-Year Dataset v16 [Data set]. Varieties of Democracy (V-Dem) Project. https://doi.org/10.23696/vdemds26
+URL: https://v-dem.net/data/the-v-dem-dataset/
+Licence or terms: Creative Commons Attribution-ShareAlike 4.0 (CC BY-SA 4.0); the extracts are shared under the same licence
+Access date: 2026-10-07
+Redistributed in this package: yes (extracts)
+Files: data/raw/vdem/vdem_subset.csv; data/raw/vdem/vdem_rev.csv (variable extracts of V-Dem-CY-FullOthers-v16; the full zip files are not included)

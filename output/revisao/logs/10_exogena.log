@@ -2,7 +2,7 @@
       name:  <unnamed>
        log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/logs/10_exogena.log
   log type:  text
- opened on:  17 Oct 2026, 21:06:07
+ opened on:  13 Nov 2026, 18:57:35
 
 . 
 . use "$RINT/anual_rv.dta", clear
@@ -51,7 +51,6 @@ Panel variable: id (strongly balanced)
 . tempname Q
 
 . postfile `Q' str6 out int h double(b se lo hi p pboot) long(N nc) using "$RINT/exogena_lp.dta", replace
-(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/exogena_lp.dta not found)
 
 . foreach out in y100 ipriv {
   2.     forvalues hh = 0/6 {
@@ -256,8 +255,7 @@ added scalar:
 > ending and tax measures of the same plans and two lags of growth; country and year fixed effects; Driscoll-Kraay standard errors (maximum lag 3). With 16 countries, the wild cluster bootstrap p-valu
 > e at h = 4 is exploratory. First stage: real change in the general government wage bill (IMF GFS, % of lagged GDP) on the same shock and controls, standard errors clustered by country; with one inst
 > rument the effective F equals the squared cluster-robust t statistic. * p<0.10, ** p<0.05, *** p<0.01.")
-successfully created "C:/Users/Usuario/Dropbox/Papers/Emprego Público e Crescimento/Estimações/output/revisao/tables/TabS_exogenous.docx"
-(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/logs/captions/TabS_exogenous.txt not found)
+successfully replaced "C:/Users/Usuario/Dropbox/Papers/Emprego Público e Crescimento/Estimações/output/revisao/tables/TabS_exogenous.docx"
 tabela gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/tables/TabS_exogenous.{tex,docx}
 
 . 
@@ -281,14 +279,14 @@ tabela gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\E
 
 . rv_fig FigS_exogenous, width(190) height(85)
 file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/figures/FigS_exogenous.pdf saved as PDF format
-(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/figures/FigS_exogenous.png not found)
 file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/figures/FigS_exogenous.png saved as PNG format
-figura gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/figures/FigS_exogenous.{pdf,png} (190 x 85 mm)
+file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/figures/FigS_exogenous.eps saved as EPS format
+figura gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/figures/FigS_exogenous.{pdf,png,eps} (190 x 85 mm)
 
 . 
 . log close
       name:  <unnamed>
        log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/logs/10_exogena.log
   log type:  text
- closed on:  17 Oct 2026, 21:06:14
+ closed on:  13 Nov 2026, 18:57:44
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

@@ -1,0 +1,7 @@
+Source: Worldwide Bureaucracy Indicators
+Citation: World Bank. (n.d.). Worldwide Bureaucracy Indicators [Data set]. Retrieved October 7, 2026, from https://www.worldbank.org/en/data/interactive/2019/05/21/worldwide-bureaucracy-indicators-dashboard
+URL: https://api.worldbank.org/v2 (source 64)
+Licence or terms: Creative Commons Attribution 4.0 (CC BY 4.0), World Bank open data terms (https://www.worldbank.org/en/about/legal/terms-of-use-for-datasets)
+Access date: 2026-10-07
+Redistributed in this package: yes
+Files: data/raw/wwbi/wwbi.csv

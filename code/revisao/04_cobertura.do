@@ -60,7 +60,7 @@ foreach grp in all fed uni {
         egen `tg' = tag(id) if e(sample) & federal == 1
         quietly count if `tg' == 1
         post `P' ("`grp'") ("`meas'") (`b') (`se') (`p') (e(N)) (e(N_clust)) (r(N))
-        rv_kv cov_`grp'_`meas'_b `=string(`b', "%9.4f")'
+        rv_kv cov_`grp'_`meas'_b `=string(`b', "%12.8f")'
         rv_kv cov_`grp'_`meas'_p `=string(`p', "%9.4f")'
         rv_kv cov_`grp'_`meas'_N `e(N)'
         rv_kv cov_`grp'_`meas'_nc `e(N_clust)'
@@ -215,7 +215,7 @@ foreach k in fed_list fed_both_2010s fed_base ratio_fed_med ratio_uni_med uni_bo
 }
 rv_out Tab4_coverage, landscape ///
     title("Table 4. General versus central government wage bill on the same sample") ///
-    notes("Dependent variable: growth of real GDP per capita (%, five-year average), 1979–2023. Columns 1–6 use the same country-periods for both measures (country-periods with the general government wage bill, IMF GFS, and the central government wage bill, WDI, both in t_p − 1, and the predetermined controls of Table 2); column 7 uses every country-period with the central government series. Federations follow a single definition, the Forum of Federations list (`fed_list' countries in the data); `fed_both_2010s' federations have both series in 2010–2019, when the median ratio of the general to the central government wage bill is `ratio_fed_med' in federations and `ratio_uni_med' in unitary countries (`uni_both_2010s' unitary countries); `fed_base' federations are in the draft-7 baseline sample. Country and period fixed effects; standard errors clustered by country. The difference between the general and the central government coefficients is estimated on 999 pairs-bootstrap samples drawn by country, with both equations re-estimated on each sample; percentile confidence interval and normal-approximation p-value. Microstates excluded. * p<0.10, ** p<0.05, *** p<0.01.")
+    notes("Dependent variable: growth of real GDP per capita (%, five-year average), 1979–2023. Columns 1–6 use the same country-periods for both measures (country-periods with the general government wage bill, IMF GFS, and the central government wage bill, WDI, both in t_p − 1, and the predetermined controls of Table 2); column 7 uses every country-period with the central government series. Federations follow a single definition, the Forum of Federations list (`fed_list' countries in the data); `fed_both_2010s' federations have both series in 2010–2019, when the median ratio of the general to the central government wage bill is `ratio_fed_med' in federations and `ratio_uni_med' in unitary countries (`uni_both_2010s' unitary countries); `fed_base' federations are in the conventional-specification sample. Country and period fixed effects; standard errors clustered by country. The difference between the general and the central government coefficients is estimated on 999 pairs-bootstrap samples drawn by country, with both equations re-estimated on each sample; percentile confidence interval and normal-approximation p-value. Microstates excluded. * p<0.10, ** p<0.05, *** p<0.01.")
 
 * =====================================================================================
 * Tabela suplementar: razao geral/central por pais e federacoes

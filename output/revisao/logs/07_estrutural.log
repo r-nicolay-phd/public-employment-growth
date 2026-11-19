@@ -2,7 +2,7 @@
       name:  <unnamed>
        log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/logs/07_estrutural.log
   log type:  text
- opened on:  17 Oct 2026, 21:01:15
+ opened on:  13 Nov 2026, 18:48:21
 
 . 
 . global XP "lny0 hc_m1 inv_m1 open_m1 infl_m1 popg_m1 ctot_g_m1"
@@ -43,7 +43,6 @@ Panel variable: id (strongly balanced)
 . tempname P
 
 . postfile `P' str12 spec str70 lab double(b se p) long(N nc) using "$RINT/estrutural.dta", replace
-(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/estrutural.dta not found)
 
 . capture program drop est5
 
@@ -53,7 +52,7 @@ Panel variable: id (strongly balanced)
   3.     reghdfe g wb_m1 $XP `extra' i.period if `cond', absorb(`absorb') vce(cluster id)
   4.     estimates store S_`spec'
   5.     post `P' ("`spec'") ("`lab'") (_b[wb_m1]) (_se[wb_m1]) (2 * ttail(e(df_r), abs(_b[wb_m1] / _se[wb_m1]))) (e(N)) (e(N_clust))
-  6.     rv_kv str_`spec'_b `=string(_b[wb_m1], "%9.4f")'
+  6.     rv_kv str_`spec'_b `=string(_b[wb_m1], "%12.8f")'
   7.     rv_kv str_`spec'_p `=string(2 * ttail(e(df_r), abs(_b[wb_m1] / _se[wb_m1])), "%9.4f")'
   8.     rv_kv str_`spec'_N `e(N)'
   9. end
@@ -259,7 +258,7 @@ Absorbed degrees of freedom:
 -----------------------------------------------------+
 * = FE nested within cluster; treated as redundant for DoF computation
 
-. est5 `P' healthedu "4. Health and education spending share (t_p − 1)" "1" "health_edu_share_m1" ""
+. est5 `P' healthedu "4a. Health and education spending share, WDI substitute (t_p − 1)" "1" "health_edu_share_m1" ""
 (dropped 23 singleton observations)
 (MWFE estimator converged in 1 iterations)
 
@@ -299,6 +298,54 @@ Absorbed degrees of freedom:
  Absorbed FE | Categories  - Redundant  = Num. Coefs |
 -------------+---------------------------------------|
           id |        55          55           0    *|
+-----------------------------------------------------+
+* = FE nested within cluster; treated as redundant for DoF computation
+
+. est5 `P' healthcofog "4b. Health and education spending share, IMF COFOG (t_p − 1)" "1" "health_edu_cofog_m1" ""
+(dropped 6 singleton observations)
+(MWFE estimator converged in 1 iterations)
+warning: missing F statistic; dropped variables due to collinearity or too few clusters
+
+HDFE Linear regression                            Number of obs   =        233
+Absorbing 1 HDFE group                            F(  16,     53) =          .
+Statistics robust to heteroskedasticity           Prob > F        =          .
+                                                  R-squared       =     0.7630
+                                                  Adj R-squared   =     0.6627
+                                                  Within R-sq.    =     0.6428
+Number of clusters (id)      =         54         Root MSE        =     1.2689
+
+                                           (Std. err. adjusted for 54 clusters in id)
+-------------------------------------------------------------------------------------
+                    |               Robust
+                  g | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+--------------------+----------------------------------------------------------------
+              wb_m1 |  -.2277342   .1511664    -1.51   0.138    -.5309356    .0754673
+               lny0 |  -5.857013   .9300933    -6.30   0.000    -7.722544   -3.991482
+              hc_m1 |   2.101923   1.515875     1.39   0.171    -.9385385    5.142384
+             inv_m1 |  -.0481441   .0354762    -1.36   0.181    -.1193004    .0230121
+            open_m1 |   .0194935   .0087432     2.23   0.030     .0019568    .0370302
+            infl_m1 |  -.0242246   .0106787    -2.27   0.027    -.0456435   -.0028058
+            popg_m1 |  -.4031752   .4076943    -0.99   0.327    -1.220906     .414556
+          ctot_g_m1 |   .0922398   .0868524     1.06   0.293     -.081964    .2664436
+health_edu_cofog_m1 |  -.0195537   .0559122    -0.35   0.728    -.1316994    .0925921
+                    |
+             period |
+                 2  |  -1.599296    .160377    -9.97   0.000    -1.920972   -1.277621
+                 3  |   .1091821    .832955     0.13   0.896    -1.561514    1.779878
+                 4  |   .6146134   .5526409     1.11   0.271    -.4938438    1.723071
+                 5  |   1.860986   .7120732     2.61   0.012     .4327485    3.289224
+                 6  |  -1.035894   .8749848    -1.18   0.242    -2.790891    .7191032
+                 7  |   .4479764   .8853412     0.51   0.615    -1.327793    2.223746
+                 8  |   .2659015   .9554262     0.28   0.782    -1.650441    2.182244
+                    |
+              _cons |    54.7237   8.126188     6.73   0.000     38.42463    71.02277
+-------------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+          id |        54          54           0    *|
 -----------------------------------------------------+
 * = FE nested within cluster; treated as redundant for DoF computation
 
@@ -633,47 +680,50 @@ Panel variable: id (strongly balanced)
 . gen healthedu_l1 = L.health_edu_share
 (4,380 missing values generated)
 
+. gen healthcofog_l1 = L.health_edu_cofog
+(4,217 missing values generated)
+
 . tempname Q
 
 . postfile `Q' str12 spec int h double(bhi sehi blo selo pdiff) long(N nc nep_hi nc_hi) using "$RINT/estrutural_lp.dta", replace
-(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/estrutural_lp.dta not found)
 
-. foreach spec in base trend regyear oldage healthedu noeuro balanced crisis all {
+. foreach spec in base trend regyear oldage healthedu healthcofog noeuro balanced crisis all {
   2.     local extra ""
   3.     local cond "inrange(year, 1996, 2023)"
   4.     if "`spec'" == "trend" local extra "i.id#c.year"
   5.     if "`spec'" == "regyear" local extra "i.region_id#i.year"
   6.     if "`spec'" == "oldage" local extra "oldage_l1"
   7.     if "`spec'" == "healthedu" local extra "healthedu_l1"
-  8.     if "`spec'" == "noeuro" local cond "`cond' & !excl_euro"
-  9.     if "`spec'" == "balanced" local cond "`cond' & balanced"
- 10.     if "`spec'" == "crisis" local extra "crisis_bank"
- 11.     if "`spec'" == "all" {
- 12.         local extra "i.id#c.year i.region_id#i.year oldage_l1 healthedu_l1 crisis_bank"
- 13.         local cond "`cond' & !excl_euro"
- 14.     }
- 15.     forvalues hh = 0/6 {
- 16.         tempvar dy
- 17.         quietly gen double `dy' = F`hh'.y100 - L.y100
- 18.         capture quietly xtscc `dy' shi slo i.mhi L(1/2).d_wagebill_real L(1/2).g `extra' i.year if `cond', fe lag($DKLAG)
- 19.         if _rc {
- 20.             post `Q' ("`spec'") (`hh') (.) (.) (.) (.) (.) (.) (.) (.) (.)
- 21.             drop `dy'
- 22.             continue
- 23.         }
- 24.         quietly test shi = slo
- 25.         local pd = r(p)
- 26.         * episodios (pais-anos com choque diferente de zero) e paises no regime de merito alto
+  8.     if "`spec'" == "healthcofog" local extra "healthcofog_l1"
+  9.     if "`spec'" == "noeuro" local cond "`cond' & !excl_euro"
+ 10.     if "`spec'" == "balanced" local cond "`cond' & balanced"
+ 11.     if "`spec'" == "crisis" local extra "crisis_bank"
+ 12.     if "`spec'" == "all" {
+ 13.         local extra "i.id#c.year i.region_id#i.year oldage_l1 healthedu_l1 crisis_bank"
+ 14.         local cond "`cond' & !excl_euro"
+ 15.     }
+ 16.     forvalues hh = 0/6 {
+ 17.         tempvar dy
+ 18.         quietly gen double `dy' = F`hh'.y100 - L.y100
+ 19.         capture quietly xtscc `dy' shi slo i.mhi L(1/2).d_wagebill_real L(1/2).g `extra' i.year if `cond', fe lag($DKLAG)
+ 20.         if _rc {
+ 21.             post `Q' ("`spec'") (`hh') (.) (.) (.) (.) (.) (.) (.) (.) (.)
+ 22.             drop `dy'
+ 23.             continue
+ 24.         }
+ 25.         quietly test shi = slo
+ 26.         local pd = r(p)
+ 27.         * episodios (pais-anos com choque diferente de zero) e paises no regime de merito alto
 .         quietly count if e(sample) & mhi == 1 & d_wagebill_real != 0
- 27.         local nep = r(N)
- 28.         tempvar tg
- 29.         quietly egen `tg' = tag(id) if e(sample) & mhi == 1
- 30.         quietly count if `tg' == 1
- 31.         local nch = r(N)
- 32.         post `Q' ("`spec'") (`hh') (_b[shi]) (_se[shi]) (_b[slo]) (_se[slo]) (`pd') (e(N)) (e(N_g)) (`nep') (`nch')
- 33.         drop `dy' `tg'
- 34.     }
- 35. }
+ 28.         local nep = r(N)
+ 29.         tempvar tg
+ 30.         quietly egen `tg' = tag(id) if e(sample) & mhi == 1
+ 31.         quietly count if `tg' == 1
+ 32.         local nch = r(N)
+ 33.         post `Q' ("`spec'") (`hh') (_b[shi]) (_se[shi]) (_b[slo]) (_se[slo]) (`pd') (e(N)) (e(N_g)) (`nep') (`nch')
+ 34.         drop `dy' `tg'
+ 35.     }
+ 36. }
 
 . postclose `Q'
 
@@ -681,36 +731,39 @@ Panel variable: id (strongly balanced)
 
 . list if inlist(h, 4, 5), noobs sepby(spec)
 
-  +----------------------------------------------------------------------------------------------------------+
-  |      spec   h          bhi        sehi          blo        selo       pdiff      N   nc   nep_hi   nc_hi |
-  |----------------------------------------------------------------------------------------------------------|
-  |      base   4   -2.3730503   1.2374638   -.24563362   .49761951   .02957537   1298   89      678      36 |
-  |      base   5   -3.6245411    1.586583    .28233181   .68263839   .00262235   1221   87      647      36 |
-  |----------------------------------------------------------------------------------------------------------|
-  |     trend   4   -1.6111956   1.0931197   -.58569194   .34048214   .37142835   1298   89      678      36 |
-  |     trend   5   -2.5076877   1.2705579   -.25331835   .41852852   .07432105   1221   87      647      36 |
-  |----------------------------------------------------------------------------------------------------------|
-  |   regyear   4   -2.9510046   1.3225861    -.1879444   .40371604   .02980856   1298   89      678      36 |
-  |   regyear   5   -3.9442213   1.6759594    .39883843   .59098813   .00563825   1221   87      647      36 |
-  |----------------------------------------------------------------------------------------------------------|
-  |    oldage   4   -2.1286802   1.1676999   -.31006377   .49835827    .0349994   1298   89      678      36 |
-  |    oldage   5   -3.2966856   1.4970626    .21358112   .68846921   .00238376   1221   87      647      36 |
-  |----------------------------------------------------------------------------------------------------------|
-  | healthedu   4    -2.841883   1.4235788   -1.0852962   .38984831   .14857934    915   84      451      34 |
-  | healthedu   5    -4.369495    1.594222   -.66231481   .37405413   .01646886    845   82      423      34 |
-  |----------------------------------------------------------------------------------------------------------|
-  |    noeuro   4   -1.8978814   1.3467266   -.35016722   .52999183    .1397416   1206   89      611      36 |
-  |    noeuro   5   -2.8440938   1.8419144     .1631546   .68002602    .0382074   1129   87      580      36 |
-  |----------------------------------------------------------------------------------------------------------|
-  |  balanced   4   -1.9392803   1.1275624    3.0222166   2.6911135   .10777736    504   21      423      18 |
-  |  balanced   5   -3.2257674    1.115101    2.8586296   2.6035633    .0519282    483   21      406      18 |
-  |----------------------------------------------------------------------------------------------------------|
-  |    crisis   4   -2.8042105   1.3876749   -.46159642   .58271529   .03523246   1146   84      616      36 |
-  |    crisis   5   -3.8481409   1.5781281    .09912896   .78345653   .00168175   1146   84      616      36 |
-  |----------------------------------------------------------------------------------------------------------|
-  |       all   4   -.28580504   1.4061742   -.91466503   .48906456   .64546092    704   77      342      33 |
-  |       all   5   -.87365712   1.3568971   -.69067234   .37676251   .88585986    704   77      342      33 |
-  +----------------------------------------------------------------------------------------------------------+
+  +------------------------------------------------------------------------------------------------------------+
+  |        spec   h          bhi        sehi          blo        selo       pdiff      N   nc   nep_hi   nc_hi |
+  |------------------------------------------------------------------------------------------------------------|
+  |        base   4   -2.3730503   1.2374638   -.24563362   .49761951   .02957537   1298   89      678      36 |
+  |        base   5   -3.6245411    1.586583    .28233181   .68263839   .00262235   1221   87      647      36 |
+  |------------------------------------------------------------------------------------------------------------|
+  |       trend   4   -1.6111956   1.0931197   -.58569194   .34048214   .37142835   1298   89      678      36 |
+  |       trend   5   -2.5076877   1.2705579   -.25331835   .41852852   .07432105   1221   87      647      36 |
+  |------------------------------------------------------------------------------------------------------------|
+  |     regyear   4   -2.9510046   1.3225861    -.1879444   .40371604   .02980856   1298   89      678      36 |
+  |     regyear   5   -3.9442213   1.6759594    .39883843   .59098813   .00563825   1221   87      647      36 |
+  |------------------------------------------------------------------------------------------------------------|
+  |      oldage   4   -2.1286802   1.1676999   -.31006377   .49835827    .0349994   1298   89      678      36 |
+  |      oldage   5   -3.2966856   1.4970626    .21358112   .68846921   .00238376   1221   87      647      36 |
+  |------------------------------------------------------------------------------------------------------------|
+  |   healthedu   4    -2.841883   1.4235788   -1.0852962   .38984831   .14857934    915   84      451      34 |
+  |   healthedu   5    -4.369495    1.594222   -.66231481   .37405413   .01646886    845   82      423      34 |
+  |------------------------------------------------------------------------------------------------------------|
+  | healthcofog   4   -3.2084937    1.530321    .23497472   .69340607   .00639329   1075   68      616      33 |
+  | healthcofog   5   -4.2148955   1.7160361    1.0177507   .98117731   .00022789   1015   66      588      33 |
+  |------------------------------------------------------------------------------------------------------------|
+  |      noeuro   4   -1.8978814   1.3467266   -.35016722   .52999183    .1397416   1206   89      611      36 |
+  |      noeuro   5   -2.8440938   1.8419144     .1631546   .68002602    .0382074   1129   87      580      36 |
+  |------------------------------------------------------------------------------------------------------------|
+  |    balanced   4   -1.9392803   1.1275624    3.0222166   2.6911135   .10777736    504   21      423      18 |
+  |    balanced   5   -3.2257674    1.115101    2.8586296   2.6035633    .0519282    483   21      406      18 |
+  |------------------------------------------------------------------------------------------------------------|
+  |      crisis   4   -2.8042105   1.3876749   -.46159642   .58271529   .03523246   1146   84      616      36 |
+  |      crisis   5   -3.8481409   1.5781281    .09912896   .78345653   .00168175   1146   84      616      36 |
+  |------------------------------------------------------------------------------------------------------------|
+  |         all   4   -.28580504   1.4061742   -.91466503   .48906456   .64546092    704   77      342      33 |
+  |         all   5   -.87365712   1.3568971   -.69067234   .37676251   .88585986    704   77      342      33 |
+  +------------------------------------------------------------------------------------------------------------+
 
 . foreach s in base all noeuro regyear {
   2.     quietly summ bhi if spec == "`s'" & h == 5
@@ -734,12 +787,12 @@ Panel variable: id (strongly balanced)
 . tempfile T5
 
 . save `T5'
-file C:\Users\Usuario\AppData\Local\Temp\ST_7508_000001.tmp saved as .dta format
+file C:\Users\Usuario\AppData\Local\Temp\ST_8980_000001.tmp saved as .dta format
 
 . use "$RINT/estrutural_lp.dta", clear
 
 . keep if h == 5
-(54 observations deleted)
+(60 observations deleted)
 
 . rename (N nc) (N_lp nc_lp)
 
@@ -754,7 +807,7 @@ file C:\Users\Usuario\AppData\Local\Temp\ST_7508_000001.tmp saved as .dta format
         from master                         0  
         from using                          2  
 
-    Matched                                 9  
+    Matched                                10  
     -----------------------------------------
 
 . sort ord
@@ -795,12 +848,13 @@ file C:\Users\Usuario\AppData\Local\Temp\ST_7508_000001.tmp saved as .dta format
 >     title("Table S8. Structural and crisis explanations") ///
 >     notes("Columns 1–3: preferred specification of H1 (T3: five-year averages 1979–2023, wage bill in t_p − 1, predetermined controls, country and period fixed effects, standard errors clustered by 
 > country) with one change at a time; the last row combines all changes except the balanced-panel restriction. Columns 4–6: local projections of 100 × log GDP per capita at h = 5 on the real wage bill
->  shock interacted with merit above the median in the year before the shock (draft-7 specification), annual panel 1996–2023, country and year fixed effects, two lags of the shock and of growth, Drisc
-> oll-Kraay standard errors (maximum lag 3); in the local projections, row 2 uses region × year fixed effects, row 5 drops euro-area members in 2008–2013, and there is no post-1994 variant because the
->  annual panel starts in 1996. Episodes: country-years with a non-zero shock in the high-merit regime in the estimation sample at h = 5. Region: World Bank regions. Old-age dependency ratio and healt
-> h and education spending from the WDI (the COFOG/GFS series were not available; health and education spending is divided by GFS total expenditure). * p<0.10, ** p<0.05, *** p<0.01.")
-successfully created "C:/Users/Usuario/Dropbox/Papers/Emprego Público e Crescimento/Estimações/output/revisao/tables/TabS_structural.docx"
-(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/logs/captions/TabS_structural.txt not found)
+>  shock interacted with merit above the median in the year before the shock (conventional specification), annual panel 1996–2023, country and year fixed effects, two lags of the shock and of growth, 
+> Driscoll-Kraay standard errors (maximum lag 3); in the local projections, row 2 uses region × year fixed effects, row 5 drops euro-area members in 2008–2013, and there is no post-1994 variant becaus
+> e the annual panel starts in 1996. Episodes: country-years with a non-zero shock in the high-merit regime in the estimation sample at h = 5. Region: World Bank regions. Old-age dependency ratio from
+>  the WDI. Row 4a: government health and education spending from the WDI divided by GFS total expenditure, the substitute declared in the plan while the COFOG series were unavailable; row 4b: the pla
+> nned measure, general government health (GF07) and education (GF09) spending as a share of total outlays from the IMF GFS COFOG database (downloaded on 13 November 2026); the combined row keeps the 
+> WDI measure. * p<0.10, ** p<0.05, *** p<0.01.")
+successfully replaced "C:/Users/Usuario/Dropbox/Papers/Emprego Público e Crescimento/Estimações/output/revisao/tables/TabS_structural.docx"
 tabela gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/tables/TabS_structural.{tex,docx}
 
 . 
@@ -828,14 +882,14 @@ tabela gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\E
 
 . rv_fig FigS_structural, width(190) height(100)
 file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/figures/FigS_structural.pdf saved as PDF format
-(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/figures/FigS_structural.png not found)
 file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/figures/FigS_structural.png saved as PNG format
-figura gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/figures/FigS_structural.{pdf,png} (190 x 100 mm)
+file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/figures/FigS_structural.eps saved as EPS format
+figura gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/figures/FigS_structural.{pdf,png,eps} (190 x 100 mm)
 
 . 
 . log close
       name:  <unnamed>
        log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/logs/07_estrutural.log
   log type:  text
- closed on:  17 Oct 2026, 21:02:15
+ closed on:  13 Nov 2026, 18:49:32
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

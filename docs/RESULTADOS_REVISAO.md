@@ -1,6 +1,6 @@
 # Resultados da revisão empírica (draft 7 → draft 8)
 
-Gerado por `code/revisao/16_relatorio.do` em 17 Oct 2026. Todo número abaixo é lido de `data/interim/revisao/kv.csv` e das bases de resultados gravadas pelos do-files.
+Gerado por `code/revisao/16_relatorio.do` em 13 Nov 2026. Todo número abaixo é lido de `data/interim/revisao/kv.csv` e das bases de resultados gravadas pelos do-files.
 
 - **Plano de análise:** `docs/PLANO_REVISAO.md`, commit `2182199` de 17/10/2026, 16h16 (UTC−3), feito antes de qualquer estimação da revisão.
 - **Rotulagem:** as análises fora do plano estão marcadas como exploratórias.
@@ -50,6 +50,7 @@ Observações sobre as hipóteses:
 | B: decomposição nítida (placebo negativo e significativo; contemporânea − Hamilton significativa) | placebo −0,734 (p < 0,001); diferença −0,707 (p < 0,001) | sim |
 | B: réplica de Oto-Peralías e Romero-Ávila nítida (S-GMM) | contemporânea 1,035 (p 0,200); t_p − 1 0,927 (p 0,215) | não |
 | B: réplica (aproximada) de Mollick e Vianna nítida | contemporânea −0,184 (p 0,017); defasada 0,013 (p 0,758) | sim |
+| Sensibilidade, fora da regra (exploratória): réplica de Mollick e Vianna com a especificação publicada nítida (GE) | contemporânea −2,326 (p < 0,001); defasada −0,107 (p 0,856) | sim |
 | C: primeiro estágio narrativo com F efetivo ≥ 10 | F = 8,30 | não |
 | C: resposta do PIB ao corte narrativo de folha em h = 4 significativa | 0,859 (p 0,762) | não |
 
@@ -58,6 +59,7 @@ Observações sobre as hipóteses:
 - H1 não sobrevive ao timing correto combinado com a inferência por bootstrap.
 - A decomposição do viés atende ao critério registrado de nitidez.
 - Das réplicas, só a aproximada de Mollick e Vianna é nítida. A de Oto-Peralías e Romero-Ávila não depende do timing, de modo que o viés não explica a mitigação.
+- Com o texto de Mollick e Vianna obtido depois do plano, a réplica com a especificação publicada também é nítida pela mesma regra. Ela não entra na regra registrada e é reportada como sensibilidade exploratória.
 
 O artigo passa a ser uma nota metodológica sobre o viés de razões fiscais contemporâneas e seus efeitos em resultados publicados. O coeficiente de médio prazo sai do resumo.
 
@@ -66,8 +68,8 @@ O artigo passa a ser uma nota metodológica sobre o viés de razões fiscais con
 **Coeficiente de base.**
 
 - O coeficiente de base do draft 7 (−0,182 com os dados originais) passa a −0,167 só pela limpeza ampliada pedida pelo parecer. A causa é uma única observação, a inflação da Bulgária em 1997 (decisão D1).
-- Com a folha em t_p − 1, o coeficiente cai a −0,063 (p 0,396).
-- Excluindo o primeiro ano do crescimento, cai a −0,059 (p 0,445).
+- Com a folha em t_p − 1, o coeficiente cai a −0,062 (p 0,396).
+- Excluindo o primeiro ano do crescimento, cai a −0,058 (p 0,445).
 - Só volta a −0,142 com os controles predeterminados, que tiram o investimento e a inflação contemporâneos. Mesmo assim, o wild bootstrap dá p = 0,120.
 
 **Fragilidade de T3.**
@@ -76,8 +78,9 @@ O artigo passa a ser uma nota metodológica sobre o viés de razões fiscais con
 - Painel balanceado: 0,006.
 - Tendências por país: p 0,128.
 - Controle de crises: p 0,142.
+- Participação de saúde e educação: com o substituto do WDI, −0,431 (p < 0,001, N = 190); com o COFOG do FMI, a medida prevista no plano, −0,228 (p 0,138, N = 233).
 - Todas as alterações juntas: −0,190 (p 0,586).
-- S-GMM: 0,170. BC-FE: −0,099 (p 0,181).
+- S-GMM: 0,169. BC-FE: −0,099 (p 0,181).
 
 **Frequências.** O zero anual e o coeficiente de cinco anos não se reconciliam.
 
@@ -95,6 +98,10 @@ O artigo passa a ser uma nota metodológica sobre o viés de razões fiscais con
 
 - A mitigação de Oto-Peralías e Romero-Ávila com o ICRG (efeitos fixos: 0,542, p 0,071) não muda com o consumo em t_p − 1 (0,541, p 0,051).
 - A amplificação anual (réplica aproximada) some com o consumo defasado, mas sobrevive à tendência de Hamilton (−0,121, p 0,008).
+- Réplica com a especificação publicada de Mollick e Vianna (exploratória, Tabela S17): com GE, a interação é −2,326 (p < 0,001) com o consumo do mesmo ano, −0,039 (p 0,950) sobre a tendência de Hamilton e −0,107 (p 0,856) com o consumo defasado. O mesmo padrão aparece com CC e RL. Aqui a amplificação some também com a correção do denominador.
+   - A amostra fica perto da publicada (3.113 contra 3.141 observações), com o mesmo sinal e significância no período inteiro, mas as interações são de 2,46 a 2,86 vezes as publicadas (com GE, −2,317 contra −0,811). Sem o código dos autores, a diferença não pode ser rastreada.
+   - Antes de 2008, a interação contemporânea não é significativa (−1,775, p 0,129); o artigo publicado reporta −0,755 (p 0,010).
+- Oto-Peralías e Romero-Ávila com restrições ao executivo da Polity5 (exploratória, Tabela S18): a interação é nula em todos os timings (S-GMM: 0,050, p 0,426, com o consumo médio; −0,014, p 0,875, em t_p − 1). A mitigação, que o artigo original diz valer também com essa medida, não aparece nesses dados.
 - A ciclicidade pré-1996 absorve só parte da interação (de −0,114 para −0,092).
 - A diferença entre consumo e despesa total é de composição da amostra: na amostra comum, consumo 0,008 e despesa −0,030.
 
@@ -123,7 +130,7 @@ O artigo passa a ser uma nota metodológica sobre o viés de razões fiscais con
 | “explica a maior parte” | Rebaixada | “Com a folha medida no mesmo ano, o coeficiente é −0,723; um numerador placebo que só varia pelo denominador reproduz −0,734. Com a tendência de Hamilton o coeficiente é −0,016, e com o HP unilateral resta −0,423 (59% do original).” | Tabela 1; Tabela S3 |
 | “perto de zero com o PIB tendencial” | Rebaixada | “perto de zero com a tendência de Hamilton (−0,016) ou com a folha defasada (−0,001); com o HP, uni ou bilateral, o coeficiente fica entre −0,423 e −0,466” | Tabela 1 |
 | “uma ordem de grandeza” | Retirada | “o coeficiente contemporâneo é 1,7 vezes o obtido com o HP unilateral e 5,1 vezes o de médio prazo com o timing corrigido” | Tabelas 1 e 2 |
-| “o mesmo viés explica” (instituições) | Retirada | “a amplificação encontrada com o consumo anual contemporâneo desaparece com o consumo defasado, mas sobrevive à correção do denominador; a mitigação de Oto-Peralías e Romero-Ávila não depende do timing” | Tabela 6; Figura 4 |
+| “o mesmo viés explica” (instituições) | Retirada | “a amplificação encontrada com o consumo anual contemporâneo desaparece com o consumo defasado; na réplica com a especificação publicada, desaparece também com o consumo sobre o PIB tendencial; a mitigação de Oto-Peralías e Romero-Ávila não depende do timing” | Tabela 6; Tabela S17; Figura 4 |
 | “concentrado no salário relativo” | Rebaixada | “no modelo em logs, o salário relativo (−5,393) e o emprego público (−3,713) estão associados a menor crescimento; o componente de preço é mais negativo (diferença −1,68), e o prêmio ajustado não confirma” | Tabela 5 |
 | “o canal é o preço” | Rebaixada | “a associação é mais forte no componente de preço” | Tabela 5; Tabela S6 |
 | “confirma entre países” | Rebaixada | “é compatível com a regularidade documentada em estudos nacionais” | Tabela 5 |
@@ -138,13 +145,14 @@ O artigo passa a ser uma nota metodológica sobre o viés de razões fiscais con
 ## Limitações que ainda vão aparecer num parecer
 
 - **Identificação:** não há identificação causal. O primeiro estágio narrativo (16 países da OCDE) tem F efetivo 8,30, e o eleitoral 2,33 em democracias. MONA e safras de previsão não foram obtidas.
-- **Réplica de Mollick e Vianna:** é aproximada, porque o texto não foi obtido. A réplica de Oto-Peralías e Romero-Ávila usa substitutos públicos do ICRG e não tem a origem legal como instrumento.
+- **Réplica de Mollick e Vianna:** a registrada no plano é aproximada. A feita com a especificação publicada (exploratória) chega perto da amostra, mas não dos coeficientes publicados: as interações replicadas são de 2,46 a 2,86 vezes as publicadas.
+- **Réplica de Oto-Peralías e Romero-Ávila:** usa substitutos públicos do ICRG Bureaucracy Quality, que é pago, e não tem a origem legal como instrumento. Com as restrições ao executivo da Polity5, a mitigação não aparece.
 - **Viés com o HP:** o viés medido depende do filtro. Com Hamilton, a correção é quase completa; com o HP unilateral, resta 59% do coeficiente contemporâneo.
 - **Defasagem e Hamilton:** não são evidências independentes (correlação 0,96).
 - **H3 sem poder:** o teste não tem poder estatístico, e H5 tem instrumento fraco.
 - **Decomposição:** depende do WWBI, de cobertura irregular desde 2000, e de um instrumento fraco.
 - **Projeções locais:** com bootstrap por país, as de mérito alto não são significativas após o ajuste para testes múltiplos.
-- **Exploratórios:** as análises fora do plano (média das defasagens; ciclicidade 1996–2023) são exploratórias.
+- **Exploratórios:** as análises fora do plano são exploratórias: média das defasagens; ciclicidade 1996–2023; réplica de Mollick e Vianna com a especificação publicada (Tabela S17); Oto-Peralías e Romero-Ávila com a Polity5 (Tabela S18).
 
 ## Pendências
 
@@ -152,8 +160,9 @@ O artigo passa a ser uma nota metodológica sobre o viés de razões fiscais con
    - MONA;
    - OECD EO em safras;
    - Devries et al. (2011), hoje substituída por Alesina, Favero e Giavazzi;
-   - texto de Mollick e Vianna (2023), para a réplica fiel;
    - ICRG Bureaucracy Quality (pago);
-   - atualização de Laeven e Valencia até 2025.
+   - atualização de Laeven e Valencia até 2025;
+   - OCDE, Government at a Glance.
+- **Obtidos em 13/11/2026:** texto de Mollick e Vianna (Tabela S17), Polity5 (Tabela S18) e COFOG do FMI (Tabela S8, linha 4b).
 - **Texto:** reescrever o artigo no cenário B, com as sugestões de `docs/TEXTO_SUGERIDO.md`, e fazer as correções de redação do parecer (itens 15 e 32–42 de `docs/RESPOSTA_PARECER.md`).
 - **Literatura:** acrescentar as referências omitidas (item 28).

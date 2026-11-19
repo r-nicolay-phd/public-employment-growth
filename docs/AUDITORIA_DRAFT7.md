@@ -1,6 +1,6 @@
 # Auditoria e reprodução do draft 7
 
-Gerado por `code/revisao/01_auditoria.do` em 17 Oct 2026. Todo número abaixo sai do código (registro `data/interim/revisao/kv.csv`).
+Gerado por `code/revisao/01_auditoria.do` em 13 Nov 2026. Todo número abaixo sai do código (registro `data/interim/revisao/kv.csv`).
 
 ## 1. Reprodução das tabelas
 

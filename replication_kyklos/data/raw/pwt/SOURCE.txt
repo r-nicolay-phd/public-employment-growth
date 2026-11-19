@@ -1,0 +1,7 @@
+Source: Penn World Table 11.0
+Citation: Feenstra, R. C., Inklaar, R., & Timmer, M. P. (2025). Penn World Table version 11.0 [Data set]. Groningen Growth and Development Centre. https://doi.org/10.34894/FABVLR
+URL: https://www.rug.nl/ggdc/productivity/pwt/
+Licence or terms: Creative Commons Attribution 4.0 (CC BY 4.0)
+Access date: 2026-10-07
+Redistributed in this package: yes
+Files: data/raw/pwt/pwt110.dta

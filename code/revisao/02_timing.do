@@ -40,7 +40,7 @@ foreach t in T1 T2 T3 T4 T5 T6 {
         local lo = r(lo)
         local hi = r(hi)
         post `P' ("`t'") ("`smp'") (`b') (`se') (`p') (`pb') (`lo') (`hi') (`N') (`nc')
-        rv_kv `t'_`smp'_b `=string(`b', "%9.4f")'
+        rv_kv `t'_`smp'_b `=string(`b', "%12.8f")'
         rv_kv `t'_`smp'_se `=string(`se', "%9.4f")'
         rv_kv `t'_`smp'_p `=string(`p', "%9.4f")'
         rv_kv `t'_`smp'_pboot `=string(`pb', "%9.4f")'
@@ -76,7 +76,7 @@ foreach t in T3 T6 {
     estimates store `t'_3y
     rv_boot `w'
     post `P' ("`t'") ("3y") (`b') (`se') (`p') (r(p)) (r(lo)) (r(hi)) (e(N)) (e(N_clust))
-    rv_kv `t'_3y_b `=string(`b', "%9.4f")'
+    rv_kv `t'_3y_b `=string(`b', "%12.8f")'
     rv_kv `t'_3y_p `=string(`p', "%9.4f")'
     rv_kv `t'_3y_N `e(N)'
 }
@@ -102,7 +102,7 @@ local b = _b[wb_l1]
 local se = _se[wb_l1]
 estimates store A_pre
 post `P' ("A_pre") ("annual") (`b') (`se') (2 * ttail(e(df_r), abs(`b' / `se'))) (.) (.) (.) (e(N)) (e(N_g))
-rv_kv A_pre_b `=string(`b', "%9.4f")'
+rv_kv A_pre_b `=string(`b', "%12.8f")'
 rv_kv A_pre_se `=string(`se', "%9.4f")'
 rv_kv A_pre_N `e(N)'
 postclose `P'
@@ -113,7 +113,7 @@ postclose `P'
 use "$RINT/timing.dta", clear
 list, noobs sep(0)
 rv_new, ncol(8) head1("(1)" "(2)" "(3)" "(4)" "(5)" "(6)" "(7)" "(8)") ///
-    head2("T6: draft 7" "T1" "T2" "T3: preferred" "T4" "T5" "T3, 3-year" "Annual")
+    head2("T6: conventional" "T1" "T2" "T3: preferred" "T4" "T5" "T3, 3-year" "Annual")
 local order "T6 T1 T2 T3 T4 T5"
 * linha de coeficientes (amostra propria)
 local cb ""
@@ -179,7 +179,7 @@ rv_row "Wage bill, general government (% of GDP)" `cb'
 rv_row "" `cs'
 rv_row "Wild cluster bootstrap p-value" `cp'
 rv_mid
-rv_row "Same model in the draft-7 baseline sample" `bb'
+rv_row "Same model in the conventional-specification sample" `bb'
 rv_row "" `bs'
 rv_mid
 rv_row "Wage bill measured in" "t_p" "t_p − 1" "t_p" "t_p − 1" "t_p − 1" "t_p − 1, % of trend GDP" "t_p − 1" "t − 1"
@@ -192,7 +192,7 @@ rv_row "Period FE" "Yes" "Yes" "Yes" "Yes" "Yes" "Yes" "Yes" "Year"
 rv_row "Standard errors" "Cluster" "Cluster" "Cluster" "Cluster" "Cluster" "Cluster" "Cluster" "Driscoll-Kraay (3)"
 rv_out Tab2_timing, landscape ///
     title("Table 2. Timing of the initial wage bill and predetermined controls") ///
-    notes("Dependent variable: growth of real GDP per capita (%, average over the years shown). t_p is the first year of period p and t_p − 1 the last year of the previous period. Columns 1–6: non-overlapping five-year averages, 1979–2023; column 7: three-year averages, 1979–2023; column 8: annual panel, 1996–2023, with lagged growth. Period-mean controls (draft 7): log GDP per capita in t_p − 1, human capital in t_p and period means of investment, openness, inflation, population growth and commodity terms-of-trade growth. Predetermined controls: the same variables in t_p − 1 (in t − 1 in column 8). Column 5 drops investment, the mediator proposed in H4. Column 6 divides the wage bill by trend GDP from the Hamilton filter (H = 2, k = 2). Country and period fixed effects; standard errors clustered by country (t distribution with G − 1 degrees of freedom), except column 8 (Driscoll-Kraay, maximum lag 3, t distribution with T − 1 degrees of freedom). Wild cluster bootstrap p-values: Webb weights, 9,999 replications, clustered by country. The second panel restricts each specification to the draft-7 baseline sample (365 country-periods), keeping the country-periods that also have the variables of that column. Microstates excluded. * p<0.10, ** p<0.05, *** p<0.01.")
+    notes("Dependent variable: growth of real GDP per capita (%, average over the years shown). t_p is the first year of period p and t_p − 1 the last year of the previous period. Columns 1–6: non-overlapping five-year averages, 1979–2023; column 7: three-year averages, 1979–2023; column 8: annual panel, 1996–2023, with lagged growth. Period-mean controls (conventional): log GDP per capita in t_p − 1, human capital in t_p and period means of investment, openness, inflation, population growth and commodity terms-of-trade growth. Predetermined controls: the same variables in t_p − 1 (in t − 1 in column 8). Column 5 drops investment, the mediator proposed in H4. Column 6 divides the wage bill by trend GDP from the Hamilton filter (H = 2, k = 2). Country and period fixed effects; standard errors clustered by country (t distribution with G − 1 degrees of freedom), except column 8 (Driscoll-Kraay, maximum lag 3, t distribution with T − 1 degrees of freedom). Wild cluster bootstrap p-values: Webb weights, 9,999 replications, clustered by country. The second panel restricts each specification to the conventional-specification sample (365 country-periods), keeping the country-periods that also have the variables of that column. Microstates excluded. * p<0.10, ** p<0.05, *** p<0.01.")
 
 * =====================================================================================
 * Figura: coeficientes por timing, amostra propria e amostra do draft 7
@@ -213,11 +213,11 @@ twoway (rcap lo95 hi95 y if smp == "own", horizontal lcolor(black) lwidth(medthi
        (rcap lo95 hi95 y if smp == "base", horizontal lcolor(gs8) lpattern(dash) lwidth(medthin)) ///
        (scatter y b if smp == "base", msymbol(Dh) mcolor(gs6) msize(small)), ///
        $GOPT xline(0, lcolor(gs10) lpattern(shortdash)) ///
-       ylabel(6 "T6: draft 7 (t{sub:p})" 5 "T1: t{sub:p} − 1" 4 "T2: t{sub:p}, growth excl. t{sub:p}" 3 "T3: t{sub:p} − 1, predetermined" ///
+       ylabel(6 "T6: conventional (t{sub:p})" 5 "T1: t{sub:p} − 1" 4 "T2: t{sub:p}, growth excl. t{sub:p}" 3 "T3: t{sub:p} − 1, predetermined" ///
               2 "T4: T3 without investment" 1 "T5: T3, % of trend GDP", angle(0) labsize(8pt) nogrid) ///
        xlabel(, format(%3.1f) labsize(8pt)) ytitle("") yscale(range(0.5 6.5)) ///
        xtitle("Coefficient on the wage bill (p.p. of growth per p.p. of GDP), 95% CI", size(8pt)) ///
-       legend(order(2 "Own sample" 4 "Draft-7 baseline sample") rows(1) pos(6) size(8pt))
+       legend(order(2 "Own sample" 4 "Conventional-specification sample") rows(1) pos(6) size(8pt))
 rv_fig Fig3_timing, width(190) height(90)
 
 log close

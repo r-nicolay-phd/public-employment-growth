@@ -122,7 +122,18 @@ quietly summ bi if rep == "mv" & meas == "gc"
 local m_cb = r(mean)
 quietly summ pi if rep == "mv" & meas == "gc_l1"
 local m_p = r(mean)
+* sensibilidade (exploratoria, depois do plano): a mesma regra aplicada a replica com a especificacao publicada
+* de Mollick e Vianna (GE, mesma amostra); nao entra na regra registrada do cenario
+use "$RINT/mv_fiel.dta", clear
+quietly summ pX if inst == "ge" & per == "full" & smp == "common" & meas == "lgy"
+local f_c = r(mean)
+quietly summ bX if inst == "ge" & per == "full" & smp == "common" & meas == "lgy"
+local f_cb = r(mean)
+quietly summ pX if inst == "ge" & per == "full" & smp == "common" & meas == "lgy_l1"
+local f_p = r(mean)
 restore
+local nit_mvf = (`f_cb' < 0) & (`f_c' < 0.10) & (`f_p' >= 0.10)
+rv_kv nit_mvf `nit_mvf'
 local nit_opra = (`o_cb' > 0) & (`o_c' < 0.10) & (`o_p' >= 0.10)
 local nit_mv = (`m_cb' < 0) & (`m_c' < 0.10) & (`m_p' >= 0.10)
 local C = (`KV_afg_fs_Feff' >= 10) | (`KV_afg_y100_h4_p' < 0.05)
@@ -274,7 +285,7 @@ foreach mm in shock meritdif {
 }
 rv_out TabS_lp_horizons, landscape ///
     title("Table S14. Local projections by horizon: merit regimes, multiple-testing adjustment and alternative inference") ///
-    notes("Cumulative response of 100 × log GDP per capita from t − 1 to t + h to a real wage bill shock of one percentage point of lagged GDP (draft-7 specification), annual panel 1996–2023, country and year fixed effects, two lags of the shock and of growth. Merit regimes: merit above the sample median in the year before the shock. Driscoll-Kraay standard errors (maximum lag 3). Romano-Wolf: step-down adjustment over the seven horizons of the high − low difference, 999 bootstrap resamples of countries (cluster-robust t statistics in the resamples). Lag-augmented local projections (Montiel Olea and Plagborg-Møller, 2021): one extra lag of the shock and of growth and heteroskedasticity-robust standard errors. Half-panel jackknife: 2 × full-sample estimate minus the average of the 1996–2009 and 2010–2023 estimates, a correction for the small-T fixed-effects bias; there is no Stata implementation of Herbst and Johannsen (2024), so their correction is not applied. * p<0.10, ** p<0.05, *** p<0.01.")
+    notes("Cumulative response of 100 × log GDP per capita from t − 1 to t + h to a real wage bill shock of one percentage point of lagged GDP (conventional specification), annual panel 1996–2023, country and year fixed effects, two lags of the shock and of growth. Merit regimes: merit above the sample median in the year before the shock. Driscoll-Kraay standard errors (maximum lag 3). Romano-Wolf: step-down adjustment over the seven horizons of the high − low difference, 999 bootstrap resamples of countries (cluster-robust t statistics in the resamples). Lag-augmented local projections (Montiel Olea and Plagborg-Møller, 2021): one extra lag of the shock and of growth and heteroskedasticity-robust standard errors. Half-panel jackknife: 2 × full-sample estimate minus the average of the 1996–2009 and 2010–2023 estimates, a correction for the small-T fixed-effects bias; there is no Stata implementation of Herbst and Johannsen (2024), so their correction is not applied. * p<0.10, ** p<0.05, *** p<0.01.")
 
 * =====================================================================================
 * Tabela 8 (texto principal): mapa de robustez
@@ -289,7 +300,7 @@ program define addm
     post `M' ("`lab'") (`b') (.) (`p') (`N') ("`src'")
 end
 addm `M' "Preferred (T3): wage bill in t_p − 1, predetermined controls" `KV_T3_own_b' `KV_T3_own_p' `KV_T3_own_N' "Table 2, col. 4"
-addm `M' "Draft-7 timing (t_p, period-mean controls)" `KV_T6_own_b' `KV_T6_own_p' `KV_T6_own_N' "Table 2, col. 1"
+addm `M' "Conventional timing (t_p, period-mean controls)" `KV_T6_own_b' `KV_T6_own_p' `KV_T6_own_N' "Table 2, col. 1"
 addm `M' "Growth excluding the first year (T2)" `KV_T2_own_b' `KV_T2_own_p' `KV_T2_own_N' "Table 2, col. 3"
 addm `M' "Three-year averages (T3)" `KV_T3_3y_b' `KV_T3_3y_p' `KV_T3_3y_N' "Table 2, col. 7"
 addm `M' "Annual, all regressors lagged" `KV_A_pre_b' . `KV_A_pre_N' "Table 2, col. 8"
@@ -303,6 +314,7 @@ addm `M' "Excluding euro area 2009–2013" `KV_str_noeuro_b' `KV_str_noeuro_p' `
 addm `M' "Periods from 1994–1998" `KV_str_post94_b' `KV_str_post94_p' `KV_str_post94_N' "Table S8"
 addm `M' "Balanced panel" `KV_str_balanced_b' `KV_str_balanced_p' `KV_str_balanced_N' "Table S8"
 addm `M' "Banking-crisis control" `KV_str_crisis_b' `KV_str_crisis_p' `KV_str_crisis_N' "Table S8"
+addm `M' "Health and education share, IMF COFOG" `KV_str_healthcofog_b' `KV_str_healthcofog_p' `KV_str_healthcofog_N' "Table S8"
 addm `M' "All structural changes together" `KV_str_all_b' `KV_str_all_p' `KV_str_all_N' "Table S8"
 addm `M' "System GMM (T3 timing)" `KV_T3gmm_b' `KV_T3gmm_p' . "Table 3, col. 2"
 addm `M' "Bias-corrected FE (T3 timing)" `KV_T3bc_b' `KV_T3bc_p' . "Table 3, col. 3"
@@ -432,6 +444,6 @@ local tot = r(N)
 rv_row "Total" "" "`tot'"
 rv_out TabS16_countries, landscape ///
     title("Table S16. Countries in the preferred five-year estimation sample (T3), by 1996 income group") ///
-    notes("Countries with at least one country-period in the T3 estimation sample (after singletons are dropped). World Bank income group in 1996. The draft-7 table listed the 101 countries with a general government wage bill in any period rather than the estimation sample.")
+    notes("Countries with at least one country-period in the T3 estimation sample (after singletons are dropped). World Bank income group in 1996.")
 
 log close

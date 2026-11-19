@@ -1,0 +1,14 @@
+Source: Alesina, Favero and Giavazzi fiscal adjustment plans (1978-2014)
+Citation: Alesina, A., Favero, C., & Giavazzi, F. (2019). Austerity: When it works and when it doesn't. Princeton University Press. Data file obtained from Gale, W., Berlin, I., & Thorpe, S. (2025). Replication data for: Fiscal consolidation: Lessons for the U.S. [Data set]. Harvard Dataverse. https://doi.org/10.7910/DVN/J104NQ
+URL: https://igier.unibocconi.eu/research/datasets/fiscal-adjustment-plans/dataset; https://doi.org/10.7910/DVN/J104NQ
+Licence or terms: Terms of the original IGIER dataset not stated; the Dataverse copy is deposited under CC0 by third parties. Treated as uncertain
+Access date: 2026-10-17
+Redistributed in this package: no
+Files: data/raw/afg/NewComponents1978-2014_final.xlsx (download instructions in README)
+
+This file is NOT included because the provider does not allow redistribution or its terms are
+uncertain. Download it from the URL above and save it in this folder with exactly this name:
+    data/raw/afg/NewComponents1978-2014_final.xlsx
+
+Public copy used by the authors: Harvard Dataverse, doi:10.7910/DVN/J104NQ, file
+NewComponents1978-2014_final.xlsx (sheet GDP).

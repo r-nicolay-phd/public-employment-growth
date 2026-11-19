@@ -1,0 +1,7 @@
+Source: ILOSTAT (public employment, total employment, public-sector earnings, trade union density)
+Citation: International Labour Organization. (n.d.). ILOSTAT database [Data set]. Retrieved October 7 and October 17, 2026, from https://ilostat.ilo.org
+URL: https://sdmx.ilo.org
+Licence or terms: Creative Commons Attribution 4.0 (CC BY 4.0), ILO rights and permissions (from 3 May 2023)
+Access date: 2026-10-07; 2026-10-17
+Redistributed in this package: yes
+Files: data/raw/ilostat/EMP_PUBL_SEX_AGE_NB.csv; data/raw/ilostat/EMP_TEMP_SEX_AGE_NB.csv; data/raw/ilostat/EAR_PMTA_SEX_NB.csv; data/raw/ilostat_ud/ud.csv

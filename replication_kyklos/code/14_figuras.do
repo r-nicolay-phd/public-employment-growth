@@ -1,0 +1,105 @@
+* 14_figuras.do -- figuras que nao saem dos blocos de estimacao: Figura 1 (folha por renda), Figura 5 (emprego x
+* salario relativo), Figura 8 (LP por regime de merito, com episodios e paises) e Figura S1 (cobertura)
+version 17
+if "$ROOT" == "" global ROOT "`c(pwd)'"
+do "$ROOT/code/00_setup.do"
+capture log close
+log using "$RLOG/14_figuras.log", replace text
+
+* =====================================================================================
+* Figura 1: folha mediana do governo geral por grupo de renda (1996), com N de paises
+* =====================================================================================
+use "$RINT/anual_rv.dta", clear
+keep if micro == 0 & inrange(year, 1996, 2023) & !missing(wb, income_grp)
+forvalues k = 1/4 {
+    egen t`k' = tag(id) if income_grp == `k'
+    quietly count if t`k' == 1
+    rv_kv fig1_n`k' `r(N)'
+    local n`k' = r(N)
+}
+collapse (median) wb (count) n = wb, by(income_grp year)
+twoway (line wb year if income_grp == 1, lcolor(black) lpattern(shortdash)) ///
+       (line wb year if income_grp == 2, lcolor(black) lpattern(dash)) ///
+       (line wb year if income_grp == 3, lcolor(gs6) lpattern(longdash)) ///
+       (line wb year if income_grp == 4, lcolor(black) lpattern(solid) lwidth(medthick)), ///
+       $GOPT ylabel(, format(%3.1f) labsize(8pt) nogrid angle(horizontal)) xlabel(1996(4)2020 2023, labsize(8pt)) ///
+       ytitle("Median wage bill, general government (% of GDP)", size(8pt)) xtitle("") ///
+       legend(order(1 "Low income (`n1')" 2 "Lower middle (`n2')" 3 "Upper middle (`n3')" 4 "High income (`n4')") rows(1) pos(6) size(7.5pt))
+rv_fig Fig1_wagebill_income, width(190) height(90)
+
+* =====================================================================================
+* Figura 5: emprego publico x salario relativo (medias por pais, 2000-2023)
+* =====================================================================================
+use "$RINT/anual_rv.dta", clear
+keep if micro == 0 & inrange(year, 2000, 2023) & !missing(pubemp_share, relwage)
+collapse (mean) pubemp_share relwage (count) nyr = relwage (firstnm) iso3 income_grp, by(id)
+count
+local nc = r(N)
+rv_kv fig5_nc `nc'
+corr pubemp_share relwage
+rv_kv fig5_corr `=string(r(rho), "%5.2f")'
+* rotulos so para paises de referencia, com posicoes que evitam sobreposicao
+gen str3 lab = iso3 if inlist(iso3, "BRA", "USA", "DEU", "FRA", "DNK", "NOR", "MEX", "IND", "ZAF") | inlist(iso3, "GBR", "JPN", "KOR", "EGY", "ARG", "CHL", "SWE")
+gen pos = 3
+replace pos = 9 if inlist(iso3, "SWE")
+replace pos = 12 if inlist(iso3, "BRA", "ZAF", "NOR")
+replace pos = 6 if inlist(iso3, "DEU", "JPN", "KOR", "EGY")
+replace pos = 3 if inlist(iso3, "DNK")
+replace pos = 6 if iso3 == "GBR"
+replace pos = 4 if iso3 == "FRA"
+twoway (scatter relwage pubemp_share if income_grp == 4, msymbol(O) mcolor(black) msize(small)) ///
+       (scatter relwage pubemp_share if income_grp == 3, msymbol(Dh) mcolor(black) msize(small)) ///
+       (scatter relwage pubemp_share if inlist(income_grp, 1, 2), msymbol(Th) mcolor(gs6) msize(small)) ///
+       (scatter relwage pubemp_share if lab != "", msymbol(none) mlabel(lab) mlabvposition(pos) mlabsize(6.5pt) mlabcolor(black)), ///
+       $GOPT ylabel(, format(%3.1f) labsize(8pt) nogrid angle(horizontal)) xlabel(, labsize(8pt)) ///
+       xtitle("Public employment (% of total employment), WWBI", size(8pt)) ///
+       ytitle("Relative public wage (wage bill per public employee / GDP per worker)", size(7.5pt)) ///
+       legend(order(1 "High income" 2 "Upper middle income" 3 "Low and lower middle income") rows(1) pos(6) size(7.5pt))
+rv_fig Fig5_employment_relwage, width(190) height(110)
+
+* =====================================================================================
+* Figura 8: projecoes locais por regime de merito, com episodios e paises
+* =====================================================================================
+use "$RINT/estrutural_lp.dta", clear
+keep if spec == "base"
+sort h
+gen lohi = bhi - 1.96 * sehi
+gen hihi = bhi + 1.96 * sehi
+gen lolo = blo - 1.96 * selo
+gen hilo = blo + 1.96 * selo
+gen h1 = h + 0.08
+gen h2 = h - 0.08
+quietly summ nep_hi if h == 5
+local nep = r(mean)
+quietly summ nc_hi if h == 5
+local nch = r(mean)
+quietly summ N if h == 5
+local N5 = r(mean)
+twoway (rarea lohi hihi h, fcolor(gs14) lcolor(gs8) lpattern(dash) lwidth(vthin)) ///
+       (rcap lolo hilo h2, lcolor(gs6)) ///
+       (connected bhi h, lcolor(black) lpattern(solid) mcolor(black) msymbol(O) msize(small)) ///
+       (connected blo h2, lcolor(gs6) mcolor(gs6) msymbol(Th) lpattern(dash) msize(small)), ///
+       $GOPT yline(0, lcolor(gs10) lpattern(shortdash)) xlabel(0(1)6, labsize(8pt)) ylabel(, format(%3.1f) labsize(8pt) nogrid angle(horizontal)) ///
+       legend(order(3 "High merit (band: 95% CI)" 4 "Low merit (bars: 95% CI)") rows(1) pos(6) size(7.5pt)) ///
+       xtitle("Years after the shock", size(8pt)) ytitle("Cumulative response of GDP per capita (100 × log, %)", size(7.5pt)) ///
+       note("h = 5: `N5' observations; high merit: `nep' shock episodes in `nch' countries", size(7pt))
+rv_fig Fig8_lp_merit, width(190) height(95)
+
+* =====================================================================================
+* Figura S1: cobertura das series (numero de paises com dado por ano)
+* =====================================================================================
+use "$RINT/anual_rv.dta", clear
+keep if micro == 0 & inrange(year, 1979, 2023)
+gen c_gg = !missing(wb)
+gen c_cg = !missing(wagebill_cg_wdi)
+gen c_wwbi = !missing(pubemp_share)
+gen c_merit = !missing(merit)
+collapse (sum) c_gg c_cg c_wwbi c_merit, by(year)
+twoway (line c_gg year, lcolor(black) lwidth(medthick)) (line c_cg year, lcolor(black) lpattern(dash)) ///
+       (line c_wwbi year, lcolor(gs6) lpattern(shortdash)) (line c_merit year, lcolor(gs9) lpattern(longdash)), ///
+       $GOPT ylabel(, labsize(8pt) nogrid angle(horizontal)) xlabel(1979 1985(5)2020 2023, labsize(8pt)) ///
+       ytitle("Countries with data", size(8pt)) xtitle("") ///
+       legend(order(1 "Wage bill, general government (GFS)" 2 "Wage bill, central government (WDI)" 3 "Public employment (WWBI)" 4 "Meritocratic recruitment (V-Dem)") cols(2) pos(6) size(7.5pt))
+rv_fig FigS1_coverage, width(190) height(90)
+
+log close

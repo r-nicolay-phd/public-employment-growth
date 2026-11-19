@@ -6,17 +6,17 @@ Resumo: 22 resolvidos, 4 parcialmente resolvidos, 0 não executados e 16 a fazer
 
 | Item | O que foi feito | Resultado | Status |
 |---|---|---|---|
-| 1 | Enquadramento escolhido pela regra registrada; réplica de Oto-Peralías e Romero-Ávila; réplica aproximada de Mollick e Vianna; variação exógena narrativa | Cenário B (nota metodológica); Tabela 6, Tabela S10. Sem derivação formal nem simulação de Monte Carlo do viés | Parcialmente resolvido |
+| 1 | Enquadramento escolhido pela regra registrada; réplica de Oto-Peralías e Romero-Ávila; réplica aproximada de Mollick e Vianna e, depois de obtido o texto, réplica com a especificação publicada (exploratória); variação exógena narrativa | Cenário B (nota metodológica); Tabela 6, Tabelas S10, S17 e S18. Sem derivação formal nem simulação de Monte Carlo do viés | Parcialmente resolvido |
 | 2 | H2 reestimada: mesmo ano, logs, DP dentro do país, IV, prêmio na mesma amostra | log salário relativo −5,393 (Romano-Wolf 0,002); log emprego −3,713; prêmio 0,246 (n.s.); Tabela 5, Tabela S6; redação rebaixada no ledger | Resolvido |
-| 3 | Réplicas e ciclicidade fiscal; consumo e despesa na mesma amostra | Mitigação de Oto-Peralías e Romero-Ávila não depende do timing; amplificação anual some com a defasagem; Tabela 6, Tabela S7, Figura 4 | Resolvido |
+| 3 | Réplicas e ciclicidade fiscal; consumo e despesa na mesma amostra | Mitigação de Oto-Peralías e Romero-Ávila não depende do timing (e não aparece com a Polity5, Tabela S18); amplificação anual some com a defasagem; com a especificação publicada de Mollick e Vianna, −2,326 no mesmo ano contra −0,107 defasada e −0,039 sobre a tendência (Tabela S17); Tabela 6, Tabela S7, Figura 4 | Resolvido |
 | 4 | Numerador placebo e decomposição multiplicativa | Placebo −0,734 contra −0,723 contemporâneo; Tabela S3 | Resolvido |
 | 5 | Medidas defasada e inicial também sobre o PIB tendencial | Defasada sobre Hamilton −0,081; diferença para a defasada sem p < 0,05 (p 0,383); Tabela 1, Tabela S3 | Resolvido |
 | 6 | Diferenças entre medidas testadas por wild bootstrap; correlação entre defasada e Hamilton | Contemporânea − Hamilton −0,707 (p < 0,001); correlação 0,96; Tabela 1 | Resolvido |
-| 7 | T1–T6: folha em t_p − 1, crescimento sem o primeiro ano, controles predeterminados, sem investimento, sobre a tendência | T3 −0,142 (bootstrap 0,120); T1 −0,063; T2 −0,059; Tabela 2, Figura 3 | Resolvido |
+| 7 | T1–T6: folha em t_p − 1, crescimento sem o primeiro ano, controles predeterminados, sem investimento, sobre a tendência | T3 −0,142 (bootstrap 0,120); T1 −0,062; T2 −0,058; Tabela 2, Figura 3 | Resolvido |
 | 8 | Placebo de denominador e leads (cinco anos e projeção local com h negativo) | Leads de cinco anos nulos (p 0,942); leads da projeção local positivos (h = −3: 0,198); Tabelas S3–S4, Figura 7 | Resolvido |
 | 9 | Governo geral × central na amostra comum, por federação; bootstrap pareado; razão por país | Diferença −0,169 (p 0,057), concentrada nos unitários; Tabela 4, Tabela S5 | Resolvido |
 | 10 | Defasagens distribuídas 1–5 e projeção local com a folha em nível | Soma instável (1,465 / −1,254) por colinearidade; nível sem resposta significativa; Tabela S4, Figura 7. As frequências não se reconciliam | Parcialmente resolvido |
-| 11 | Tendências, região × período, envelhecimento, saúde e educação, euro, pós-1994, painel balanceado, crises | T3 frágil (pós-1994 −0,081; balanceado 0,006); Tabela S8. Transições do GFSM e programas do FMI não executados (dado indisponível) | Parcialmente resolvido |
+| 11 | Tendências, região × período, envelhecimento, saúde e educação, euro, pós-1994, painel balanceado, crises | T3 frágil (pós-1994 −0,081; balanceado 0,006); saúde e educação pelo COFOG −0,228 (p 0,138), contra −0,431 com o substituto do WDI; Tabela S8. Transições do GFSM e programas do FMI não executados (dado indisponível) | Parcialmente resolvido |
 | 12 | Números disponíveis para corrigir o resumo | Hamilton −0,016; HP unilateral −0,423; ver TEXTO_SUGERIDO | A fazer no texto pelos autores |
 | 13 | Lista de países refeita sobre a amostra efetiva | Tabela S16; causa em AUDITORIA_DRAFT7 | Resolvido |
 | 14 | H1–H5 enunciadas com sinal previsto e especificação preferida | docs/PLANO_REVISAO.md, seção 1; incorporar ao texto | A fazer no texto pelos autores |
@@ -45,6 +45,6 @@ Resumo: 22 resolvidos, 4 parcialmente resolvidos, 0 não executados e 16 a fazer
 | 37 | Estrelas e efeitos fixos | Padronizados em todas as tabelas novas | Resolvido |
 | 38 | Siglas e índices | Parâmetros do filtro de Hamilton renomeados (H, k) nas notas; definir siglas no texto | A fazer no texto pelos autores |
 | 39 | Contagens a reconciliar | Federações: 26 na lista (sem microestados), 15 com as duas séries em 2010–2019, 12 na amostra de base (Tabela 4); grupos de renda na Figura 1 e na Tabela S16 | Resolvido |
-| 40 | Referências | Formato Elsevier/Harvard, títulos completos, Alesina e Perotti publicado, grafia de Prüfer | A fazer no texto pelos autores |
+| 40 | Referências | Formato Elsevier/Harvard, títulos completos, Alesina e Perotti publicado, grafia de Prüfer; Mollick e Vianna com a referência publicada (Public Choice, 2024, v. 198, p. 189–207) | A fazer no texto pelos autores |
 | 41 | Redação | Aplicar os ajustes pontuais do agente 1 | A fazer no texto pelos autores |
 | 42 | Tradução | Usar a tabela de equivalentes do parecer (expense × total expenditure; two-step system GMM; evidence incontável) | A fazer no texto pelos autores |

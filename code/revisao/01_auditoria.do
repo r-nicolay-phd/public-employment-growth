@@ -158,11 +158,67 @@ duplicates drop iso3 year, force
 label var icrg_qog "ICRG indicator of quality of government (0-1), via QoG"
 save "$RINT/qog_rev.dta", replace
 
+* A8. Polity5 (download manual de 2026-11-13): restricoes ao executivo (xconst, 1-7); codigos especiais
+* -66 (interrupcao), -77 (interregno) e -88 (transicao) viram missing. Chave: codigo COW -> ISO3 pela QoG
+import delimited "$RAW/qog/qog_std_ts_jan26.csv", clear varnames(1) case(lower) encoding(utf8)
+keep ccodealp ccodecow
+drop if missing(ccodecow) | strlen(ccodealp) != 3
+duplicates drop ccodecow, force
+rename (ccodealp ccodecow) (iso3 ccode)
+tempfile cow
+save `cow'
+import excel "$RAW/polity/p5v2018.xls", firstrow clear
+keep ccode country year xconst
+merge m:1 ccode using `cow', keep(master match)
+di "Polity5: paises sem codigo ISO3 pela QoG (ficam fora):"
+tab country if _merge == 1 & year >= 1980
+* codigos Polity que diferem do COW da QoG: correspondencia explicita pelo nome; Alemanha Ocidental e Iemen do
+* Norte como predecessores; URSS e Iugoslavia (ate 1991) ficam fora
+replace iso3 = "ETH" if country == "Ethiopia"
+replace iso3 = "VNM" if country == "Vietnam"
+replace iso3 = "SRB" if inlist(country, "Serbia", "Serbia and Montenegro")
+replace iso3 = "MNE" if country == "Montenegro"
+replace iso3 = "SSD" if country == "South Sudan"
+replace iso3 = "DEU" if country == "Germany West"
+replace iso3 = "YEM" if country == "Yemen North"
+keep if !missing(iso3) & iso3 != ""
+drop _merge
+replace xconst = . if xconst < 1
+* um registro por pais-ano (mudancas de codigo no mesmo ano: fica o ultimo registro)
+bysort iso3 year: keep if _n == _N
+keep iso3 year xconst
+label var xconst "Executive constraints (Polity5, 1-7)"
+save "$RINT/polity_rev.dta", replace
+
+* A9. IMF GFS COFOG (download manual de 2026-11-13, convertido por code/revisao/conv_cofog.py): saude (GF07) e
+* educacao (GF09) do governo geral (S13), em % do PIB e em % do desembolso total
+import delimited "$RAW/imf_cofog/gfs_cofog_saude_educ.csv", clear varnames(1) case(lower) stringcols(1 3 4 5)
+keep if sector == "S13"
+gen str14 k = cofog + "_" + unit
+keep iso3 year k value
+reshape wide value, i(iso3 year) j(k) string
+rename (valueGF07_POGDP valueGF09_POGDP valueGF07_POTO valueGF09_POTO valueTOTOUT_POGDP) ///
+       (cofog_health_gdp cofog_educ_gdp cofog_health_sh cofog_educ_sh cofog_total_gdp)
+gen health_edu_cofog = cofog_health_sh + cofog_educ_sh
+label var health_edu_cofog "Health and education spending (% of total outlays), general government, IMF GFS COFOG"
+save "$RINT/cofog_rev.dta", replace
+
+* A10. WDI, series da replica fiel de Mollick e Vianna (2023) (code/revisao/dl_wdi_mv.py, 2026-11-13)
+import delimited "$RAW/wdi_rev/wdi_rev_mv.csv", clear varnames(1) case(lower) stringcols(1 3)
+drop if missing(iso3) | iso3 == ""
+replace indicator = subinstr(indicator, ".", "_", .)
+reshape wide value, i(iso3 year) j(indicator) string
+rename (valueNY_GDP_MKTP_KD_ZG valueNE_GDI_TOTL_ZS valueNE_CON_GOVT_ZS) (gdp_growth_mv gcf_gdp_mv govcons_gdp_mv)
+label var gdp_growth_mv "Real GDP growth (%), WDI NY.GDP.MKTP.KD.ZG (2026-11-13)"
+label var gcf_gdp_mv "Gross capital formation (% of GDP), WDI NE.GDI.TOTL.ZS (2026-11-13)"
+label var govcons_gdp_mv "General government final consumption (% of GDP), WDI NE.CON.GOVT.ZS (2026-11-13)"
+save "$RINT/wdi_mv.dta", replace
+
 * =====================================================================================
 * B. Painel anual da revisao
 * =====================================================================================
 use "$FINAL/painel_anual.dta", clear
-foreach f in wdi_rev laeven_valencia afg ilo_ud vdem_rev dpi_rev qog_rev {
+foreach f in wdi_rev laeven_valencia afg ilo_ud vdem_rev dpi_rev qog_rev polity_rev cofog_rev wdi_mv {
     merge 1:1 iso3 year using "$RINT/`f'.dta", keep(master match) nogen
 }
 replace crisis_bank = 0 if missing(crisis_bank) & year <= 2017
@@ -297,7 +353,7 @@ program define rv_painel
     local pre wb wb_ham wb_hp1 wb_hp2 wb_placebo wagebill_cg_wdi wagebill_comb cov_central wagebill_share exp_gdp ///
         rev_gdp balance_gdp sh_goods sh_int sh_transf sh_inv sh_other inv open infl popg ctot_g hc lny merit wgi_ge ///
         debt oldage_dep health_edu_share icrg_qog exec_left maj frac union_density clientelism_prog impartial ///
-        dem demage dem_new v2x_polyarchy govcons_gdp lwb_trend lgap_ham
+        dem demage dem_new v2x_polyarchy govcons_gdp lwb_trend lgap_ham health_edu_cofog xconst
     foreach v of local pre {
         gen `v'_m1 = L.`v'
         gen `v'_tp = `v'

@@ -148,6 +148,7 @@ capture noisily interflex g wb_m1 meritc lny0 hc_m1 inv_m1 open_m1 infl_m1 popg_
 if !_rc {
     graph export "$RFIG/FigS_interflex_binning.png", replace width(4488)
     graph export "$RFIG/FigS_interflex_binning.pdf", replace
+    graph export "$RFIG/FigS_interflex_binning.eps", replace as(eps)
 }
 restore
 

@@ -1,0 +1,18 @@
+Fonte: IMF, World Economic Outlook database (edicao de outubro de 2026; dataflow IMF.RES/WEO, versao 9.0.0), gratuito.
+Data de acesso: 2026-11-16
+API (SDMX 3.0, formato SDMX-CSV com atributos):
+  https://api.imf.org/external/sdmx/3.0/data/dataflow/IMF.RES/WEO/+/*.GGX_NGDP+NGDP.A?attributes=all&measures=all
+  (cabecalho Accept: application/vnd.sdmx.data+csv;version=2.0.0)
+Arquivos:
+  weo_reporting_year_raw.csv  resposta bruta da API (GGX_NGDP e NGDP, todos os paises, com atributos)
+  fiscal_year_by_country.csv  um pais por linha (paises do painel do projeto): meses de inicio e fim do ano de
+                              referencia da despesa do governo geral (atributo START_END_MONTHS_OF_REPORTING_YEAR de
+                              GGX_NGDP); fiscal_year_calendar = sim/nao/"nao verificado"; gfs_converted_to_calendar =
+                              "nao verificado" em todas as linhas, porque os metadados das GFS (IMF.STA/GFS_SOO) nao
+                              informam a base do ano de referencia (verificado em 2026-11-16 com attributes=all).
+Observacoes:
+  - O WEO informa o ano de referencia das series do proprio WEO; para alguns paises (por exemplo Australia, Nova
+    Zelandia, Reino Unido, Estados Unidos, Canada e Japao) as series de governo geral do WEO estao em ano civil,
+    embora o ano fiscal do governo seja outro. Se a folha das GFS desses paises estiver em ano fiscal, a lista
+    subestima os paises com ano fiscal nao civil: pendencia para os autores.
+  - Paises ausentes do WEO ou sem o atributo: "nao verificado".

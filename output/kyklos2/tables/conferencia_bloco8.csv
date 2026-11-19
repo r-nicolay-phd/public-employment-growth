@@ -1,0 +1,43 @@
+item,desc,value
+1,A2: country-years of the Table 1 sample (S1_base),1593
+1,A2: within SD of the wage bill (descrow; country means over S1_base),.9695128474277115
+1,A2: N of the within SD,1593
+1,A5 (old): country-years of the Table 1 sample (sA),1621
+1,A5 (old): within SD of the wage bill (country means over sA),.9759339950878585
+1,Country-years in sA but not in S1_base,28
+1,Country-years in S1_base but not in sA,0
+6,Correlation of one-sided HP trend growth with GDP growth (exact),.8553685272850763
+6,Correlation of Hamilton trend growth with GDP growth (exact),.0777788639193561
+2,"Table 2: federations in the common sample, before singletons",13
+2,"Table 2: unitary countries in the common sample, before singletons",66
+2,"Table 2: countries in the common sample, before singletons",79
+2,"Table 2: observations in the common sample, before singletons",351
+2,"Table 2: observations, all countries (after singletons)",336
+2,"Table 2: countries, all (after singletons)",64
+2,"Table 2: observations, federations (after singletons)",72
+2,Table 2: federations (after singletons),12
+2,"Table 2: observations, unitary (after singletons)",264
+2,Table 2: unitary countries (after singletons),52
+3,T3 sample: countries,68
+3,T3 sample: countries in income group 1 (1),6
+3,T3 sample: countries in income group 2 (2),23
+3,T3 sample: countries in income group 3 (3),12
+3,T3 sample: countries in income group 4 (4),27
+3,T3 sample: countries in region East Asia & Pacific,10
+3,T3 sample: countries in region Europe & Central Asia,37
+3,T3 sample: countries in region Latin America & Caribbean,11
+3,"T3 sample: countries in region Middle East, North Africa, Afghanistan & Pakistan",5
+3,T3 sample: countries in region North America,2
+3,T3 sample: countries in region Sub-Saharan Africa,3
+3,T3 sample: mean of the wage bill in t_p − 1 (% of GDP),9.547587245450893
+3,T3 sample: within SD of the wage bill in t_p − 1,1.323962114683982
+4,Revision register mvf_ge_full_own_c_N,3113
+4,Revision register mvf_ge_full_common_c_N,3108
+4,Revision register mvf_ge_full_common_l_N,3108
+4,Revision register mvf_ge_full_common_h_N,3108
+4,Revision register mvf_ge_full_common_c_bX,-2.3256
+4,Revision register mvf_ge_full_own_c_bX,-2.3166
+5,Table 3 col. 3 sample: coefficient on log wage bill (% of GDP),-5.226963099451541
+5,Table 3 col. 3 sample: observations,199
+5,Table 3 col. 3: coefficient on log relative wage,-5.392725225809531
+5,Table 3 col. 3: coefficient on log public employment,-3.713077001311542

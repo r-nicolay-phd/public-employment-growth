@@ -2,13 +2,12 @@
       name:  <unnamed>
        log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/logs/06_instituicoes.log
   log type:  text
- opened on:  17 Oct 2026, 21:01:07
+ opened on:  13 Nov 2026, 18:48:07
 
 . 
 . tempname P
 
 . postfile `P' str14 rep str10 meas str8 est double(bi sei pi bg seg) long(N nc nins) using "$RINT/replicas.dta", replace
-(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/replicas.dta not found)
 
 . 
 . * =====================================================================================
@@ -31,7 +30,7 @@
  11.         gen `v'_m1 = L.`v' if first
  12.     }
  13.     drop if year < `y0'
- 14.     collapse (mean) g gc_mean = govcons_gdp icrg = icrg_qog wgi6 wgi_ge secenr inv dependency ///
+ 14.     collapse (mean) g gc_mean = govcons_gdp icrg = icrg_qog wgi6 wgi_ge xconst secenr inv dependency ///
 >         (firstnm) gc_tp = govcons_gdp_tp gc_m1 = govcons_gdp_m1 lny0 = lny_m1 iso3 oecd, by(id period)
  15.     xtset id period
  16. end
@@ -730,6 +729,337 @@ Absorbed degrees of freedom:
 -----------------------------------------------------+
 * = FE nested within cluster; treated as redundant for DoF computation
 
+. * A4. [exploratoria, depois do plano: Polity5 obtido em 2026-11-13] restricoes ao executivo (Polity5, 1-7), a
+. * medida da robustez de Oto-Peralias e Romero-Avila (secao IV.3 do working paper), janela 1981-2005
+. opra_painel 1981 2005
+(6,270 observations deleted)
+
+Panel variable: id (strongly balanced)
+ Time variable: year, 1980 to 2005
+         Delta: 1 unit
+(3,200 missing values generated)
+(3,738 missing values generated)
+(3,743 missing values generated)
+(3,617 missing values generated)
+(3,619 missing values generated)
+(168 observations deleted)
+
+Panel variable: id (strongly balanced)
+ Time variable: period, 0 to 4
+         Delta: 1 unit
+
+. gen byte sX = !missing(g, gc_mean, gc_tp, gc_m1, xconst, lny0, secenr, inv)
+
+. keep if sX
+(441 observations deleted)
+
+. count
+  399
+
+. foreach meas in gc_mean gc_tp gc_m1 {
+  2.     opra_est `P' opra_xc xconst `meas'
+  3. }
+Favoring space over speed. To switch, type or click on mata: mata set matafavor speed, perm.
+
+Dynamic panel-data estimation, two-step system GMM
+------------------------------------------------------------------------------
+Group variable: id                              Number of obs      =       399
+Time variable : period                          Number of groups   =       131
+Number of instruments = 33                      Obs per group: min =         1
+F(10, 130)    =      7.62                                      avg =      3.05
+Prob > F      =     0.000                                      max =         5
+------------------------------------------------------------------------------
+             |              Corrected
+           g | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+           G |  -.4770918   .2936821    -1.62   0.107    -1.058107    .1039232
+         GXI |   .0499428   .0625024     0.80   0.426    -.0737107    .1735962
+      xconst |  -.7596717   .9958054    -0.76   0.447    -2.729754     1.21041
+        lny0 |   .7702845   2.071492     0.37   0.711    -3.327915    4.868484
+      secenr |   .0125517   .0705532     0.18   0.859    -.1270292    .1521327
+         inv |  -.0120673   .1157523    -0.10   0.917    -.2410694    .2169347
+         pd2 |  -.2372219   .6891956    -0.34   0.731    -1.600713    1.126269
+         pd3 |  -.0633769   1.114875    -0.06   0.955    -2.269024     2.14227
+         pd4 |   .4350188   1.102591     0.39   0.694    -1.746327    2.616364
+         pd5 |   .8349312   1.303181     0.64   0.523    -1.743257    3.413119
+       _cons |    1.90673   13.78853     0.14   0.890    -25.37223    29.18569
+------------------------------------------------------------------------------
+Instruments for first differences equation
+  Standard
+    D.(pd2 pd3 pd4 pd5 dependency)
+  GMM-type (missing=0, separate instruments for each period unless collapsed)
+    L(1/4).(lny0 secenr xconst) collapsed
+    L(2/4).(G GXI inv) collapsed
+Instruments for levels equation
+  Standard
+    pd2 pd3 pd4 pd5 dependency
+    _cons
+  GMM-type (missing=0, separate instruments for each period unless collapsed)
+    D.(lny0 secenr xconst) collapsed
+    DL.(G GXI inv) collapsed
+------------------------------------------------------------------------------
+Arellano-Bond test for AR(1) in first differences: z =  -1.05  Pr > z =  0.294
+Arellano-Bond test for AR(2) in first differences: z =  -0.06  Pr > z =  0.953
+------------------------------------------------------------------------------
+Sargan test of overid. restrictions: chi2(22)   =  52.05  Prob > chi2 =  0.000
+  (Not robust, but not weakened by many instruments.)
+Hansen test of overid. restrictions: chi2(22)   =  27.15  Prob > chi2 =  0.206
+  (Robust, but weakened by many instruments.)
+
+Difference-in-Hansen tests of exogeneity of instrument subsets:
+  GMM instruments for levels
+    Hansen test excluding group:     chi2(16)   =  20.92  Prob > chi2 =  0.182
+    Difference (null H = exogenous): chi2(6)    =   6.23  Prob > chi2 =  0.398
+  gmm(G GXI inv, collapse lag(2 .))
+    Hansen test excluding group:     chi2(10)   =  11.88  Prob > chi2 =  0.293
+    Difference (null H = exogenous): chi2(12)   =  15.27  Prob > chi2 =  0.227
+  gmm(lny0 secenr xconst, collapse lag(1 .))
+    Hansen test excluding group:     chi2(7)    =  13.65  Prob > chi2 =  0.058
+    Difference (null H = exogenous): chi2(15)   =  13.50  Prob > chi2 =  0.564
+  iv(pd2 pd3 pd4 pd5 dependency)
+    Hansen test excluding group:     chi2(17)   =  25.94  Prob > chi2 =  0.076
+    Difference (null H = exogenous): chi2(5)    =   1.21  Prob > chi2 =  0.944
+
+(dropped 38 singleton observations)
+(MWFE estimator converged in 1 iterations)
+
+HDFE Linear regression                            Number of obs   =        361
+Absorbing 1 HDFE group                            F(  10,     92) =      17.22
+Statistics robust to heteroskedasticity           Prob > F        =     0.0000
+                                                  R-squared       =     0.6344
+                                                  Adj R-squared   =     0.4899
+                                                  Within R-sq.    =     0.4782
+Number of clusters (id)      =         93         Root MSE        =     2.4638
+
+                                    (Std. err. adjusted for 93 clusters in id)
+------------------------------------------------------------------------------
+             |               Robust
+           g | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+           G |  -.0938664   .1752106    -0.54   0.593    -.4418498    .2541169
+         GXI |   .0064611   .0330636     0.20   0.845     -.059206    .0721283
+      xconst |  -.2298258   .4239209    -0.54   0.589    -1.071769    .6121177
+        lny0 |  -10.24653   1.534361    -6.68   0.000     -13.2939   -7.199153
+      secenr |  -.0034927   .0327272    -0.11   0.915    -.0684918    .0615064
+         inv |   .1846375    .039217     4.71   0.000     .1067492    .2625259
+             |
+      period |
+          1  |   .9447217   .4222116     2.24   0.028      .106173     1.78327
+          2  |   1.751536    .760893     2.30   0.024     .2403366    3.262735
+          3  |   3.275635   .7936858     4.13   0.000     1.699306    4.851963
+          4  |   4.751197   .9604763     4.95   0.000     2.843608    6.658786
+             |
+       _cons |   75.60219       11.9     6.35   0.000     51.96776    99.23663
+------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+          id |        93          93           0    *|
+-----------------------------------------------------+
+* = FE nested within cluster; treated as redundant for DoF computation
+Favoring space over speed. To switch, type or click on mata: mata set matafavor speed, perm.
+
+Dynamic panel-data estimation, two-step system GMM
+------------------------------------------------------------------------------
+Group variable: id                              Number of obs      =       399
+Time variable : period                          Number of groups   =       131
+Number of instruments = 33                      Obs per group: min =         1
+F(10, 130)    =      6.07                                      avg =      3.05
+Prob > F      =     0.000                                      max =         5
+------------------------------------------------------------------------------
+             |              Corrected
+           g | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+           G |  -.0421767   .3705442    -0.11   0.910    -.7752541    .6909007
+         GXI |  -.0187783   .0753285    -0.25   0.804    -.1678067    .1302501
+      xconst |   .4981377   1.268682     0.39   0.695    -2.011798    3.008074
+        lny0 |   .8371625   2.260221     0.37   0.712    -3.634414    5.308739
+      secenr |  -.0054247   .0825725    -0.07   0.948    -.1687845    .1579352
+         inv |  -.0663447   .1403385    -0.47   0.637    -.3439877    .2112983
+         pd2 |  -.2932488   .7842976    -0.37   0.709    -1.844888     1.25839
+         pd3 |  -.3363273   1.284375    -0.26   0.794    -2.877309    2.204655
+         pd4 |   .4994087   1.349993     0.37   0.712    -2.171392    3.170209
+         pd5 |   1.081497   1.620862     0.67   0.506    -2.125185    4.288179
+       _cons |  -4.004926   15.80688    -0.25   0.800    -35.27695    27.26709
+------------------------------------------------------------------------------
+Instruments for first differences equation
+  Standard
+    D.(pd2 pd3 pd4 pd5 dependency)
+  GMM-type (missing=0, separate instruments for each period unless collapsed)
+    L(1/4).(lny0 secenr xconst) collapsed
+    L(2/4).(G GXI inv) collapsed
+Instruments for levels equation
+  Standard
+    pd2 pd3 pd4 pd5 dependency
+    _cons
+  GMM-type (missing=0, separate instruments for each period unless collapsed)
+    D.(lny0 secenr xconst) collapsed
+    DL.(G GXI inv) collapsed
+------------------------------------------------------------------------------
+Arellano-Bond test for AR(1) in first differences: z =  -1.29  Pr > z =  0.197
+Arellano-Bond test for AR(2) in first differences: z =  -0.79  Pr > z =  0.428
+------------------------------------------------------------------------------
+Sargan test of overid. restrictions: chi2(22)   =  49.81  Prob > chi2 =  0.001
+  (Not robust, but not weakened by many instruments.)
+Hansen test of overid. restrictions: chi2(22)   =  29.92  Prob > chi2 =  0.120
+  (Robust, but weakened by many instruments.)
+
+Difference-in-Hansen tests of exogeneity of instrument subsets:
+  GMM instruments for levels
+    Hansen test excluding group:     chi2(16)   =  21.45  Prob > chi2 =  0.162
+    Difference (null H = exogenous): chi2(6)    =   8.47  Prob > chi2 =  0.205
+  gmm(G GXI inv, collapse lag(2 .))
+    Hansen test excluding group:     chi2(10)   =  12.17  Prob > chi2 =  0.274
+    Difference (null H = exogenous): chi2(12)   =  17.75  Prob > chi2 =  0.123
+  gmm(lny0 secenr xconst, collapse lag(1 .))
+    Hansen test excluding group:     chi2(7)    =  10.07  Prob > chi2 =  0.184
+    Difference (null H = exogenous): chi2(15)   =  19.85  Prob > chi2 =  0.178
+  iv(pd2 pd3 pd4 pd5 dependency)
+    Hansen test excluding group:     chi2(17)   =  29.15  Prob > chi2 =  0.033
+    Difference (null H = exogenous): chi2(5)    =   0.77  Prob > chi2 =  0.979
+
+(dropped 38 singleton observations)
+(MWFE estimator converged in 1 iterations)
+
+HDFE Linear regression                            Number of obs   =        361
+Absorbing 1 HDFE group                            F(  10,     92) =      16.30
+Statistics robust to heteroskedasticity           Prob > F        =     0.0000
+                                                  R-squared       =     0.6318
+                                                  Adj R-squared   =     0.4863
+                                                  Within R-sq.    =     0.4746
+Number of clusters (id)      =         93         Root MSE        =     2.4725
+
+                                    (Std. err. adjusted for 93 clusters in id)
+------------------------------------------------------------------------------
+             |               Robust
+           g | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+           G |  -.0202725   .1090354    -0.19   0.853    -.2368261    .1962812
+         GXI |   -.001925   .0239352    -0.08   0.936    -.0494624    .0456125
+      xconst |  -.1350501   .3329649    -0.41   0.686    -.7963472     .526247
+        lny0 |   -10.2356   1.510622    -6.78   0.000    -13.23583   -7.235374
+      secenr |  -.0048951   .0322643    -0.15   0.880    -.0689748    .0591846
+         inv |   .1760388   .0473477     3.72   0.000     .0820021    .2700754
+             |
+      period |
+          1  |    .946778   .4278971     2.21   0.029     .0969374    1.796619
+          2  |   1.844792   .7489594     2.46   0.016     .3572938     3.33229
+          3  |    3.36872   .8119045     4.15   0.000     1.756207    4.981232
+          4  |   4.869751   .9560652     5.09   0.000     2.970923    6.768579
+             |
+       _cons |   74.70947   11.37984     6.57   0.000     52.10812    97.31082
+------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+          id |        93          93           0    *|
+-----------------------------------------------------+
+* = FE nested within cluster; treated as redundant for DoF computation
+Favoring space over speed. To switch, type or click on mata: mata set matafavor speed, perm.
+
+Dynamic panel-data estimation, two-step system GMM
+------------------------------------------------------------------------------
+Group variable: id                              Number of obs      =       399
+Time variable : period                          Number of groups   =       131
+Number of instruments = 33                      Obs per group: min =         1
+F(10, 130)    =      7.13                                      avg =      3.05
+Prob > F      =     0.000                                      max =         5
+------------------------------------------------------------------------------
+             |              Corrected
+           g | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+           G |  -.1555541   .3811226    -0.41   0.684    -.9095596    .5984515
+         GXI |  -.0144498   .0917208    -0.16   0.875    -.1959084    .1670089
+      xconst |   .3681305   1.408144     0.26   0.794    -2.417715    3.153976
+        lny0 |   .4923107   2.335818     0.21   0.833    -4.128825    5.113446
+      secenr |   .0097323   .0783282     0.12   0.901    -.1452307    .1646954
+         inv |  -.0513081   .1620697    -0.32   0.752    -.3719436    .2693275
+         pd2 |  -.6613485   .8678024    -0.76   0.447    -2.378192    1.055495
+         pd3 |  -.6999777   1.221587    -0.57   0.568    -3.116741    1.716786
+         pd4 |   .2044274   1.125693     0.18   0.856    -2.022621    2.431476
+         pd5 |   .6895225   1.440076     0.48   0.633    -2.159496    3.538541
+       _cons |  -.2132441   15.90035    -0.01   0.989    -31.67019     31.2437
+------------------------------------------------------------------------------
+Instruments for first differences equation
+  Standard
+    D.(pd2 pd3 pd4 pd5 dependency)
+  GMM-type (missing=0, separate instruments for each period unless collapsed)
+    L(1/4).(lny0 secenr xconst) collapsed
+    L(2/4).(G GXI inv) collapsed
+Instruments for levels equation
+  Standard
+    pd2 pd3 pd4 pd5 dependency
+    _cons
+  GMM-type (missing=0, separate instruments for each period unless collapsed)
+    D.(lny0 secenr xconst) collapsed
+    DL.(G GXI inv) collapsed
+------------------------------------------------------------------------------
+Arellano-Bond test for AR(1) in first differences: z =  -1.37  Pr > z =  0.171
+Arellano-Bond test for AR(2) in first differences: z =  -0.69  Pr > z =  0.493
+------------------------------------------------------------------------------
+Sargan test of overid. restrictions: chi2(22)   =  49.33  Prob > chi2 =  0.001
+  (Not robust, but not weakened by many instruments.)
+Hansen test of overid. restrictions: chi2(22)   =  30.12  Prob > chi2 =  0.116
+  (Robust, but weakened by many instruments.)
+
+Difference-in-Hansen tests of exogeneity of instrument subsets:
+  GMM instruments for levels
+    Hansen test excluding group:     chi2(16)   =  19.03  Prob > chi2 =  0.267
+    Difference (null H = exogenous): chi2(6)    =  11.08  Prob > chi2 =  0.086
+  gmm(G GXI inv, collapse lag(2 .))
+    Hansen test excluding group:     chi2(10)   =  11.54  Prob > chi2 =  0.317
+    Difference (null H = exogenous): chi2(12)   =  18.57  Prob > chi2 =  0.099
+  gmm(lny0 secenr xconst, collapse lag(1 .))
+    Hansen test excluding group:     chi2(7)    =  15.32  Prob > chi2 =  0.032
+    Difference (null H = exogenous): chi2(15)   =  14.79  Prob > chi2 =  0.466
+  iv(pd2 pd3 pd4 pd5 dependency)
+    Hansen test excluding group:     chi2(17)   =  28.62  Prob > chi2 =  0.038
+    Difference (null H = exogenous): chi2(5)    =   1.50  Prob > chi2 =  0.913
+
+(dropped 38 singleton observations)
+(MWFE estimator converged in 1 iterations)
+
+HDFE Linear regression                            Number of obs   =        361
+Absorbing 1 HDFE group                            F(  10,     92) =      15.74
+Statistics robust to heteroskedasticity           Prob > F        =     0.0000
+                                                  R-squared       =     0.6317
+                                                  Adj R-squared   =     0.4861
+                                                  Within R-sq.    =     0.4743
+Number of clusters (id)      =         93         Root MSE        =     2.4730
+
+                                    (Std. err. adjusted for 93 clusters in id)
+------------------------------------------------------------------------------
+             |               Robust
+           g | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+           G |  -.0076344   .0949774    -0.08   0.936    -.1962677    .1809989
+         GXI |  -.0064789   .0206751    -0.31   0.755    -.0475415    .0345837
+      xconst |  -.0762152   .2695743    -0.28   0.778     -.611613    .4591826
+        lny0 |  -10.23389   1.508232    -6.79   0.000    -13.22937   -7.238409
+      secenr |  -.0037912   .0327495    -0.12   0.908    -.0688345    .0612521
+         inv |   .1739117   .0519862     3.35   0.001     .0706627    .2771608
+             |
+      period |
+          1  |   .9228145   .4177522     2.21   0.030     .0931226    1.752506
+          2  |   1.842018   .7430573     2.48   0.015     .3662416    3.317793
+          3  |   3.349792   .8026034     4.17   0.000     1.755753    4.943832
+          4  |   4.841118   .9628729     5.03   0.000     2.928769    6.753467
+             |
+       _cons |   74.53171    11.3126     6.59   0.000     52.06392     96.9995
+------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+          id |        93          93           0    *|
+-----------------------------------------------------+
+* = FE nested within cluster; treated as redundant for DoF computation
+
 . 
 . * =====================================================================================
 . * B. Replica aproximada de Mollick e Vianna (2023): painel anual 1996-2019, consumo x media do WGI
@@ -1009,7 +1339,6 @@ maximum lag: 3                                   Prob > F          =    0.0000
 . tempname C
 
 . postfile `C' str12 spec double(bi sei pi bc sec pc) long(N nc) using "$RINT/ciclicidade.dta", replace
-(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/ciclicidade.dta not found)
 
 . foreach cv in cyc_pre cyc_in {
   2.     capture drop G
@@ -1527,6 +1856,1354 @@ maximum lag: 3                                   Prob > F          =    0.0000
 
 . 
 . * =====================================================================================
+. * B2. Replica fiel de Mollick e Vianna (Public Choice, 2024, 198: 189-207; online em 2023), texto obtido em
+. * 2026-11-13 [exploratoria: acrescentada depois do plano registrado, que previa so a replica aproximada]
+. * Eq. (1) e Tabela 2 do artigo: crescimento do PIB real (%) sobre o proprio lag, ln(G/Y) (consumo final do governo,
+. * NE.CON.GOVT.ZS), instituicao do WGI (GE, CC ou RL, em nivel), ln(G/Y) x instituicao, ln(I/Y) (formacao bruta de
+. * capital, NE.GDI.TOTL.ZS) e crescimento populacional; efeitos fixos de pais e ano; erros de White; 1996-2019;
+. * os 138 paises listados na nota da Tabela 1. Depois troca-se so a medida de G/Y: sobre o PIB tendencial (Hamilton)
+. * e defasada um ano, na mesma amostra
+. * =====================================================================================
+. local mvpaises ALB DZA ATG ARG ARM AUS AUT AZE BHS BHR BGD BRB BLR BEL BLZ BEN BTN BOL BWA BRA BRN BGR BFA BDI ///
+>     KHM CMR TCD CHL CHN COL COM COD COG CRI CIV HRV CYP CZE DNK DOM ECU EGY SLV EST SWZ FJI FIN FRA GAB GMB GEO ///
+>     DEU GHA GRC GTM GIN GNB HND HKG HUN ISL IND IDN IRN IRL ISR ITA JAM JPN JOR KAZ KEN KOR KWT KGZ LVA LBN LTU ///
+>     LUX MAC MDG MYS MLI MLT MRT MUS MEX MDA MNG MAR MOZ NAM NPL NLD NZL NIC NER NGA MKD NOR OMN PAK PAN PRY PER ///
+>     PHL POL PRT PRI ROU RUS RWA SAU SEN SRB SLE SGP SVK SVN ZAF ESP LKA SDN SWE CHE TJK TZA THA TGO TUN TUR UGA ///
+>     UKR GBR USA UZB VNM PSE
+
+. use "$RINT/anual_rv.dta", clear
+
+. gen byte mv138 = 0
+
+. foreach c of local mvpaises {
+  2.     replace mv138 = 1 if iso3 == "`c'"
+  3. }
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(0 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+(54 real changes made)
+
+. egen tmv = tag(iso3) if mv138
+
+. count if tmv
+  137
+
+. rv_kv mvf_list_n `r(N)'
+
+. keep if mv138 & inrange(year, 1995, 2019)
+(7,213 observations deleted)
+
+. xtset id year
+
+Panel variable: id (strongly balanced)
+ Time variable: year, 1995 to 2019
+         Delta: 1 unit
+
+. gen gy = gdp_growth_mv
+(1 missing value generated)
+
+. gen gy_l1 = L.gy
+(138 missing values generated)
+
+. gen lgy = ln(govcons_gdp_mv) if govcons_gdp_mv > 0
+(154 missing values generated)
+
+. gen lgy_l1 = L.lgy
+(286 missing values generated)
+
+. gen lgy_ham = lgy + lnY - lnY_ham
+(159 missing values generated)
+
+. gen liy = ln(gcf_gdp_mv) if gcf_gdp_mv > 0
+(161 missing values generated)
+
+. * o WGI nao tem 1997, 1999 e 2001; o N publicado (3.141, cerca de 137 paises x 23 anos) implica que esses anos
+. * entram: interpolacao linear entre os anos vizinhos, so nesses tres anos
+. foreach i in ge cc rl {
+  2.     by id: ipolate wgi_`i' year, gen(_ip)
+  3.     replace wgi_`i' = _ip if missing(wgi_`i') & inlist(year, 1997, 1999, 2001)
+  4.     drop _ip
+  5. }
+(137 missing values generated)
+(411 real changes made)
+(137 missing values generated)
+(411 real changes made)
+(137 missing values generated)
+(411 real changes made)
+
+. keep if inrange(year, 1996, 2019)
+(137 observations deleted)
+
+. tempname M
+
+. postfile `M' str2 inst str4 per str6 smp str7 meas double(bG seG bI seI bX seX pX pXcl r2) long(N nc) ///
+>     using "$RINT/mv_fiel.dta", replace
+
+. * valores publicados (Tabela 2 de Mollick e Vianna): coeficiente, erro-padrao, N e paises
+. foreach r in "ge full -0.772 0.166 2.378 0.463 -0.811 0.169 3141 137 0.243" "cc full -0.867 0.175 2.290 0.420 -0.814 0.156 3141 137 0.242" ///
+>     "rl full -0.878 0.184 2.213 0.425 -0.835 0.153 3141 137 0.243" "ge pre -0.886 0.247 2.889 0.833 -0.755 0.292 1498 137 0.153" ///
+>     "ge post -1.611 0.327 3.288 0.890 -1.253 0.316 1643 137 0.270" {
+  2.     tokenize `r'
+  3.     post `M' ("`1'") ("`2'") ("pub") ("lgy") (`3') (`4') (`5') (`6') (`7') (`8') (2 * normal(-abs(`7' / `8'))) (.) (`11') (`9') (`10')
+  4.     rv_kv mvf_pub_`1'_`2'_bX `7'
+  5.     rv_kv mvf_pub_`1'_`2'_pX `=string(2 * normal(-abs(`7' / `8')), "%9.4f")'
+  6.     rv_kv mvf_pub_`1'_`2'_N `9'
+  7. }
+
+. foreach i in ge cc rl {
+  2.     capture drop I
+  3.     gen I = wgi_`i'
+  4.     gen byte sC_`i' = !missing(gy, gy_l1, I, lgy, lgy_l1, lgy_ham, liy, popg)
+  5.     foreach per in full pre post {
+  6.         if "`i'" != "ge" & "`per'" != "full" continue
+  7.         local cp = cond("`per'" == "full", "1", cond("`per'" == "pre", "year <= 2007", "year >= 2008"))
+  8.         foreach k in "own lgy" "common lgy" "common lgy_ham" "common lgy_l1" {
+  9.             tokenize `k'
+ 10.             local smp `1'
+ 11.             local meas `2'
+ 12.             capture drop G
+ 13.             capture drop GX
+ 14.             gen G = `meas'
+ 15.             gen GX = G * I
+ 16.             local sm = cond("`smp'" == "own", "1", "sC_`i'")
+ 17.             * efeitos de ano como regressores: o R2 within inclui os efeitos de ano, como no xtreg, fe do artigo
+.             quietly reghdfe gy gy_l1 I G GX liy popg i.year if `sm' & `cp', absorb(id) vce(cluster id)
+ 18.             local pcl = 2 * ttail(e(df_r), abs(_b[GX] / _se[GX]))
+ 19.             reghdfe gy gy_l1 I G GX liy popg i.year if `sm' & `cp', absorb(id) vce(robust)
+ 20.             capture drop tgN
+ 21.             egen tgN = tag(id) if e(sample)
+ 22.             quietly count if tgN == 1
+ 23.             local nc = r(N)
+ 24.             post `M' ("`i'") ("`per'") ("`smp'") ("`meas'") (_b[G]) (_se[G]) (_b[I]) (_se[I]) (_b[GX]) (_se[GX]) ///
+>                 (2 * ttail(e(df_r), abs(_b[GX] / _se[GX]))) (`pcl') (e(r2_within)) (e(N)) (`nc')
+ 25.             local mm = cond("`meas'" == "lgy", "c", cond("`meas'" == "lgy_l1", "l", "h"))
+ 26.             rv_kv mvf_`i'_`per'_`smp'_`mm'_bX `=string(_b[GX], "%9.4f")'
+ 27.             rv_kv mvf_`i'_`per'_`smp'_`mm'_pX `=string(2 * ttail(e(df_r), abs(_b[GX] / _se[GX])), "%9.4f")'
+ 28.             rv_kv mvf_`i'_`per'_`smp'_`mm'_pXcl `=string(`pcl', "%9.4f")'
+ 29.             rv_kv mvf_`i'_`per'_`smp'_`mm'_bG `=string(_b[G], "%9.4f")'
+ 30.             rv_kv mvf_`i'_`per'_`smp'_`mm'_N `e(N)'
+ 31.         }
+ 32.     }
+ 33. }
+(149 missing values generated)
+(149 missing values generated)
+(MWFE estimator converged in 1 iterations)
+
+HDFE Linear regression                            Number of obs   =      3,113
+Absorbing 1 HDFE group                            F(  29,   2952) =      20.75
+                                                  Prob > F        =     0.0000
+                                                  R-squared       =     0.3690
+                                                  Adj R-squared   =     0.3348
+                                                  Within R-sq.    =     0.2358
+                                                  Root MSE        =     3.2464
+
+------------------------------------------------------------------------------
+             |               Robust
+          gy | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+       gy_l1 |   .2469706   .0356054     6.94   0.000     .1771567    .3167844
+           I |   6.431121   1.554557     4.14   0.000     3.382995    9.479247
+           G |  -3.440957   .6247399    -5.51   0.000    -4.665927   -2.215987
+          GX |  -2.316632   .5999386    -3.86   0.000    -3.492972   -1.140291
+         liy |   1.645783   .3649938     4.51   0.000     .9301151    2.361451
+        popg |   .0345827   .0976734     0.35   0.723    -.1569323    .2260976
+             |
+        year |
+       1997  |   .3146316   .4644969     0.68   0.498    -.5961391    1.225402
+       1998  |  -1.105532   .5003946    -2.21   0.027     -2.08669   -.1243745
+       1999  |  -.3710002    .461622    -0.80   0.422    -1.276134    .5341335
+       2000  |   .4438085   .4344573     1.02   0.307    -.4080614    1.295678
+       2001  |  -.6362106   .4167517    -1.53   0.127    -1.453364    .1809427
+       2002  |  -.0218803   .4547616    -0.05   0.962    -.9135623    .8698017
+       2003  |   .9989981   .4148596     2.41   0.016     .1855546    1.812442
+       2004  |   1.564662   .4373523     3.58   0.000     .7071156    2.422208
+       2005  |   .5965594   .3865297     1.54   0.123    -.1613356    1.354454
+       2006  |   1.177568   .3977354     2.96   0.003     .3977016    1.957435
+       2007  |   .8938026   .3881978     2.30   0.021     .1326368    1.654968
+       2008  |  -1.121303   .3933438    -2.85   0.004    -1.892559   -.3500472
+       2009  |  -4.473236    .498695    -8.97   0.000    -5.451061   -3.495411
+       2010  |   1.678295   .4671244     3.59   0.000     .7623727    2.594218
+       2011  |  -.2340356   .4179019    -0.56   0.576    -1.053444     .585373
+       2012  |  -1.051025   .4090268    -2.57   0.010    -1.853032   -.2490184
+       2013  |   -.400005   .3864664    -1.04   0.301    -1.157776     .357766
+       2014  |  -.8489566   .3964939    -2.14   0.032    -1.626389   -.0715241
+       2015  |  -.9395433   .4437025    -2.12   0.034    -1.809541   -.0695457
+       2016  |  -.8417061   .3970482    -2.12   0.034    -1.620226   -.0631867
+       2017  |  -.2442062   .3774354    -0.65   0.518    -.9842694    .4958569
+       2018  |  -.7012904   .3515338    -1.99   0.046    -1.390567   -.0120142
+       2019  |  -1.114937   .3613997    -3.09   0.002    -1.823558   -.4063162
+             |
+       _cons |   7.540241   2.154201     3.50   0.000     3.316354    11.76413
+------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+          id |       132           0         132     |
+-----------------------------------------------------+
+(149 missing values generated)
+(149 missing values generated)
+(MWFE estimator converged in 1 iterations)
+
+HDFE Linear regression                            Number of obs   =      3,108
+Absorbing 1 HDFE group                            F(  29,   2947) =      20.78
+                                                  Prob > F        =     0.0000
+                                                  R-squared       =     0.3697
+                                                  Adj R-squared   =     0.3355
+                                                  Within R-sq.    =     0.2363
+                                                  Root MSE        =     3.2459
+
+------------------------------------------------------------------------------
+             |               Robust
+          gy | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+       gy_l1 |   .2464229   .0356346     6.92   0.000     .1765518    .3162941
+           I |   6.453478   1.560609     4.14   0.000     3.393485    9.513472
+           G |  -3.475308   .6270252    -5.54   0.000    -4.704759   -2.245856
+          GX |    -2.3256   .6026472    -3.86   0.000    -3.507253   -1.143948
+         liy |   1.666271   .3658387     4.55   0.000      .948946    2.383597
+        popg |   .0388946   .0977035     0.40   0.691    -.1526795    .2304687
+             |
+        year |
+       1997  |   .2306989    .463884     0.50   0.619    -.6788705    1.140268
+       1998  |  -1.147982   .4999857    -2.30   0.022    -2.128339   -.1676257
+       1999  |  -.4124831   .4610861    -0.89   0.371    -1.316567    .4916004
+       2000  |   .4009193   .4334652     0.92   0.355    -.4490059    1.250845
+       2001  |  -.6778776    .416061    -1.63   0.103    -1.493677    .1379221
+       2002  |  -.0633283    .453444    -0.14   0.889    -.9524273    .8257708
+       2003  |   .9570618   .4132548     2.32   0.021     .1467645    1.767359
+       2004  |   1.521517   .4355648     3.49   0.000     .6674752    2.375559
+       2005  |   .5531092   .3857393     1.43   0.152    -.2032365    1.309455
+       2006  |   1.132706   .3970264     2.85   0.004     .3542287    1.911183
+       2007  |   .8480894   .3877796     2.19   0.029      .087743    1.608436
+       2008  |  -1.167078   .3924471    -2.97   0.003    -1.936576   -.3975794
+       2009  |  -4.514397   .4976737    -9.07   0.000    -5.490221   -3.538574
+       2010  |   1.633924   .4675997     3.49   0.000      .717069    2.550779
+       2011  |  -.2761431   .4169034    -0.66   0.508    -1.093594    .5413081
+       2012  |  -1.093862   .4083082    -2.68   0.007     -1.89446   -.2932634
+       2013  |  -.4446479   .3870643    -1.15   0.251    -1.203592    .3142959
+       2014  |  -.8914099   .3960892    -2.25   0.024    -1.668049   -.1147705
+       2015  |  -.9684574    .446607    -2.17   0.030    -1.844151   -.0927642
+       2016  |  -.8841327   .3965002    -2.23   0.026    -1.661578   -.1066873
+       2017  |  -.2869063   .3771345    -0.76   0.447     -1.02638    .4525675
+       2018  |  -.7442243    .351103    -2.12   0.034    -1.432656   -.0557923
+       2019  |  -1.156635   .3609711    -3.20   0.001    -1.864416   -.4488543
+             |
+       _cons |   7.607636   2.158685     3.52   0.000     3.374953    11.84032
+------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+          id |       132           0         132     |
+-----------------------------------------------------+
+(152 missing values generated)
+(152 missing values generated)
+(MWFE estimator converged in 1 iterations)
+
+HDFE Linear regression                            Number of obs   =      3,108
+Absorbing 1 HDFE group                            F(  29,   2947) =      18.94
+                                                  Prob > F        =     0.0000
+                                                  R-squared       =     0.3648
+                                                  Adj R-squared   =     0.3303
+                                                  Within R-sq.    =     0.2304
+                                                  Root MSE        =     3.2586
+
+------------------------------------------------------------------------------
+             |               Robust
+          gy | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+       gy_l1 |   .2537762   .0363029     6.99   0.000     .1825945    .3249578
+           I |   .4860634   1.641677     0.30   0.767    -2.732887    3.705014
+           G |   2.014364   .7132661     2.82   0.005     .6158139    3.412914
+          GX |  -.0391692   .6218627    -0.06   0.950    -1.258498     1.18016
+         liy |   1.828262    .365412     5.00   0.000     1.111773    2.544751
+        popg |    .082022    .098515     0.83   0.405    -.1111432    .2751871
+             |
+        year |
+       1997  |   .2754992   .4786701     0.58   0.565    -.6630624    1.214061
+       1998  |  -1.196343   .5051656    -2.37   0.018    -2.186856   -.2058297
+       1999  |  -.4169132    .482251    -0.86   0.387    -1.362496    .5286698
+       2000  |   .4100699   .4453051     0.92   0.357    -.4630708    1.283211
+       2001  |  -.8487478   .4345316    -1.95   0.051    -1.700764    .0032685
+       2002  |  -.2926195   .4582995    -0.64   0.523    -1.191239    .6060001
+       2003  |   .6864149   .4315066     1.59   0.112    -.1596699      1.5325
+       2004  |   1.354966   .4479194     3.03   0.003     .4766998    2.233233
+       2005  |    .438935   .3979088     1.10   0.270    -.3412724    1.219142
+       2006  |   1.082807    .412075     2.63   0.009     .2748226    1.890791
+       2007  |    .806793    .403325     2.00   0.046     .0159656     1.59762
+       2008  |  -1.232487   .4107851    -3.00   0.003    -2.037942   -.4270322
+       2009  |  -4.878011   .5179212    -9.42   0.000    -5.893535   -3.862487
+       2010  |   1.464249   .4834866     3.03   0.002     .5162434    2.412255
+       2011  |  -.5794239   .4343909    -1.33   0.182    -1.431164    .2723165
+       2012  |  -1.355893   .4201141    -3.23   0.001    -2.179639   -.5321458
+       2013  |  -.7150895   .4018163    -1.78   0.075    -1.502959    .0727795
+       2014  |  -1.184328   .4001733    -2.96   0.003    -1.968975     -.39968
+       2015  |  -1.328395   .4637013    -2.86   0.004    -2.237606   -.4191838
+       2016  |  -1.216031   .4119551    -2.95   0.003     -2.02378   -.4082819
+       2017  |  -.5214922   .3954496    -1.32   0.187    -1.296878    .2538931
+       2018  |  -.9410544   .3687564    -2.55   0.011    -1.664101   -.2180081
+       2019  |  -1.455626   .3786879    -3.84   0.000    -2.198145    -.713106
+             |
+       _cons |  -7.913368   2.314696    -3.42   0.001    -12.45195   -3.374783
+------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+          id |       132           0         132     |
+-----------------------------------------------------+
+(149 missing values generated)
+(149 missing values generated)
+(MWFE estimator converged in 1 iterations)
+
+HDFE Linear regression                            Number of obs   =      3,108
+Absorbing 1 HDFE group                            F(  29,   2947) =      18.66
+                                                  Prob > F        =     0.0000
+                                                  R-squared       =     0.3589
+                                                  Adj R-squared   =     0.3241
+                                                  Within R-sq.    =     0.2232
+                                                  Root MSE        =     3.2737
+
+------------------------------------------------------------------------------
+             |               Robust
+          gy | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+       gy_l1 |   .2627981   .0362704     7.25   0.000     .1916801     .333916
+           I |   .6798589   1.525661     0.45   0.656    -2.311611    3.671329
+           G |  -.2018827   .6781063    -0.30   0.766    -1.531493    1.127727
+          GX |  -.1065963   .5857956    -0.18   0.856    -1.255206    1.042014
+         liy |   1.838638   .3715139     4.95   0.000     1.110185    2.567091
+        popg |   .0643012   .0982731     0.65   0.513    -.1283896    .2569921
+             |
+        year |
+       1997  |   .2668435    .468275     0.57   0.569    -.6513356    1.185023
+       1998  |  -1.171252   .5008193    -2.34   0.019    -2.153243   -.1892608
+       1999  |  -.4151514   .4696549    -0.88   0.377    -1.336036    .5057336
+       2000  |   .4003858    .440051     0.91   0.363    -.4624527    1.263224
+       2001  |  -.7943117   .4208391    -1.89   0.059     -1.61948    .0308567
+       2002  |  -.2251575   .4519531    -0.50   0.618    -1.111333    .6610182
+       2003  |   .7757113   .4170578     1.86   0.063    -.0420429    1.593465
+       2004  |   1.431006   .4357813     3.28   0.001     .5765393    2.285472
+       2005  |   .4876255   .3871203     1.26   0.208     -.271428    1.246679
+       2006  |   1.118624   .4005873     2.79   0.005     .3331643    1.904083
+       2007  |   .8500115   .3914344     2.17   0.030      .082499    1.617524
+       2008  |  -1.224562   .3987339    -3.07   0.002    -2.006387   -.4427365
+       2009  |  -4.810782   .5091031    -9.45   0.000    -5.809016   -3.812549
+       2010  |   1.550001   .4698205     3.30   0.001     .6287909     2.47121
+       2011  |  -.4299191   .4231555    -1.02   0.310    -1.259629    .3997912
+       2012  |  -1.256453   .4108346    -3.06   0.002    -2.062004   -.4509008
+       2013  |  -.6033751   .3893197    -1.55   0.121    -1.366741     .159991
+       2014  |   -1.05934    .390497    -2.71   0.007    -1.825015   -.2936656
+       2015  |  -1.176463   .4533119    -2.60   0.009    -2.065304   -.2876233
+       2016  |   -1.06145   .3973403    -2.67   0.008    -1.840542   -.2823568
+       2017  |  -.3917277   .3805435    -1.03   0.303    -1.137886    .3544303
+       2018  |  -.8434315   .3532385    -2.39   0.017    -1.536051   -.1508124
+       2019  |  -1.335796   .3614184    -3.70   0.000    -2.044455   -.6271384
+             |
+       _cons |  -2.058398   2.260004    -0.91   0.362    -6.489744    2.372949
+------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+          id |       132           0         132     |
+-----------------------------------------------------+
+(149 missing values generated)
+(149 missing values generated)
+(MWFE estimator converged in 1 iterations)
+
+HDFE Linear regression                            Number of obs   =      1,558
+Absorbing 1 HDFE group                            F(  17,   1411) =      11.90
+                                                  Prob > F        =     0.0000
+                                                  R-squared       =     0.3641
+                                                  Adj R-squared   =     0.2983
+                                                  Within R-sq.    =     0.1688
+                                                  Root MSE        =     3.4624
+
+------------------------------------------------------------------------------
+             |               Robust
+          gy | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+       gy_l1 |   .1700739   .0502803     3.38   0.001     .0714417    .2687061
+           I |   6.491592   3.111062     2.09   0.037     .3887867     12.5944
+           G |  -5.517004   1.187526    -4.65   0.000     -7.84651   -3.187498
+          GX |   -1.77527   1.167907    -1.52   0.129     -4.06629    .5157508
+         liy |     1.5918   .6101476     2.61   0.009     .3949062    2.788694
+        popg |   .0599414   .1586349     0.38   0.706    -.2512442     .371127
+             |
+        year |
+       1997  |   .4065113   .4769128     0.85   0.394    -.5290231    1.342046
+       1998  |  -.8848368   .5079533    -1.74   0.082    -1.881262     .111588
+       1999  |  -.2934849   .4736195    -0.62   0.536    -1.222559    .6355892
+       2000  |   .4727667   .4394641     1.08   0.282    -.3893066     1.33484
+       2001  |  -.4874638   .4243646    -1.15   0.251    -1.319917    .3449895
+       2002  |   .0445752   .4759228     0.09   0.925    -.8890171    .9781675
+       2003  |   1.108738   .4185234     2.65   0.008      .287743    1.929733
+       2004  |   1.624965   .4455741     3.65   0.000     .7509062    2.499024
+       2005  |   .7005349   .3889224     1.80   0.072    -.0623934    1.463463
+       2006  |   1.225136   .3975748     3.08   0.002     .4452352    2.005038
+       2007  |   .9698737     .39792     2.44   0.015     .1892952    1.750452
+             |
+       _cons |   13.42706   4.003495     3.35   0.001      5.57362     21.2805
+------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+          id |       130           0         130     |
+-----------------------------------------------------+
+(149 missing values generated)
+(149 missing values generated)
+(MWFE estimator converged in 1 iterations)
+
+HDFE Linear regression                            Number of obs   =      1,556
+Absorbing 1 HDFE group                            F(  17,   1409) =      11.94
+                                                  Prob > F        =     0.0000
+                                                  R-squared       =     0.3650
+                                                  Adj R-squared   =     0.2992
+                                                  Within R-sq.    =     0.1695
+                                                  Root MSE        =     3.4605
+
+------------------------------------------------------------------------------
+             |               Robust
+          gy | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+       gy_l1 |    .169629   .0502763     3.37   0.001     .0710047    .2682534
+           I |   6.471188   3.117074     2.08   0.038     .3565828    12.58579
+           G |  -5.544752   1.185282    -4.68   0.000    -7.869859   -3.219645
+          GX |  -1.770619   1.170122    -1.51   0.130    -4.065988    .5247495
+         liy |   1.609306   .6107843     2.63   0.009     .4111617    2.807451
+        popg |   .0686377    .158782     0.43   0.666     -.242837    .3801123
+             |
+        year |
+       1997  |   .3352587    .476646     0.70   0.482    -.5997534    1.270271
+       1998  |  -.9160364    .507933    -1.80   0.072    -1.912423    .0803498
+       1999  |  -.3237196   .4739853    -0.68   0.495    -1.253512    .6060732
+       2000  |   .4409656   .4391043     1.00   0.315    -.4204029    1.302334
+       2001  |  -.5178543   .4244364    -1.22   0.223     -1.35045     .314741
+       2002  |   .0143384   .4748665     0.03   0.976     -.917183    .9458598
+       2003  |   1.077794    .417039     2.58   0.010     .2597097    1.895878
+       2004  |   1.593583   .4432152     3.60   0.000     .7241505    2.463016
+       2005  |   .6689558   .3889931     1.72   0.086    -.0941122    1.432024
+       2006  |   1.192151   .3978599     3.00   0.003     .4116893    1.972612
+       2007  |   .9363505   .3988682     2.35   0.019     .1539111     1.71879
+             |
+       _cons |    13.4625   3.998287     3.37   0.001     5.619269    21.30574
+------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+          id |       130           0         130     |
+-----------------------------------------------------+
+(152 missing values generated)
+(152 missing values generated)
+(MWFE estimator converged in 1 iterations)
+
+HDFE Linear regression                            Number of obs   =      1,556
+Absorbing 1 HDFE group                            F(  17,   1409) =       9.86
+                                                  Prob > F        =     0.0000
+                                                  R-squared       =     0.3504
+                                                  Adj R-squared   =     0.2831
+                                                  Within R-sq.    =     0.1504
+                                                  Root MSE        =     3.5000
+
+------------------------------------------------------------------------------
+             |               Robust
+          gy | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+       gy_l1 |   .1871616   .0531411     3.52   0.000     .0829174    .2914059
+           I |   .7243699    2.68946     0.27   0.788    -4.551407    6.000147
+           G |   1.913564   1.251933     1.53   0.127     -.542289    4.369417
+          GX |   .4076617   1.015851     0.40   0.688    -1.585081    2.400404
+         liy |   1.529662   .6113682     2.50   0.012     .3303719    2.728952
+        popg |   .1948642   .1664798     1.17   0.242    -.1317108    .5214392
+             |
+        year |
+       1997  |   .3561889   .4875886     0.73   0.465    -.6002887    1.312667
+       1998  |  -1.034186   .5085239    -2.03   0.042    -2.031731   -.0366405
+       1999  |  -.3918339   .4948023    -0.79   0.429    -1.362462    .5787945
+       2000  |    .430119   .4505016     0.95   0.340     -.453607    1.313845
+       2001  |   -.764901   .4440855    -1.72   0.085    -1.636041    .1062389
+       2002  |  -.2984728   .4786999    -0.62   0.533    -1.237514    .6405683
+       2003  |   .7441033   .4382844     1.70   0.090     -.115657    1.603864
+       2004  |   1.399196    .457915     3.06   0.002     .5009277    2.297465
+       2005  |   .5383638    .401486     1.34   0.180    -.2492109    1.325938
+       2006  |   1.141792   .4157384     2.75   0.006     .3262588    1.957324
+       2007  |   .8964237   .4128065     2.17   0.030     .0866423    1.706205
+             |
+       _cons |  -6.658437   4.139439    -1.61   0.108    -14.77856     1.46169
+------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+          id |       130           0         130     |
+-----------------------------------------------------+
+(149 missing values generated)
+(149 missing values generated)
+(MWFE estimator converged in 1 iterations)
+
+HDFE Linear regression                            Number of obs   =      1,556
+Absorbing 1 HDFE group                            F(  17,   1409) =      10.31
+                                                  Prob > F        =     0.0000
+                                                  R-squared       =     0.3525
+                                                  Adj R-squared   =     0.2854
+                                                  Within R-sq.    =     0.1532
+                                                  Root MSE        =     3.4944
+
+------------------------------------------------------------------------------
+             |               Robust
+          gy | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+       gy_l1 |   .1804916   .0513636     3.51   0.000     .0797343     .281249
+           I |  -.7898484   2.209744    -0.36   0.721    -5.124592    3.544895
+           G |  -1.048418   .9960255    -1.05   0.293    -3.002271    .9054342
+          GX |   1.016667   .8392861     1.21   0.226    -.6297173    2.663052
+         liy |   1.633544   .6251487     2.61   0.009     .4072214    2.859866
+        popg |   .1600955   .1636152     0.98   0.328      -.16086     .481051
+             |
+        year |
+       1997  |   .3507086   .4794507     0.73   0.465    -.5898053    1.291223
+       1998  |  -.9856733   .5017513    -1.96   0.050    -1.969933   -.0014134
+       1999  |   -.329911   .4836791    -0.68   0.495     -1.27872    .6188977
+       2000  |   .4704348   .4445028     1.06   0.290    -.4015237    1.342393
+       2001  |  -.7071943   .4307749    -1.64   0.101    -1.552223    .1378348
+       2002  |  -.2068277    .467525    -0.44   0.658    -1.123948    .7102923
+       2003  |   .8657237   .4221457     2.05   0.040     .0376219    1.693826
+       2004  |    1.51157   .4471706     3.38   0.001     .6343777    2.388761
+       2005  |   .6261225    .393526     1.59   0.112    -.1458374    1.398082
+       2006  |   1.209779   .4039396     2.99   0.003     .4173912    2.002167
+       2007  |    .976212   .4036543     2.42   0.016     .1843839     1.76804
+             |
+       _cons |   .8397341   3.549875     0.24   0.813    -6.123875    7.803343
+------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+          id |       130           0         130     |
+-----------------------------------------------------+
+(149 missing values generated)
+(149 missing values generated)
+(MWFE estimator converged in 1 iterations)
+
+HDFE Linear regression                            Number of obs   =      1,555
+Absorbing 1 HDFE group                            F(  17,   1407) =      14.25
+                                                  Prob > F        =     0.0000
+                                                  R-squared       =     0.4565
+                                                  Adj R-squared   =     0.3998
+                                                  Within R-sq.    =     0.2397
+                                                  Root MSE        =     2.8758
+
+------------------------------------------------------------------------------
+             |               Robust
+          gy | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+       gy_l1 |   .1899634    .043072     4.41   0.000     .1054711    .2744557
+           I |    10.4925   3.424752     3.06   0.002     3.774333    17.21067
+           G |  -5.183539   1.154704    -4.49   0.000    -7.448667   -2.918412
+          GX |  -3.950347   1.225988    -3.22   0.001    -6.355308   -1.545386
+         liy |   1.353309   .7924812     1.71   0.088    -.2012634     2.90788
+        popg |    .124625   .1294093     0.96   0.336     -.129231    .3784809
+             |
+        year |
+       2009  |  -3.337042   .4766119    -7.00   0.000    -4.271988   -2.402095
+       2010  |   2.511934   .4361062     5.76   0.000     1.656446    3.367422
+       2011  |   .8857162   .3735527     2.37   0.018     .1529359    1.618496
+       2012  |   .0424687   .3633022     0.12   0.907    -.6702035     .755141
+       2013  |   .6421112   .3462585     1.85   0.064    -.0371272     1.32135
+       2014  |   .2329578   .3578699     0.65   0.515    -.4690582    .9349739
+       2015  |   .1498184   .3887389     0.39   0.700    -.6127519    .9123887
+       2016  |   .2317057   .3567689     0.65   0.516    -.4681505    .9315618
+       2017  |   .8050242   .3318023     2.43   0.015     .1541437    1.455905
+       2018  |    .393428   .3034847     1.30   0.195    -.2019032    .9887591
+       2019  |   .0085945   .3211493     0.03   0.979    -.6213886    .6385776
+             |
+       _cons |   12.47029   4.256762     2.93   0.003     4.120006    20.82057
+------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+          id |       131           0         131     |
+-----------------------------------------------------+
+(149 missing values generated)
+(149 missing values generated)
+(MWFE estimator converged in 1 iterations)
+
+HDFE Linear regression                            Number of obs   =      1,552
+Absorbing 1 HDFE group                            F(  17,   1404) =      14.26
+                                                  Prob > F        =     0.0000
+                                                  R-squared       =     0.4562
+                                                  Adj R-squared   =     0.3993
+                                                  Within R-sq.    =     0.2398
+                                                  Root MSE        =     2.8786
+
+------------------------------------------------------------------------------
+             |               Robust
+          gy | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+       gy_l1 |   .1899879    .043102     4.41   0.000     .1054367    .2745392
+           I |   10.54035   3.429087     3.07   0.002     3.813664    17.26704
+           G |   -5.20351   1.156041    -4.50   0.000    -7.471263   -2.935757
+          GX |  -3.964784   1.226893    -3.23   0.001    -6.371525   -1.558042
+         liy |   1.353387   .7930468     1.71   0.088    -.2022967    2.909072
+        popg |   .1243155   .1294559     0.96   0.337    -.1296323    .3782634
+             |
+        year |
+       2009  |   -3.33563   .4764416    -7.00   0.000    -4.270244   -2.401016
+       2010  |   2.514466    .436334     5.76   0.000      1.65853    3.370403
+       2011  |   .8878824   .3734981     2.38   0.018      .155208    1.620557
+       2012  |   .0445829   .3632672     0.12   0.902    -.6680221    .7571878
+       2013  |    .642871   .3476204     1.85   0.065    -.0390403    1.324782
+       2014  |   .2345381   .3578289     0.66   0.512    -.4673988    .9364751
+       2015  |   .1619486   .3920798     0.41   0.680    -.6071767    .9310739
+       2016  |   .2318032   .3566809     0.65   0.516    -.4678816     .931488
+       2017  |   .8045433   .3317423     2.43   0.015     .1537793    1.455307
+       2018  |   .3928263   .3034576     1.29   0.196    -.2024529    .9881054
+       2019  |   .0084655   .3211045     0.03   0.979    -.6214307    .6383617
+             |
+       _cons |    12.5236   4.266465     2.94   0.003     4.154268    20.89293
+------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+          id |       131           0         131     |
+-----------------------------------------------------+
+(152 missing values generated)
+(152 missing values generated)
+(MWFE estimator converged in 1 iterations)
+
+HDFE Linear regression                            Number of obs   =      1,552
+Absorbing 1 HDFE group                            F(  17,   1404) =      13.94
+                                                  Prob > F        =     0.0000
+                                                  R-squared       =     0.4489
+                                                  Adj R-squared   =     0.3911
+                                                  Within R-sq.    =     0.2295
+                                                  Root MSE        =     2.8980
+
+------------------------------------------------------------------------------
+             |               Robust
+          gy | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+       gy_l1 |   .1960981   .0433282     4.53   0.000      .111103    .2810931
+           I |  -4.585028   3.809794    -1.20   0.229    -12.05853    2.888472
+           G |   4.406327    1.19652     3.68   0.000     2.059167    6.753487
+          GX |   1.492803    1.36447     1.09   0.274    -1.183815    4.169422
+         liy |    1.58137    .763817     2.07   0.039     .0830248    3.079716
+        popg |   .2392368   .1292688     1.85   0.064     -.014344    .4928176
+             |
+        year |
+       2009  |  -3.763746   .4736222    -7.95   0.000    -4.692829   -2.834662
+       2010  |   2.379485   .4401199     5.41   0.000     1.516122    3.242848
+       2011  |   .4881094   .3841284     1.27   0.204    -.2654181    1.241637
+       2012  |  -.2498701   .3659784    -0.68   0.495    -.9677934    .4680532
+       2013  |   .3492577   .3409929     1.02   0.306    -.3196527    1.018168
+       2014  |  -.0276693   .3490544    -0.08   0.937    -.7123935     .657055
+       2015  |  -.2314357   .4105491    -0.56   0.573    -1.036791      .57392
+       2016  |  -.0978353   .3584363    -0.27   0.785    -.8009637    .6052931
+       2017  |   .6476073   .3427451     1.89   0.059    -.0247403    1.319955
+       2018  |    .280711    .308922     0.91   0.364    -.3252874    .8867095
+       2019  |  -.2707069   .3217485    -0.84   0.400    -.9018665    .3604528
+             |
+       _cons |  -14.73677   3.643032    -4.05   0.000    -21.88314   -7.590394
+------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+          id |       131           0         131     |
+-----------------------------------------------------+
+(149 missing values generated)
+(149 missing values generated)
+(MWFE estimator converged in 1 iterations)
+
+HDFE Linear regression                            Number of obs   =      1,552
+Absorbing 1 HDFE group                            F(  17,   1404) =      13.39
+                                                  Prob > F        =     0.0000
+                                                  R-squared       =     0.4376
+                                                  Adj R-squared   =     0.3787
+                                                  Within R-sq.    =     0.2138
+                                                  Root MSE        =     2.9274
+
+------------------------------------------------------------------------------
+             |               Robust
+          gy | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+       gy_l1 |   .2224128   .0466788     4.76   0.000     .1308451    .3139804
+           I |  -2.661116   3.655238    -0.73   0.467    -9.831432      4.5092
+           G |   .1257546   1.141615     0.11   0.912      -2.1137    2.365209
+          GX |   .8841727   1.322553     0.67   0.504     -1.71022    3.478565
+         liy |   1.654272   .7752477     2.13   0.033     .1335037    3.175041
+        popg |   .1987054   .1250778     1.59   0.112    -.0466542     .444065
+             |
+        year |
+       2009  |  -3.672242   .4760686    -7.71   0.000    -4.606124    -2.73836
+       2010  |   2.501639   .4397332     5.69   0.000     1.639034    3.364244
+       2011  |   .7416479    .385035     1.93   0.054    -.0136579    1.496954
+       2012  |  -.1023021   .3649613    -0.28   0.779    -.8182302     .613626
+       2013  |   .5105162   .3431687     1.49   0.137    -.1626624    1.183695
+       2014  |   .1406644    .347989     0.40   0.686    -.5419699    .8232988
+       2015  |   .0104681   .4067025     0.03   0.979     -.787342    .8082782
+       2016  |   .1393034   .3584044     0.39   0.698    -.5637625    .8423693
+       2017  |   .8355184   .3375007     2.48   0.013     .1734585    1.497578
+       2018  |   .4187771   .3054992     1.37   0.171    -.1805069    1.018061
+       2019  |  -.0822319   .3146155    -0.26   0.794     -.699399    .5349352
+             |
+       _cons |   -3.56037   3.490717    -1.02   0.308    -10.40795    3.287213
+------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+          id |       131           0         131     |
+-----------------------------------------------------+
+(149 missing values generated)
+(149 missing values generated)
+(MWFE estimator converged in 1 iterations)
+
+HDFE Linear regression                            Number of obs   =      3,113
+Absorbing 1 HDFE group                            F(  29,   2952) =      20.16
+                                                  Prob > F        =     0.0000
+                                                  R-squared       =     0.3666
+                                                  Adj R-squared   =     0.3322
+                                                  Within R-sq.    =     0.2328
+                                                  Root MSE        =     3.2526
+
+------------------------------------------------------------------------------
+             |               Robust
+          gy | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+       gy_l1 |   .2519689   .0353668     7.12   0.000     .1826229     .321315
+           I |   5.859512   1.752764     3.34   0.001     2.422748    9.296276
+           G |  -3.019498   .6104545    -4.95   0.000    -4.216458   -1.822539
+          GX |  -2.000722   .6429295    -3.11   0.002    -3.261357   -.7400862
+         liy |    1.80553   .3659458     4.93   0.000     1.087996    2.523065
+        popg |   .0138709   .0998966     0.14   0.890    -.1820032     .209745
+             |
+        year |
+       1997  |   .3411148   .4704985     0.73   0.469    -.5814236    1.263653
+       1998  |  -1.057216    .498655    -2.12   0.034    -2.034963   -.0794693
+       1999  |  -.3296726   .4600556    -0.72   0.474    -1.231735    .5723896
+       2000  |   .4703067   .4394871     1.07   0.285    -.3914255    1.332039
+       2001  |   -.617757   .4187172    -1.48   0.140    -1.438764    .2032503
+       2002  |  -.0045763   .4583735    -0.01   0.992    -.9033404    .8941878
+       2003  |   .9754525   .4175262     2.34   0.020     .1567804    1.794125
+       2004  |   1.592166    .447689     3.56   0.000     .7143518     2.46998
+       2005  |   .6488089   .3889983     1.67   0.095    -.1139264    1.411544
+       2006  |   1.207769   .4021535     3.00   0.003     .4192397    1.996299
+       2007  |   .9407919   .3932749     2.39   0.017      .169671    1.711913
+       2008  |  -1.053212   .3965448    -2.66   0.008    -1.830745   -.2756798
+       2009  |  -4.420869   .5070614    -8.72   0.000    -5.415099   -3.426639
+       2010  |   1.780208   .4714444     3.78   0.000     .8558149    2.704601
+       2011  |  -.1623561   .4200016    -0.39   0.699    -.9858817    .6611696
+       2012  |  -.9504613   .4092474    -2.32   0.020      -1.7529   -.1480221
+       2013  |   -.304424    .393082    -0.77   0.439    -1.075167    .4663186
+       2014  |  -.7161539   .3988937    -1.80   0.073    -1.498292     .065984
+       2015  |  -.8226446   .4520005    -1.82   0.069    -1.708913    .0636235
+       2016  |  -.7211343   .3991194    -1.81   0.071    -1.503715    .0614463
+       2017  |  -.0987325    .376956    -0.26   0.793    -.8378557    .6403907
+       2018  |  -.5835262   .3492957    -1.67   0.095    -1.268414    .1013617
+       2019  |  -1.014319   .3569252    -2.84   0.005    -1.714167   -.3144718
+             |
+       _cons |   5.844884   2.084241     2.80   0.005     1.758172    9.931597
+------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+          id |       132           0         132     |
+-----------------------------------------------------+
+(149 missing values generated)
+(149 missing values generated)
+(MWFE estimator converged in 1 iterations)
+
+HDFE Linear regression                            Number of obs   =      3,108
+Absorbing 1 HDFE group                            F(  29,   2947) =      20.18
+                                                  Prob > F        =     0.0000
+                                                  R-squared       =     0.3672
+                                                  Adj R-squared   =     0.3328
+                                                  Within R-sq.    =     0.2333
+                                                  Root MSE        =     3.2524
+
+------------------------------------------------------------------------------
+             |               Robust
+          gy | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+       gy_l1 |   .2514858   .0353851     7.11   0.000     .1821038    .3208678
+           I |   5.810178   1.756395     3.31   0.001     2.366292    9.254064
+           G |  -3.028159    .611373    -4.95   0.000    -4.226921   -1.829398
+          GX |  -1.975724   .6445474    -3.07   0.002    -3.239533   -.7119154
+         liy |   1.825281   .3669246     4.97   0.000     1.105826    2.544735
+        popg |   .0187702   .0999313     0.19   0.851     -.177172    .2147125
+             |
+        year |
+       1997  |   .2594269    .469917     0.55   0.581    -.6619719    1.180826
+       1998  |  -1.096678   .4981707    -2.20   0.028    -2.073476   -.1198805
+       1999  |  -.3677129   .4594729    -0.80   0.424    -1.268633    .5332074
+       2000  |   .4312372   .4387406     0.98   0.326    -.4290318    1.291506
+       2001  |  -.6558986   .4182279    -1.57   0.117    -1.475947    .1641498
+       2002  |  -.0427136   .4575293    -0.09   0.926     -.939823    .8543959
+       2003  |   .9362856   .4160812     2.25   0.025     .1204464    1.752125
+       2004  |   1.552863   .4459213     3.48   0.001     .6785143    2.427212
+       2005  |   .6094539    .388402     1.57   0.117    -.1521128    1.371021
+       2006  |   1.166855   .4015868     2.91   0.004     .3794362    1.954274
+       2007  |   .8998907   .3929974     2.29   0.022     .1293136    1.670468
+       2008  |  -1.094927   .3959937    -2.77   0.006     -1.87138   -.3184751
+       2009  |  -4.460025   .5063609    -8.81   0.000    -5.452882   -3.467168
+       2010  |   1.738548   .4721573     3.68   0.000     .8127563    2.664339
+       2011  |  -.2020964   .4193938    -0.48   0.630    -1.024431    .6202381
+       2012  |  -.9905595   .4089495    -2.42   0.015    -1.792415   -.1887039
+       2013  |  -.3462719   .3942083    -0.88   0.380    -1.119224    .4266797
+       2014  |  -.7554185   .3988608    -1.89   0.058    -1.537492    .0266554
+       2015  |  -.8542834   .4556349    -1.87   0.061    -1.747678    .0391115
+       2016  |  -.7608028   .3989435    -1.91   0.057    -1.543039    .0214333
+       2017  |  -.1381701   .3769897    -0.37   0.714    -.8773598    .6010196
+       2018  |  -.6232483   .3492936    -1.78   0.074    -1.308132    .0616358
+       2019  |  -1.053853   .3569479    -2.95   0.003    -1.753745   -.3539601
+             |
+       _cons |    5.83481   2.086447     2.80   0.005     1.743769     9.92585
+------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+          id |       132           0         132     |
+-----------------------------------------------------+
+(152 missing values generated)
+(152 missing values generated)
+(MWFE estimator converged in 1 iterations)
+
+HDFE Linear regression                            Number of obs   =      3,108
+Absorbing 1 HDFE group                            F(  29,   2947) =      18.50
+                                                  Prob > F        =     0.0000
+                                                  R-squared       =     0.3649
+                                                  Adj R-squared   =     0.3304
+                                                  Within R-sq.    =     0.2305
+                                                  Root MSE        =     3.2583
+
+------------------------------------------------------------------------------
+             |               Robust
+          gy | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+       gy_l1 |   .2544712   .0362237     7.02   0.000     .1834449    .3254974
+           I |   -.097311   1.704549    -0.06   0.954    -3.439539    3.244916
+           G |   2.150886   .7024204     3.06   0.002     .7736022    3.528171
+          GX |   .1910114   .6246234     0.31   0.760    -1.033731    1.415754
+         liy |   1.856208    .360343     5.15   0.000     1.149658    2.562757
+        popg |   .0844453   .0993908     0.85   0.396    -.1104372    .2793277
+             |
+        year |
+       1997  |   .2754924   .4800213     0.57   0.566    -.6657186    1.216703
+       1998  |  -1.201297   .5040905    -2.38   0.017    -2.189702   -.2128918
+       1999  |  -.4049506   .4832992    -0.84   0.402    -1.352589    .5426876
+       2000  |   .4310145   .4477032     0.96   0.336    -.4468281    1.308857
+       2001  |  -.8147539   .4380235    -1.86   0.063    -1.673617    .0441092
+       2002  |  -.2420953   .4627428    -0.52   0.601    -1.149427    .6652366
+       2003  |   .7145625   .4334114     1.65   0.099    -.1352572    1.564382
+       2004  |   1.415372   .4587363     3.09   0.002     .5158961    2.314848
+       2005  |   .5051716   .4026397     1.25   0.210     -.284312    1.294655
+       2006  |   1.132752   .4155986     2.73   0.006     .3178586    1.947644
+       2007  |   .8721961   .4069635     2.14   0.032     .0742346    1.670158
+       2008  |  -1.132233   .4154685    -2.73   0.006    -1.946871   -.3175953
+       2009  |  -4.758622   .5214502    -9.13   0.000    -5.781065   -3.736178
+       2010  |   1.581585   .4883136     3.24   0.001     .6241148    2.539055
+       2011  |  -.4781622   .4383821    -1.09   0.275    -1.337728    .3814039
+       2012  |  -1.231237   .4230229    -2.91   0.004    -2.060687   -.4017865
+       2013  |  -.5853428   .4078569    -1.44   0.151    -1.385056    .2143704
+       2014  |  -1.016843    .405858    -2.51   0.012    -1.812637   -.2210489
+       2015  |  -1.175325   .4713099    -2.49   0.013    -2.099455   -.2511948
+       2016  |  -1.066625   .4159144    -2.56   0.010    -1.882137    -.251113
+       2017  |  -.3635817   .3959009    -0.92   0.359    -1.139852    .4126887
+       2018  |  -.7900164   .3687603    -2.14   0.032     -1.51307   -.0669626
+       2019  |   -1.31325   .3772273    -3.48   0.001    -2.052906   -.5735946
+             |
+       _cons |  -8.482645   2.235123    -3.80   0.000     -12.8652   -4.100085
+------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+          id |       132           0         132     |
+-----------------------------------------------------+
+(149 missing values generated)
+(149 missing values generated)
+(MWFE estimator converged in 1 iterations)
+
+HDFE Linear regression                            Number of obs   =      3,108
+Absorbing 1 HDFE group                            F(  29,   2947) =      18.27
+                                                  Prob > F        =     0.0000
+                                                  R-squared       =     0.3591
+                                                  Adj R-squared   =     0.3243
+                                                  Within R-sq.    =     0.2235
+                                                  Root MSE        =     3.2731
+
+------------------------------------------------------------------------------
+             |               Robust
+          gy | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+       gy_l1 |   .2639283   .0357735     7.38   0.000     .1937847     .334072
+           I |   .3610534    1.51206     0.24   0.811    -2.603747    3.325854
+           G |  -.1094596   .6124082    -0.18   0.858    -1.310251    1.091332
+          GX |   .0522843   .5559189     0.09   0.925    -1.037744    1.142313
+         liy |   1.870514   .3665783     5.10   0.000     1.151739     2.58929
+        popg |   .0661172   .0994661     0.66   0.506    -.1289129    .2611474
+             |
+        year |
+       1997  |   .2664506   .4705543     0.57   0.571    -.6561978    1.189099
+       1998  |  -1.170011   .4999668    -2.34   0.019    -2.150331   -.1896919
+       1999  |  -.3952217    .470344    -0.84   0.401    -1.317458    .5270143
+       2000  |   .4328546   .4427111     0.98   0.328    -.4351997    1.300909
+       2001  |  -.7495091   .4244264    -1.77   0.078    -1.581711    .0826932
+       2002  |  -.1647115   .4569361    -0.36   0.719    -1.060658    .7312348
+       2003  |   .8121547   .4189813     1.94   0.053     -.009371     1.63368
+       2004  |   1.499423   .4471122     3.35   0.001     .6227388    2.376107
+       2005  |   .5640136   .3914116     1.44   0.150    -.2034543    1.331481
+       2006  |   1.175178   .4043128     2.91   0.004     .3824143    1.967942
+       2007  |   .9245065   .3952998     2.34   0.019     .1494148    1.699598
+       2008  |  -1.112648   .4026252    -2.76   0.006    -1.902103   -.3231933
+       2009  |  -4.682404   .5124857    -9.14   0.000     -5.68727   -3.677538
+       2010  |   1.671242   .4754869     3.51   0.000     .7389217    2.603562
+       2011  |  -.3175543   .4258797    -0.75   0.456    -1.152606    .5174976
+       2012  |  -1.119025   .4122568    -2.71   0.007    -1.927366   -.3106849
+       2013  |  -.4634508   .3952694    -1.17   0.241    -1.238483    .3115812
+       2014  |   -.877673   .3944615    -2.22   0.026    -1.651121    -.104225
+       2015  |  -1.007483   .4592557    -2.19   0.028    -1.907977    -.106988
+       2016  |  -.8989865    .399965    -2.25   0.025    -1.683226   -.1147474
+       2017  |   -.220033   .3802689    -0.58   0.563    -.9656525    .5255866
+       2018  |  -.6789614   .3521844    -1.93   0.054    -1.369514    .0115909
+       2019  |  -1.179247   .3580362    -3.29   0.001    -1.881273   -.4772203
+             |
+       _cons |  -2.519786   2.024201    -1.24   0.213    -6.488777    1.449205
+------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+          id |       132           0         132     |
+-----------------------------------------------------+
+(149 missing values generated)
+(149 missing values generated)
+(MWFE estimator converged in 1 iterations)
+
+HDFE Linear regression                            Number of obs   =      3,113
+Absorbing 1 HDFE group                            F(  29,   2952) =      20.33
+                                                  Prob > F        =     0.0000
+                                                  R-squared       =     0.3680
+                                                  Adj R-squared   =     0.3338
+                                                  Within R-sq.    =     0.2346
+                                                  Root MSE        =     3.2489
+
+------------------------------------------------------------------------------
+             |               Robust
+          gy | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+       gy_l1 |   .2484047   .0353262     7.03   0.000     .1791383    .3176711
+           I |   6.265736   1.671963     3.75   0.000     2.987404    9.544068
+           G |  -3.385082   .6393127    -5.29   0.000    -4.638626   -2.131538
+          GX |  -2.277977   .6223149    -3.66   0.000    -3.498192   -1.057762
+         liy |    1.74572   .3655925     4.78   0.000     1.028878    2.462562
+        popg |   .0281783   .0992496     0.28   0.776    -.1664271    .2227837
+             |
+        year |
+       1997  |   .3130319   .4723015     0.66   0.508    -.6130418    1.239106
+       1998  |  -1.078744   .4961665    -2.17   0.030    -2.051611   -.1058764
+       1999  |  -.3588018   .4603674    -0.78   0.436    -1.261475    .5438718
+       2000  |   .4477552   .4357439     1.03   0.304    -.4066374    1.302148
+       2001  |  -.6599072   .4154872    -1.59   0.112    -1.474581    .1547668
+       2002  |  -.0704806   .4518009    -0.16   0.876    -.9563573    .8153962
+       2003  |   .9372073   .4143751     2.26   0.024     .1247139    1.749701
+       2004  |   1.531557   .4376006     3.50   0.000     .6735239     2.38959
+       2005  |   .5551373   .3841337     1.45   0.149    -.1980596    1.308334
+       2006  |   1.153989   .3983248     2.90   0.004     .3729664    1.935011
+       2007  |   .8786348   .3886987     2.26   0.024     .1164868    1.640783
+       2008  |  -1.094853    .393078    -2.79   0.005    -1.865588   -.3241183
+       2009  |   -4.44519   .5033771    -8.83   0.000    -5.432195   -3.458184
+       2010  |   1.737891   .4692718     3.70   0.000     .8177574    2.658024
+       2011  |  -.1903431   .4172083    -0.46   0.648    -1.008392    .6277055
+       2012  |  -1.008626   .4087836    -2.47   0.014    -1.810156   -.2070964
+       2013  |  -.3630268   .3888089    -0.93   0.351    -1.125391    .3993372
+       2014  |   -.795428   .3951341    -2.01   0.044    -1.570194   -.0206617
+       2015  |   -.893972    .444004    -2.01   0.044    -1.764561   -.0233831
+       2016  |  -.7831804   .3933368    -1.99   0.047    -1.554423   -.0119382
+       2017  |  -.1732706   .3714697    -0.47   0.641    -.9016364    .5550952
+       2018  |   -.654829   .3450447    -1.90   0.058    -1.331382    .0217236
+       2019  |  -1.058864   .3532134    -3.00   0.003    -1.751434   -.3662948
+             |
+       _cons |    7.08611   2.196503     3.23   0.001     2.779278    11.39294
+------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+          id |       132           0         132     |
+-----------------------------------------------------+
+(149 missing values generated)
+(149 missing values generated)
+(MWFE estimator converged in 1 iterations)
+
+HDFE Linear regression                            Number of obs   =      3,108
+Absorbing 1 HDFE group                            F(  29,   2947) =      20.31
+                                                  Prob > F        =     0.0000
+                                                  R-squared       =     0.3685
+                                                  Adj R-squared   =     0.3342
+                                                  Within R-sq.    =     0.2349
+                                                  Root MSE        =     3.2490
+
+------------------------------------------------------------------------------
+             |               Robust
+          gy | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+       gy_l1 |   .2480179    .035341     7.02   0.000     .1787223    .3173135
+           I |   6.193202    1.67936     3.69   0.000     2.900364     9.48604
+           G |  -3.375571   .6414763    -5.26   0.000    -4.633358   -2.117784
+          GX |  -2.234025    .626253    -3.57   0.000    -3.461963   -1.006088
+         liy |   1.767007   .3668987     4.82   0.000     1.047604    2.486411
+        popg |   .0321591   .0992885     0.32   0.746    -.1625228    .2268411
+             |
+        year |
+       1997  |   .2368182    .471593     0.50   0.616    -.6878668    1.161503
+       1998  |  -1.115551   .4955346    -2.25   0.024     -2.08718   -.1439217
+       1999  |  -.3941948   .4597334    -0.86   0.391    -1.295626    .5072363
+       2000  |   .4109962   .4349923     0.94   0.345    -.4419234    1.263916
+       2001  |  -.6974632   .4149962    -1.68   0.093    -1.511175    .1162487
+       2002  |   -.109537   .4510967    -0.24   0.808    -.9940336    .7749595
+       2003  |   .8970641   .4127466     2.17   0.030     .0877632    1.706365
+       2004  |   1.490308   .4355989     3.42   0.001     .6361992    2.344417
+       2005  |    .514324   .3835784     1.34   0.180    -.2377848    1.266433
+       2006  |   1.112626   .3976864     2.80   0.005     .3328552    1.892398
+       2007  |   .8361082    .388484     2.15   0.031     .0743807    1.597836
+       2008  |  -1.137529   .3926294    -2.90   0.004    -1.907385   -.3676738
+       2009  |  -4.485038   .5027419    -8.92   0.000    -5.470799   -3.499277
+       2010  |   1.696428   .4698404     3.61   0.000      .775179    2.617676
+       2011  |  -.2298103   .4166269    -0.55   0.581     -1.04672    .5870989
+       2012  |   -1.04879    .408513    -2.57   0.010     -1.84979   -.2477905
+       2013  |  -.4035296   .3897745    -1.04   0.301    -1.167788    .3607283
+       2014  |  -.8352503   .3950676    -2.11   0.035    -1.609887   -.0606139
+       2015  |  -.9257256   .4476661    -2.07   0.039    -1.803496   -.0479557
+       2016  |  -.8240503   .3931923    -2.10   0.036     -1.59501   -.0530909
+       2017  |  -.2137536   .3715318    -0.58   0.565    -.9422418    .5147345
+       2018  |  -.6950337   .3450034    -2.01   0.044    -1.371506   -.0185616
+       2019  |  -1.099472   .3532522    -3.11   0.002    -1.792118    -.406826
+             |
+       _cons |   7.020737   2.204029     3.19   0.001     2.699146    11.34233
+------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+          id |       132           0         132     |
+-----------------------------------------------------+
+(152 missing values generated)
+(152 missing values generated)
+(MWFE estimator converged in 1 iterations)
+
+HDFE Linear regression                            Number of obs   =      3,108
+Absorbing 1 HDFE group                            F(  29,   2947) =      18.53
+                                                  Prob > F        =     0.0000
+                                                  R-squared       =     0.3648
+                                                  Adj R-squared   =     0.3303
+                                                  Within R-sq.    =     0.2304
+                                                  Root MSE        =     3.2585
+
+------------------------------------------------------------------------------
+             |               Robust
+          gy | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+       gy_l1 |   .2540436   .0361702     7.02   0.000     .1831222    .3249651
+           I |  -.3203045   1.889279    -0.17   0.865    -4.024745    3.384136
+           G |   2.262607    .734349     3.08   0.002     .8227184    3.702496
+          GX |   .2716134    .687096     0.40   0.693    -1.075623     1.61885
+         liy |   1.881273   .3653211     5.15   0.000     1.164962    2.597583
+        popg |    .077146   .0993583     0.78   0.438    -.1176728    .2719647
+             |
+        year |
+       1997  |   .2729988   .4786034     0.57   0.568    -.6654321     1.21143
+       1998  |  -1.208806   .5015872    -2.41   0.016    -2.192303   -.2253095
+       1999  |  -.4177595   .4815724    -0.87   0.386    -1.362012    .5264928
+       2000  |   .4083373   .4473492     0.91   0.361    -.4688113    1.285486
+       2001  |  -.8560236   .4353783    -1.97   0.049      -1.7097   -.0023473
+       2002  |  -.2996468   .4564892    -0.66   0.512    -1.194717    .5954233
+       2003  |   .6617174   .4283155     1.54   0.122    -.1781105    1.501545
+       2004  |   1.347198   .4475266     3.01   0.003     .4697018    2.224694
+       2005  |   .4387148   .3966843     1.11   0.269    -.3390917    1.216521
+       2006  |   1.085499   .4113602     2.64   0.008     .2789161    1.892081
+       2007  |   .8057183   .4018681     2.00   0.045     .0177476    1.593689
+       2008  |  -1.186807   .4111225    -2.89   0.004    -1.992923   -.3806909
+       2009  |   -4.79933    .518996    -9.25   0.000    -5.816961   -3.781698
+       2010  |   1.539067   .4839309     3.18   0.001     .5901904    2.487944
+       2011  |   -.518587   .4360416    -1.19   0.234    -1.373564    .3363899
+       2012  |  -1.281429   .4203051    -3.05   0.002    -2.105551   -.4573078
+       2013  |  -.6244744   .4040688    -1.55   0.122     -1.41676    .1678113
+       2014  |  -1.077766   .3993906    -2.70   0.007    -1.860879   -.2946533
+       2015  |  -1.240538   .4619866    -2.69   0.007    -2.146387   -.3346884
+       2016  |  -1.125753   .4095468    -2.75   0.006     -1.92878   -.3227267
+       2017  |  -.4247046   .3905299    -1.09   0.277    -1.190444    .3410345
+       2018  |  -.8439666   .3631682    -2.32   0.020    -1.556056   -.1318776
+       2019  |  -1.363723    .372136    -3.66   0.000    -2.093396   -.6340503
+             |
+       _cons |   -8.80878   2.398866    -3.67   0.000     -13.5124   -4.105158
+------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+          id |       132           0         132     |
+-----------------------------------------------------+
+(149 missing values generated)
+(149 missing values generated)
+(MWFE estimator converged in 1 iterations)
+
+HDFE Linear regression                            Number of obs   =      3,108
+Absorbing 1 HDFE group                            F(  29,   2947) =      18.38
+                                                  Prob > F        =     0.0000
+                                                  R-squared       =     0.3587
+                                                  Adj R-squared   =     0.3239
+                                                  Within R-sq.    =     0.2230
+                                                  Root MSE        =     3.2740
+
+------------------------------------------------------------------------------
+             |               Robust
+          gy | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+       gy_l1 |   .2637003   .0358583     7.35   0.000     .1933904    .3340101
+           I |   .4279074   1.644723     0.26   0.795    -2.797015     3.65283
+           G |  -.1266682   .6702418    -0.19   0.850    -1.440858    1.187521
+          GX |  -.0132104   .6026321    -0.02   0.983    -1.194833    1.168412
+         liy |    1.88651   .3707593     5.09   0.000     1.159536    2.613483
+        popg |   .0580549   .0994151     0.58   0.559    -.1368753     .252985
+             |
+        year |
+       1997  |   .2593616   .4690075     0.55   0.580    -.6602538    1.178977
+       1998  |   -1.18306   .4983668    -2.37   0.018    -2.160242   -.2058778
+       1999  |  -.4158853    .468744    -0.89   0.375    -1.334984    .5032135
+       2000  |   .4036526    .441855     0.91   0.361    -.4627231    1.270028
+       2001  |  -.7977536   .4214442    -1.89   0.058    -1.624109    .0286013
+       2002  |   -.232357   .4504656    -0.52   0.606    -1.115616    .6509022
+       2003  |   .7552119   .4138253     1.82   0.068    -.0562042    1.566628
+       2004  |   1.425162   .4361433     3.27   0.001     .5699858    2.280339
+       2005  |   .4868545   .3855555     1.26   0.207    -.2691309     1.24284
+       2006  |   1.121442   .4001356     2.80   0.005      .336868    1.906015
+       2007  |   .8508869   .3903118     2.18   0.029     .0855754    1.616198
+       2008  |   -1.17606   .3983594    -2.95   0.003    -1.957151   -.3949695
+       2009  |  -4.732066   .5104731    -9.27   0.000    -5.732986   -3.731146
+       2010  |   1.621734   .4719638     3.44   0.001     .6963218    2.547146
+       2011  |  -.3584248    .423353    -0.85   0.397    -1.188522    .4716728
+       2012  |  -1.176517    .410002    -2.87   0.004    -1.980436   -.3725975
+       2013  |  -.5117206   .3912519    -1.31   0.191    -1.278875     .255434
+       2014  |  -.9488705   .3885033    -2.44   0.015    -1.710636   -.1871052
+       2015  |  -1.080586   .4499433    -2.40   0.016    -1.962821   -.1983507
+       2016  |  -.9640685   .3935431    -2.45   0.014    -1.735716   -.1924212
+       2017  |  -.2890576   .3746077    -0.77   0.440    -1.023577    .4454617
+       2018  |  -.7407969   .3463005    -2.14   0.033    -1.419812   -.0617816
+       2019  |   -1.23314   .3527646    -3.50   0.000     -1.92483   -.5414504
+             |
+       _cons |  -2.438982   2.241294    -1.09   0.277    -6.833643    1.955678
+------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+          id |       132           0         132     |
+-----------------------------------------------------+
+
+. postclose `M'
+
+. * razao entre a interacao replicada (amostra propria) e a publicada, periodo inteiro
+. preserve
+
+. use "$RINT/mv_fiel.dta", clear
+
+. keep if per == "full" & meas == "lgy" & inlist(smp, "pub", "own")
+(19 observations deleted)
+
+. keep inst smp bX
+
+. reshape wide bX, i(inst) j(smp) string
+(j = own pub)
+
+Data                               Long   ->   Wide
+-----------------------------------------------------------------------------
+Number of observations                6   ->   3           
+Number of variables                   3   ->   3           
+j variable (2 values)               smp   ->   (dropped)
+xij variables:
+                                     bX   ->   bXown bXpub
+-----------------------------------------------------------------------------
+
+. gen ratio = bXown / bXpub
+
+. quietly summ ratio
+
+. rv_kv mvf_ratio_min `=string(r(min), "%9.4f")'
+
+. rv_kv mvf_ratio_max `=string(r(max), "%9.4f")'
+
+. local rmin = string(r(min), "%3.1f")
+
+. local rmax = string(r(max), "%3.1f")
+
+. restore
+
+. 
+. * =====================================================================================
 . * Tabela 6 (texto principal): replicas
 . * =====================================================================================
 . use "$RINT/replicas.dta", clear
@@ -1548,6 +3225,12 @@ maximum lag: 3                                   Prob > F          =    0.0000
   |  opra_wgi     gc_tp      fe    .01667124   .06291962   .79142926   -.09697833   .03567785    590   141      . |
   |  opra_wgi     gc_m1    sgmm    .00688143   .08939813   .93874876   -.05432704   .07516755    596   147     33 |
   |  opra_wgi     gc_m1      fe    .07016163   .05260287    .1844357   -.04445906   .03388446    590   141      . |
+  |   opra_xc   gc_mean    sgmm    .04994278   .06250237   .42571646   -.47709181   .29368213    399   131     33 |
+  |   opra_xc   gc_mean      fe    .00646113    .0330636   .84549894   -.09386641   .17521059    361    93      . |
+  |   opra_xc     gc_tp    sgmm   -.01877829   .07532849   .80353347    -.0421767    .3705442    399   131     33 |
+  |   opra_xc     gc_tp      fe   -.00192497   .02393522   .93607471   -.02027245   .10903537    361    93      . |
+  |   opra_xc     gc_m1    sgmm   -.01444975   .09172079   .87506321   -.15555407   .38112265    399   131     33 |
+  |   opra_xc     gc_m1      fe   -.00647887   .02067514   .75471246    -.0076344   .09497738    361    93      . |
   |        mv        gc   fe_dk   -.18441646   .07112663   .01739599   -.26740788   .06761641   2514   127      . |
   |        mv    gc_ham   fe_dk   -.12094873   .04131959   .00833271    .07730078   .05401324   2514   127      . |
   |        mv     gc_l1   fe_dk     .0133536   .04277166   .75811511   -.11996511    .0349797   2514   127      . |
@@ -1601,7 +3284,7 @@ maximum lag: 3                                   Prob > F          =    0.0000
  42.     rv_mid
  43. }
 
-. rv_row "C. Approximate replication of Mollick and Vianna (2023): annual 1996–2019, mean of six WGI indicators" "" "" "" "" "" ""
+. rv_row "C. Approximate replication of Mollick and Vianna (2024): annual 1996–2019, mean of six WGI indicators" "" "" "" "" "" ""
 
 . local cb ""
 
@@ -1632,21 +3315,277 @@ maximum lag: 3                                   Prob > F          =    0.0000
 
 . rv_row "Observations (each measure)" "`=string(r(mean), "%9.0fc")'" "" "" "" "" ""
 
+. rv_mid
+
+. * painel D: replica fiel (texto obtido depois do plano), GE, mesma amostra para as tres medidas
+. preserve
+
+. use "$RINT/mv_fiel.dta", clear
+
+. rv_row "D. Mollick and Vianna (2024), published specification (exploratory): annual 1996–2019, government effectiveness" "" "" "" "" "" ""
+
+. local cb ""
+
+. local cs ""
+
+. foreach meas in lgy lgy_ham lgy_l1 {
+  2.     quietly summ bX if inst == "ge" & per == "full" & smp == "common" & meas == "`meas'"
+  3.     local b = r(mean)
+  4.     quietly summ pX if inst == "ge" & per == "full" & smp == "common" & meas == "`meas'"
+  5.     rv_fmt `b' %12.3f `=r(mean)'
+  6.     local cb `"`cb' "`r(s)'" """'
+  7.     quietly summ seX if inst == "ge" & per == "full" & smp == "common" & meas == "`meas'"
+  8.     rv_fmt `=r(mean)' %12.3f
+  9.     local cs `"`cs' "(`r(s)')" """'
+ 10. }
+
+. rv_row "Measure of government consumption (log)" "Contemporaneous" "" "% of trend GDP (Hamilton)" "" "Lagged one year" ""
+
+. rv_row "Government consumption × institutions" `cb'
+
+. rv_row "" `cs'
+
+. quietly summ N if inst == "ge" & per == "full" & smp == "common" & meas == "lgy"
+
+. rv_row "Observations (each measure)" "`=string(r(mean), "%9.0fc")'" "" "" "" "" ""
+
+. restore
+
 . rv_out Tab6_replications, landscape ///
 >     title("Table 6. Institutions and government size: replications with contemporaneous and predetermined measures") ///
->     notes("Dependent variable: growth of real GDP per capita (%). Panels A and B follow the panel specification of Oto-Peralías and Romero-Ávila (2013, working-paper version INFER 2012/3): five-year
->  averages, growth on government final consumption (% of GDP, WDI), institutional quality and their interaction, with initial log GDP per capita, secondary school enrolment and investment, and period
->  effects. Their ICRG bureaucracy-quality index is proprietary; panel A uses the public ICRG quality-of-government index distributed by QoG (0–1, from 1984) and panel B the WGI government effectivene
-> ss estimate (from 1996), as required by the revision protocol; legal origin, one of their excluded instruments, is not available and is dropped. System GMM: two-step, collapsed instruments, consumpt
-> ion, interaction and investment endogenous (lags 2 and deeper), income, enrolment and institutions predetermined (lags 1 and deeper), period dummies and the population dependency ratio as standard i
-> nstruments; Windmeijer-corrected standard errors. Fixed effects: country and period fixed effects, standard errors clustered by country. Only the timing of government consumption changes across colu
-> mn pairs (period mean, first year of the period, last year of the previous period); each panel uses the same sample for all measures. A positive interaction means that better institutions mitigate t
-> he growth cost of government size. Panel C: annual panel 1996–2019 (the window of Mollick and Vianna, 2023), government consumption interacted with the mean of the six WGI indicators (centred), coun
-> try and year fixed effects, lagged growth and the controls of Table 1, Driscoll-Kraay standard errors (maximum lag 3); the published text was not available, so the specification follows the descript
-> ion in the draft and is an approximate replication only. * p<0.10, ** p<0.05, *** p<0.01.")
-successfully created "C:/Users/Usuario/Dropbox/Papers/Emprego Público e Crescimento/Estimações/output/revisao/tables/Tab6_replications.docx"
-(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/logs/captions/Tab6_replications.txt not found)
+>     notes("Dependent variable: growth of real GDP per capita (%) in panels A–C; growth of real GDP (%) in panel D. Panels A and B follow the panel specification of Oto-Peralías and Romero-Ávila (201
+> 3, working-paper version INFER 2012/3): five-year averages, growth on government final consumption (% of GDP, WDI), institutional quality and their interaction, with initial log GDP per capita, seco
+> ndary school enrolment and investment, and period effects. Their ICRG bureaucracy-quality index is proprietary; panel A uses the public ICRG quality-of-government index distributed by QoG (0–1, from
+>  1984) and panel B the WGI government effectiveness estimate (from 1996), as specified in the analysis plan; legal origin, one of their excluded instruments, is not available and is dropped. System 
+> GMM: two-step, collapsed instruments, consumption, interaction and investment endogenous (lags 2 and deeper), income, enrolment and institutions predetermined (lags 1 and deeper), period dummies and
+>  the population dependency ratio as standard instruments; Windmeijer-corrected standard errors. Fixed effects: country and period fixed effects, standard errors clustered by country. Only the timing
+>  of government consumption changes across column pairs (period mean, first year of the period, last year of the previous period); each panel uses the same sample for all measures. A positive interac
+> tion means that better institutions mitigate the growth cost of government size. Panel C: annual panel 1996–2019 (the window of Mollick and Vianna, 2024), government consumption interacted with the
+>  mean of the six WGI indicators (centred), country and year fixed effects, lagged growth and the controls of Table 1, Driscoll-Kraay standard errors (maximum lag 3); this is the specification regist
+> ered in the analysis plan, written when the published text was not available, and it is an approximate replication only. Panel D (exploratory, added after the plan when the text was obtained): the p
+> ublished specification of Mollick and Vianna (2024, Table 2), with growth of real GDP (%) on its lag, log government consumption, WGI government effectiveness, their interaction, log investment and 
+> population growth, country and year fixed effects, heteroskedasticity-robust (White) standard errors, their 138 countries; only the measure of government consumption changes across columns, on the s
+> ame sample. Full results in Table S17. * p<0.10, ** p<0.05, *** p<0.01.")
+successfully replaced "C:/Users/Usuario/Dropbox/Papers/Emprego Público e Crescimento/Estimações/output/revisao/tables/Tab6_replications.docx"
 tabela gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/tables/Tab6_replications.{tex,docx}
+
+. 
+. * =====================================================================================
+. * Tabela S17: replica fiel de Mollick e Vianna (exploratoria)
+. * =====================================================================================
+. use "$RINT/mv_fiel.dta", clear
+
+. list, noobs sep(0)
+
+  +------------------------------------------------------------------------------------------------------------------------------------------------------------+
+  | inst    per      smp      meas           bG         seG           bI         seI           bX         seX          pX        pXcl          r2      N    nc |
+  |------------------------------------------------------------------------------------------------------------------------------------------------------------|
+  |   ge   full      pub       lgy        -.772        .166        2.378        .463        -.811        .169   1.596e-06           .        .243   3141   137 |
+  |   cc   full      pub       lgy        -.867        .175         2.29         .42        -.814        .156   1.809e-07           .        .242   3141   137 |
+  |   rl   full      pub       lgy        -.878        .184        2.213        .425        -.835        .153   4.828e-08           .        .243   3141   137 |
+  |   ge    pre      pub       lgy        -.886        .247        2.889        .833        -.755        .292    .0097205           .        .153   1498   137 |
+  |   ge   post      pub       lgy       -1.611        .327        3.288         .89       -1.253        .316   .00007334           .         .27   1643   137 |
+  |   ge   full      own       lgy   -3.4409568   .62473994    6.4311209   1.5545575   -2.3166316   .59993857   .00011514   .00041739   .23580707   3113   132 |
+  |   ge   full   common       lgy   -3.4753076   .62702518    6.4534784   1.5606086   -2.3256005   .60264721   .00011631   .00035584   .23634461   3108   132 |
+  |   ge   full   common   lgy_ham    2.0143642    .7132661    .48606343   1.6416774   -.03916916   .62186268   .94978126   .93891382   .23037533   3108   132 |
+  |   ge   full   common    lgy_l1   -.20188274    .6781063    .67985894   1.5256612   -.10659627   .58579562   .85562008   .84371938   .22321376   3108   132 |
+  |   ge    pre      own       lgy   -5.5170041   1.1875258    6.4915918   3.1110623   -1.7752697   1.1679068   .12872397   .18238314   .16877859   1558   130 |
+  |   ge    pre   common       lgy   -5.5447522   1.1852817    6.4711877   3.1170738   -1.7706193   1.1701221   .13045516   .18387319   .16952019   1556   130 |
+  |   ge    pre   common   lgy_ham    1.9135638   1.2519328    .72436989   2.6894603    .40766167   1.0158506   .68825953   .65168092   .15044735   1556   130 |
+  |   ge    pre   common    lgy_l1   -1.0484184   .99602554   -.78984844   2.2097445    1.0166674   .83928606   .22596521   .19552299   .15317669   1556   130 |
+  |   ge   post      own       lgy   -5.1835392   1.1547045    10.492503   3.4247524   -3.9503469   1.2259878   .00130134   .00267929   .23972901   1555   131 |
+  |   ge   post   common       lgy   -5.2035102   1.1560405    10.540349   3.4290869   -3.9647837   1.2268934   .00125971    .0025663   .23977567   1552   131 |
+  |   ge   post   common   lgy_ham    4.4063274   1.1965202   -4.5850285   3.8097936    1.4928032   1.3644695   .27411901    .3542116   .22950354   1552   131 |
+  |   ge   post   common    lgy_l1    .12575456   1.1416149   -2.6611161   3.6552381     .8841727   1.3225528    .5039021   .54195024   .21379721   1552   131 |
+  |   cc   full      own       lgy   -3.0194985    .6104545    5.8595119   1.7527644   -2.0007217   .64292951   .00187676   .00583361   .23284985   3113   132 |
+  |   cc   full   common       lgy   -3.0281591   .61137304    5.8101777   1.7563952   -1.9757242   .64454745    .0021943   .00649169   .23328095   3108   132 |
+  |   cc   full   common   lgy_ham    2.1508865   .70242039   -.09731103   1.7045491    .19101138   .62462336   .75977663   .75032216   .23049024   3108   132 |
+  |   cc   full   common    lgy_l1   -.10945956   .61240818    .36105335   1.5120597    .05228427   .55591892    .9250757    .9290263   .22348186   3108   132 |
+  |   rl   full      own       lgy    -3.385082   .63931274    6.2657363   1.6719633   -2.2779774   .62231488   .00025614   .00023837   .23460592   3113   132 |
+  |   rl   full   common       lgy   -3.3755709   .64147634    6.1932019   1.6793604   -2.2340254   .62625296   .00036644   .00034086   .23489481   3108   132 |
+  |   rl   full   common   lgy_ham    2.2626073   .73434896   -.32030453   1.8892789    .27161344   .68709597   .69264538   .62673783   .23037996   3108   132 |
+  |   rl   full   common    lgy_l1   -.12666817   .67024178     .4279074   1.6447229   -.01321044   .60263207   .98251227   .98183043   .22304977   3108   132 |
+  +------------------------------------------------------------------------------------------------------------------------------------------------------------+
+
+. local cols `""ge full" "cc full" "rl full" "ge pre" "ge post""'
+
+. rv_new, ncol(5) head1("GE" "CC" "RL" "GE" "GE") head2("1996–2019" "1996–2019" "1996–2019" "1996–2007" "2008–2019")
+
+. foreach k in "pub lgy" "own lgy" {
+  2.     tokenize `k'
+  3.     local smp `1'
+  4.     local meas `2'
+  5.     local ttl = cond("`smp'" == "pub", "A. Published (Mollick and Vianna, 2024, Table 2)", "B. Replication: published specification, contemporaneous consumption")
+  6.     rv_row "`ttl'" "" "" "" "" ""
+  7.     foreach row in G I X {
+  8.         local cb ""
+  9.         local cs ""
+ 10.         foreach c of local cols {
+ 11.             tokenize `c'
+ 12.             quietly summ b`row' if inst == "`1'" & per == "`2'" & smp == "`smp'" & meas == "`meas'"
+ 13.             local b = r(mean)
+ 14.             quietly summ se`row' if inst == "`1'" & per == "`2'" & smp == "`smp'" & meas == "`meas'"
+ 15.             local se = r(mean)
+ 16.             rv_fmt `b' %12.3f `=2 * normal(-abs(`b' / `se'))'
+ 17.             local cb `"`cb' "`r(s)'""'
+ 18.             rv_fmt `se' %12.3f
+ 19.             local cs `"`cs' "(`r(s)')""'
+ 20.         }
+ 21.         local lab = cond("`row'" == "G", "Log government consumption (% of GDP)", cond("`row'" == "I", "Institutions (WGI)", "Log government consumption × institutions"))
+ 22.         rv_row "`lab'" `cb'
+ 23.         rv_row "" `cs'
+ 24.     }
+ 25.     foreach st in N nc r2 {
+ 26.         local cn ""
+ 27.         foreach c of local cols {
+ 28.             tokenize `c'
+ 29.             quietly summ `st' if inst == "`1'" & per == "`2'" & smp == "`smp'" & meas == "`meas'"
+ 30.             rv_fmt `=r(mean)' `=cond("`st'" == "r2", "%12.3f", "%12.0fc")'
+ 31.             local cn `"`cn' "`r(s)'""'
+ 32.         }
+ 33.         local lab = cond("`st'" == "N", "Observations", cond("`st'" == "nc", "Countries", "Within R² (including year effects)"))
+ 34.         rv_row "`lab'" `cn'
+ 35.     }
+ 36.     rv_mid
+ 37. }
+
+. rv_row "C. Same sample for the three measures: log government consumption × institutions" "" "" "" "" ""
+
+. foreach meas in lgy lgy_ham lgy_l1 {
+  2.     local cb ""
+  3.     local cs ""
+  4.     local cp ""
+  5.     foreach c of local cols {
+  6.         tokenize `c'
+  7.         quietly summ bX if inst == "`1'" & per == "`2'" & smp == "common" & meas == "`meas'"
+  8.         local b = r(mean)
+  9.         quietly summ pX if inst == "`1'" & per == "`2'" & smp == "common" & meas == "`meas'"
+ 10.         rv_fmt `b' %12.3f `=r(mean)'
+ 11.         local cb `"`cb' "`r(s)'""'
+ 12.         quietly summ seX if inst == "`1'" & per == "`2'" & smp == "common" & meas == "`meas'"
+ 13.         rv_fmt `=r(mean)' %12.3f
+ 14.         local cs `"`cs' "(`r(s)')""'
+ 15.         quietly summ pXcl if inst == "`1'" & per == "`2'" & smp == "common" & meas == "`meas'"
+ 16.         rv_fmt `=r(mean)' %12.3f
+ 17.         local cp `"`cp' "[`r(s)']""'
+ 18.     }
+ 19.     local lab = cond("`meas'" == "lgy", "Contemporaneous", cond("`meas'" == "lgy_ham", "% of trend GDP (Hamilton)", "Lagged one year"))
+ 20.     rv_row "`lab'" `cb'
+ 21.     rv_row "" `cs'
+ 22.     rv_row "" `cp'
+ 23. }
+
+. local cn ""
+
+. foreach c of local cols {
+  2.     tokenize `c'
+  3.     quietly summ N if inst == "`1'" & per == "`2'" & smp == "common" & meas == "lgy"
+  4.     rv_fmt `=r(mean)' %12.0fc
+  5.     local cn `"`cn' "`r(s)'""'
+  6. }
+
+. rv_row "Observations (each measure)" `cn'
+
+. quietly summ N if inst == "ge" & per == "full" & smp == "own" & meas == "lgy"
+
+. local nown = string(r(mean), "%9.0fc")
+
+. quietly summ N if inst == "ge" & per == "full" & smp == "pub"
+
+. local npub = string(r(mean), "%9.0fc")
+
+. use "$RINT/mv_fiel.dta", clear
+
+. keep if per == "full" & meas == "lgy" & inlist(smp, "pub", "own")
+(19 observations deleted)
+
+. keep inst smp bX
+
+. reshape wide bX, i(inst) j(smp) string
+(j = own pub)
+
+Data                               Long   ->   Wide
+-----------------------------------------------------------------------------
+Number of observations                6   ->   3           
+Number of variables                   3   ->   3           
+j variable (2 values)               smp   ->   (dropped)
+xij variables:
+                                     bX   ->   bXown bXpub
+-----------------------------------------------------------------------------
+
+. gen ratio = bXown / bXpub
+
+. quietly summ ratio
+
+. local rmin = string(r(min), "%3.1f")
+
+. local rmax = string(r(max), "%3.1f")
+
+. rv_out TabS_mv_faithful, landscape ///
+>     title("Table S17. Mollick and Vianna (2024) with the published specification (exploratory)") ///
+>     notes("Mollick and Vianna (2024, Public Choice 198: 189–207), equation (1) and Table 2: growth of real GDP (%, WDI NY.GDP.MKTP.KD.ZG) on its own lag, log general government final consumption (% 
+> of GDP, NE.CON.GOVT.ZS), institutional quality (WGI government effectiveness GE, control of corruption CC or rule of law RL, in levels), the interaction of the last two, log gross capital formation 
+> (% of GDP, NE.GDI.TOTL.ZS) and population growth, with country and year fixed effects and heteroskedasticity-robust (White) standard errors in parentheses, on the 138 countries listed in their Table
+>  1 (Puerto Rico is not in the project data). WDI series downloaded on 13 November 2026; WGI has no estimates for 1997, 1999 and 2001, which are linearly interpolated because the published number of 
+> observations implies that those years are included. Panel A: published coefficients and standard errors (stars from the normal distribution). Panels B and C: this replication; stars from the White s
+> tandard errors; in panel C, p-values with standard errors clustered by country in brackets. The replication comes close to the published sample (`nown' against `npub' observations with GE) and withi
+> n R², and reproduces the signs and significance of the full-period estimates, but its interaction coefficients are `rmin' to `rmax' times the published ones; without the authors' code the difference
+>  cannot be traced (later vintages of the WDI series are one candidate). Panel C changes only the measure of government consumption (log of consumption over trend GDP, Hamilton filter; or consumption
+>  lagged one year) on the same country-years. The analysis was added after the registered plan, when the published text became available, and is exploratory. * p<0.10, ** p<0.05, *** p<0.01.")
+successfully replaced "C:/Users/Usuario/Dropbox/Papers/Emprego Público e Crescimento/Estimações/output/revisao/tables/TabS_mv_faithful.docx"
+tabela gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/tables/TabS_mv_faithful.{tex,docx}
+
+. 
+. * =====================================================================================
+. * Tabela S18: Oto-Peralias e Romero-Avila com restricoes ao executivo (Polity5), exploratoria
+. * =====================================================================================
+. use "$RINT/replicas.dta", clear
+
+. rv_new, ncol(6) head1("Period mean (contemporaneous)" "" "First year (t_p)" "" "t_p − 1" "") ///
+>     head2("System GMM" "Fixed effects" "System GMM" "Fixed effects" "System GMM" "Fixed effects")
+
+. foreach row in i g {
+  2.     local cb ""
+  3.     local cs ""
+  4.     foreach meas in gc_mean gc_tp gc_m1 {
+  5.         foreach est in sgmm fe {
+  6.             quietly summ b`row' if rep == "opra_xc" & meas == "`meas'" & est == "`est'"
+  7.             local b = r(mean)
+  8.             quietly summ se`row' if rep == "opra_xc" & meas == "`meas'" & est == "`est'"
+  9.             local se = r(mean)
+ 10.             rv_fmt `b' %12.3f `=2 * normal(-abs(`b' / `se'))'
+ 11.             local cb `"`cb' "`r(s)'""'
+ 12.             rv_fmt `se' %12.3f
+ 13.             local cs `"`cs' "(`r(s)')""'
+ 14.         }
+ 15.     }
+ 16.     local lab = cond("`row'" == "i", "Government consumption × executive constraints", "Government consumption (% of GDP)")
+ 17.     rv_row "`lab'" `cb'
+ 18.     rv_row "" `cs'
+ 19. }
+
+. foreach st in N nc nins {
+  2.     local cn ""
+  3.     foreach meas in gc_mean gc_tp gc_m1 {
+  4.         foreach est in sgmm fe {
+  5.             quietly summ `st' if rep == "opra_xc" & meas == "`meas'" & est == "`est'"
+  6.             rv_fmt `=r(mean)' %12.0fc
+  7.             local cn `"`cn' "`r(s)'""'
+  8.         }
+  9.     }
+ 10.     local lab = cond("`st'" == "N", "Observations", cond("`st'" == "nc", "Countries", "Instruments"))
+ 11.     rv_row "`lab'" `cn'
+ 12. }
+
+. rv_out TabS_opra_xconst, landscape ///
+>     title("Table S18. Oto-Peralías and Romero-Ávila (2013) with executive constraints (Polity5, exploratory)") ///
+>     notes("Same specification, window (five-year averages 1981–1985 to 2001–2005) and estimators as Table 6, panel A, with institutional quality measured by executive constraints (Polity5, xconst, 1
+> –7, period mean), the indicator of the robustness section of Oto-Peralías and Romero-Ávila (working-paper version, section IV.3). Polity codes −66, −77 and −88 (interruption, interregnum, transition
+> ) set to missing; Polity5 country codes matched to ISO3 through the Correlates of War codes in QoG, with explicit matches for Ethiopia, Vietnam, Serbia, Montenegro, South Sudan, West Germany and Nor
+> th Yemen. Polity5 downloaded on 13 November 2026, after the registered plan; the table is exploratory. A positive interaction means that stronger constraints mitigate the growth cost of government s
+> ize. * p<0.10, ** p<0.05, *** p<0.01.")
+successfully replaced "C:/Users/Usuario/Dropbox/Papers/Emprego Público e Crescimento/Estimações/output/revisao/tables/TabS_opra_xconst.docx"
+tabela gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/tables/TabS_opra_xconst.{tex,docx}
 
 . 
 . * =====================================================================================
@@ -1698,7 +3637,7 @@ tabela gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\E
 
 . import delimited "$RINT/kv.csv", clear varnames(1) stringcols(_all)
 (encoding automatically selected: ISO-8859-1)
-(2 vars, 409 obs)
+(2 vars, 527 obs)
 
 . foreach k in cyc_corr_pre cyc_corr_pre_n cyc_corr_in cyc_resp_inter cyc_resp_inter_p {
   2.     quietly levelsof value if key == "`k'", local(`k') clean
@@ -1713,34 +3652,57 @@ tabela gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\E
 > n between pre-1996 cyclicality and average institutions across countries: `cyc_corr_pre' (`cyc_corr_pre_n' countries); with 1996–2023 cyclicality: `cyc_corr_in'. In a regression of the change in rea
 > l government consumption on the output gap, its interaction with institutions is `cyc_resp_inter' (p = `cyc_resp_inter_p'). Last three rows: government consumption (WDI) in its own sample, consumpti
 > on and total expenditure (IMF GFS) on the same country-years. * p<0.10, ** p<0.05, *** p<0.01.")
-successfully created "C:/Users/Usuario/Dropbox/Papers/Emprego Público e Crescimento/Estimações/output/revisao/tables/TabS_cyclicality.docx"
-(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/logs/captions/TabS_cyclicality.txt not found)
+successfully replaced "C:/Users/Usuario/Dropbox/Papers/Emprego Público e Crescimento/Estimações/output/revisao/tables/TabS_cyclicality.docx"
 tabela gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/tables/TabS_cyclicality.{tex,docx}
 
 . 
 . * =====================================================================================
 . * Figura 4: reconciliacao institucional (interacoes por medida)
 . * =====================================================================================
+. use "$RINT/mv_fiel.dta", clear
+
+. keep if inst == "ge" & per == "full" & smp == "common"
+(22 observations deleted)
+
+. gen str14 rep = "mvf"
+
+. gen str8 est = "fe_w"
+
+. rename (bX seX pX) (bi sei pi)
+
+. keep rep meas est bi sei pi N nc
+
+. tempfile mvf
+
+. save `mvf'
+file C:\Users\Usuario\AppData\Local\Temp\ST_8980_000003.tmp saved as .dta format
+
 . use "$RINT/replicas.dta", clear
+
+. append using `mvf'
 
 . gen lo = bi - 1.96 * sei
 
 . gen hi = bi + 1.96 * sei
 
 . gen str60 lab = ""
-(15 missing values generated)
+(24 missing values generated)
 
 . gen ord = .
-(15 missing values generated)
+(24 missing values generated)
 
 . local i = 0
 
 . foreach k in "opra_icrg gc_mean sgmm" "opra_icrg gc_tp sgmm" "opra_icrg gc_m1 sgmm" "opra_icrg gc_mean fe" "opra_icrg gc_tp fe" "opra_icrg gc_m1 fe" ///
->     "opra_wgi gc_mean fe" "opra_wgi gc_tp fe" "opra_wgi gc_m1 fe" "mv gc fe_dk" "mv gc_ham fe_dk" "mv gc_l1 fe_dk" {
+>     "opra_wgi gc_mean fe" "opra_wgi gc_tp fe" "opra_wgi gc_m1 fe" "mv gc fe_dk" "mv gc_ham fe_dk" "mv gc_l1 fe_dk" ///
+>     "mvf lgy fe_w" "mvf lgy_ham fe_w" "mvf lgy_l1 fe_w" {
   2.     local ++i
   3.     tokenize `k'
-  4.     replace ord = 13 - `i' if rep == "`1'" & meas == "`2'" & est == "`3'"
+  4.     replace ord = 16 - `i' if rep == "`1'" & meas == "`2'" & est == "`3'"
   5. }
+(1 real change made)
+(1 real change made)
+(1 real change made)
 (1 real change made)
 (1 real change made)
 (1 real change made)
@@ -1755,32 +3717,36 @@ tabela gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\E
 (1 real change made)
 
 . keep if !missing(ord)
-(3 observations deleted)
+(9 observations deleted)
 
 . * intervalos padronizados por escala da instituicao nao sao comparaveis entre paineis: um painel por replica
-. gen grp = cond(rep == "mv", 3, cond(rep == "opra_wgi", 2, 1))
+. gen grp = cond(rep == "mvf", 4, cond(rep == "mv", 3, cond(rep == "opra_wgi", 2, 1)))
 
 . twoway (rcap lo hi ord if grp == 1, horizontal lcolor(black)) (scatter ord bi if grp == 1, msymbol(O) mcolor(black) msize(small)) ///
 >        (rcap lo hi ord if grp == 2, horizontal lcolor(gs7) lpattern(dash)) (scatter ord bi if grp == 2, msymbol(Dh) mcolor(gs5) msize(small)) ///
->        (rcap lo hi ord if grp == 3, horizontal lcolor(black) lpattern(shortdash)) (scatter ord bi if grp == 3, msymbol(T) mcolor(black) msize(small)), ///
+>        (rcap lo hi ord if grp == 3, horizontal lcolor(black) lpattern(shortdash)) (scatter ord bi if grp == 3, msymbol(T) mcolor(black) msize(small)) ///
+>        (rcap lo hi ord if grp == 4, horizontal lcolor(gs7)) (scatter ord bi if grp == 4, msymbol(S) mcolor(gs5) msize(small)), ///
 >        $GOPT xline(0, lcolor(gs10) lpattern(shortdash)) ///
->        ylabel(12 "OPRA, S-GMM: period mean" 11 "OPRA, S-GMM: t{sub:p}" 10 "OPRA, S-GMM: t{sub:p} − 1" 9 "OPRA, FE: period mean" 8 "OPRA, FE: t{sub:p}" 7 "OPRA, FE: t{sub:p} − 1" ///
->               6 "OPRA (WGI), FE: period mean" 5 "OPRA (WGI), FE: t{sub:p}" 4 "OPRA (WGI), FE: t{sub:p} − 1" 3 "MV (approx.): contemporaneous" 2 "MV (approx.): % of trend GDP" 1 "MV (approx.): lagged
-> ", ///
->               angle(0) labsize(7.5pt) nogrid) xlabel(, format(%3.1f) labsize(8pt)) ytitle("") yscale(range(0.5 12.5)) ///
->        legend(order(2 "ICRG (QoG), 1981–2005" 4 "WGI, 1996–2020" 6 "WGI mean, annual 1996–2019") rows(1) pos(6) size(7.5pt)) ///
->        xtitle("Interaction: government consumption × institutions (95% CI)", size(8pt))
+>        ylabel(15 "Oto-Peralías & Romero-Ávila, S-GMM: period mean" 14 "Oto-Peralías & Romero-Ávila, S-GMM: t{sub:p}" 13 "Oto-Peralías & Romero-Ávila, S-GMM: t{sub:p} − 1" ///
+>               12 "Oto-Peralías & Romero-Ávila, FE: period mean" 11 "Oto-Peralías & Romero-Ávila, FE: t{sub:p}" 10 "Oto-Peralías & Romero-Ávila, FE: t{sub:p} − 1" ///
+>               9 "Oto-Peralías & Romero-Ávila (WGI), FE: period mean" 8 "Oto-Peralías & Romero-Ávila (WGI), FE: t{sub:p}" 7 "Oto-Peralías & Romero-Ávila (WGI), FE: t{sub:p} − 1" ///
+>               6 "Mollick & Vianna (approx.): contemporaneous" 5 "Mollick & Vianna (approx.): % of trend GDP" 4 "Mollick & Vianna (approx.): lagged" ///
+>               3 "Mollick & Vianna (published): contemporaneous" 2 "Mollick & Vianna (published): % of trend GDP" 1 "Mollick & Vianna (published): lagged", ///
+>               angle(0) labsize(7.5pt) nogrid) xlabel(, format(%3.1f) labsize(8pt)) ytitle("") yscale(range(0.5 15.5)) ///
+>        legend(order(2 "ICRG (QoG), 1981–2005" 4 "WGI, 1996–2020" 6 "WGI mean, annual" 8 "WGI GE, published spec.") rows(2) pos(6) span size(7.5pt)) ///
+>        xtitle("Interaction: government consumption × institutions (95% CI)", size(8pt)) ///
+>        graphregion(margin(l=18 r=2 t=2 b=2))
 
-. rv_fig Fig4_reconciliation, width(190) height(110)
+. rv_fig Fig4_reconciliation, width(190) height(150)
 file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/figures/Fig4_reconciliation.pdf saved as PDF format
-(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/figures/Fig4_reconciliation.png not found)
 file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/figures/Fig4_reconciliation.png saved as PNG format
-figura gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/figures/Fig4_reconciliation.{pdf,png} (190 x 110 mm)
+file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/figures/Fig4_reconciliation.eps saved as EPS format
+figura gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/figures/Fig4_reconciliation.{pdf,png,eps} (190 x 150 mm)
 
 . 
 . log close
       name:  <unnamed>
        log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/logs/06_instituicoes.log
   log type:  text
- closed on:  17 Oct 2026, 21:01:15
+ closed on:  13 Nov 2026, 18:48:21
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

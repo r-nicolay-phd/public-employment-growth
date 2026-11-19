@@ -1,0 +1,4 @@
+Data de acesso: 2026-11-16
+API (SDMX 3.0, SDMX-CSV): https://api.imf.org/external/sdmx/3.0/data/dataflow/IMF.STA/GFS_SOO/+/*.S13.G2M.G21_T.XDC.A
+IMF Government Finance Statistics, Statement of Operations (dataflow IMF.STA/GFS_SOO): G21_T (compensation of employees), sector S13 (general government), national currency (XDC), annual.
+Arquivo: g21_xdc.csv (10048 linhas). Gratuito. Usado no Bloco 7 do terceiro adendo (code/kyklos3/08_fontes.do).

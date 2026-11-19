@@ -2,7 +2,7 @@
       name:  <unnamed>
        log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/logs/13_tabelas.log
   log type:  text
- opened on:  17 Oct 2026, 21:32:08
+ opened on:  13 Nov 2026, 19:19:30
 
 . 
 . * registro chave-valor em macros KV_<chave>
@@ -21,8 +21,8 @@
 
 . kvload
 (encoding automatically selected: ISO-8859-1)
-(2 vars, 692 obs)
-(39 observations deleted)
+(2 vars, 752 obs)
+(3 observations deleted)
 
 . 
 . * =====================================================================================
@@ -117,24 +117,24 @@
 
 . list, noobs
 
-  +----------------------------------------------------------------------------------------------------------------------------------------------------------------+
-  |     h                                                        lab   sign         b          se           lo           hi       p   pboot    prw         verdict |
-  |----------------------------------------------------------------------------------------------------------------------------------------------------------------|
-  |    H1                 Wage bill (t_p − 1), five-year growth (T3)      −    -.1424        .071      -.28156      -.00324   .0489   .1201   .426   Not supported |
-  |   H1b             Wage bill share of spending, transfers omitted      −    -.0727   .04460368   -.16012321    .01472321   .1092   .3111   .541   Not supported |
-  |    H2                       log relative public wage (log model)      −   -5.3927      1.0479    -7.446584    -3.338816       0   .0007   .002       Supported |
-  |    H3                   Wage bill × merit (mitigation predicted)      +     .0656       .0476     -.027696      .158896   .1727   .3815   .541   Not supported |
-  | H4inv                  Wage bill (t_p − 1) on private investment      −    -.3517   .17455017   -.69381834   -.00958166   .0479   .0758   .426    Inconclusive |
-  |----------------------------------------------------------------------------------------------------------------------------------------------------------------|
-  | H4tfp                          Wage bill (t_p − 1) on TFP growth      −    -.0332   .06079896   -.15236597    .08596597   .5869   .6886   .673   Not supported |
-  |    H5   Predetermined election on wage bill change (democracies)      +     .0542       .0355      -.01538       .12378   .1313   .1307   .541   Not supported |
-  +----------------------------------------------------------------------------------------------------------------------------------------------------------------+
+  +-------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+  |     h                                                        lab   sign            b          se           lo           hi       p   pboot    prw         verdict |
+  |-------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+  |    H1                 Wage bill (t_p − 1), five-year growth (T3)      −   -.14243999        .071   -.28159999   -.00327999   .0489   .1201   .426   Not supported |
+  |   H1b             Wage bill share of spending, transfers omitted      −       -.0727   .04460368   -.16012321    .01472321   .1092   .3111   .541   Not supported |
+  |    H2                       log relative public wage (log model)      −      -5.3927      1.0479    -7.446584    -3.338816       0   .0007   .002       Supported |
+  |    H3                   Wage bill × merit (mitigation predicted)      +        .0656       .0476     -.027696      .158896   .1727   .3815   .541   Not supported |
+  | H4inv                  Wage bill (t_p − 1) on private investment      −       -.3517   .17455017   -.69381834   -.00958166   .0479   .0758   .426    Inconclusive |
+  |-------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+  | H4tfp                          Wage bill (t_p − 1) on TFP growth      −       -.0332   .06079896   -.15236597    .08596597   .5869   .6886   .673   Not supported |
+  |    H5   Predetermined election on wage bill change (democracies)      +        .0542       .0355      -.01538       .12378   .1313   .1307   .541   Not supported |
+  +-------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 
 . * enquadramento (secao 2.2 do plano)
 . kvload
 (encoding automatically selected: ISO-8859-1)
-(2 vars, 699 obs)
-(46 observations deleted)
+(2 vars, 759 obs)
+(3 observations deleted)
 
 . local H1v "`KV_verdict_H1'"
 
@@ -172,7 +172,27 @@
 
 . local m_p = r(mean)
 
+. * sensibilidade (exploratoria, depois do plano): a mesma regra aplicada a replica com a especificacao publicada
+. * de Mollick e Vianna (GE, mesma amostra); nao entra na regra registrada do cenario
+. use "$RINT/mv_fiel.dta", clear
+
+. quietly summ pX if inst == "ge" & per == "full" & smp == "common" & meas == "lgy"
+
+. local f_c = r(mean)
+
+. quietly summ bX if inst == "ge" & per == "full" & smp == "common" & meas == "lgy"
+
+. local f_cb = r(mean)
+
+. quietly summ pX if inst == "ge" & per == "full" & smp == "common" & meas == "lgy_l1"
+
+. local f_p = r(mean)
+
 . restore
+
+. local nit_mvf = (`f_cb' < 0) & (`f_c' < 0.10) & (`f_p' >= 0.10)
+
+. rv_kv nit_mvf `nit_mvf'
 
 . local nit_opra = (`o_cb' > 0) & (`o_c' < 0.10) & (`o_p' >= 0.10)
 
@@ -326,12 +346,12 @@ tabela gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\E
 . use "$RINT/estrutural_lp.dta", clear
 
 . keep if spec == "base"
-(56 observations deleted)
+(63 observations deleted)
 
 . tempfile LPM
 
 . save `LPM'
-file C:\Users\Usuario\AppData\Local\Temp\ST_7600_000002.tmp saved as .dta format
+file C:\Users\Usuario\AppData\Local\Temp\ST_8980_000002.tmp saved as .dta format
 
 . use "$RINT/rw_lpmerit_adj.dta", clear
 
@@ -425,12 +445,12 @@ file C:\Users\Usuario\AppData\Local\Temp\ST_7600_000002.tmp saved as .dta format
 
 . rv_out TabS_lp_horizons, landscape ///
 >     title("Table S14. Local projections by horizon: merit regimes, multiple-testing adjustment and alternative inference") ///
->     notes("Cumulative response of 100 × log GDP per capita from t − 1 to t + h to a real wage bill shock of one percentage point of lagged GDP (draft-7 specification), annual panel 1996–2023, countr
-> y and year fixed effects, two lags of the shock and of growth. Merit regimes: merit above the sample median in the year before the shock. Driscoll-Kraay standard errors (maximum lag 3). Romano-Wolf:
->  step-down adjustment over the seven horizons of the high − low difference, 999 bootstrap resamples of countries (cluster-robust t statistics in the resamples). Lag-augmented local projections (Mont
-> iel Olea and Plagborg-Møller, 2021): one extra lag of the shock and of growth and heteroskedasticity-robust standard errors. Half-panel jackknife: 2 × full-sample estimate minus the average of the 1
-> 996–2009 and 2010–2023 estimates, a correction for the small-T fixed-effects bias; there is no Stata implementation of Herbst and Johannsen (2024), so their correction is not applied. * p<0.10, ** p
-> <0.05, *** p<0.01.")
+>     notes("Cumulative response of 100 × log GDP per capita from t − 1 to t + h to a real wage bill shock of one percentage point of lagged GDP (conventional specification), annual panel 1996–2023, c
+> ountry and year fixed effects, two lags of the shock and of growth. Merit regimes: merit above the sample median in the year before the shock. Driscoll-Kraay standard errors (maximum lag 3). Romano-
+> Wolf: step-down adjustment over the seven horizons of the high − low difference, 999 bootstrap resamples of countries (cluster-robust t statistics in the resamples). Lag-augmented local projections 
+> (Montiel Olea and Plagborg-Møller, 2021): one extra lag of the shock and of growth and heteroskedasticity-robust standard errors. Half-panel jackknife: 2 × full-sample estimate minus the average of 
+> the 1996–2009 and 2010–2023 estimates, a correction for the small-T fixed-effects bias; there is no Stata implementation of Herbst and Johannsen (2024), so their correction is not applied. * p<0.10,
+>  ** p<0.05, *** p<0.01.")
 successfully replaced "C:/Users/Usuario/Dropbox/Papers/Emprego Público e Crescimento/Estimações/output/revisao/tables/TabS_lp_horizons.docx"
 tabela gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/tables/TabS_lp_horizons.{tex,docx}
 
@@ -440,8 +460,8 @@ tabela gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\E
 . * =====================================================================================
 . kvload
 (encoding automatically selected: ISO-8859-1)
-(2 vars, 706 obs)
-(53 observations deleted)
+(2 vars, 767 obs)
+(3 observations deleted)
 
 . tempname M
 
@@ -457,7 +477,7 @@ tabela gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\E
 
 . addm `M' "Preferred (T3): wage bill in t_p − 1, predetermined controls" `KV_T3_own_b' `KV_T3_own_p' `KV_T3_own_N' "Table 2, col. 4"
 
-. addm `M' "Draft-7 timing (t_p, period-mean controls)" `KV_T6_own_b' `KV_T6_own_p' `KV_T6_own_N' "Table 2, col. 1"
+. addm `M' "Conventional timing (t_p, period-mean controls)" `KV_T6_own_b' `KV_T6_own_p' `KV_T6_own_N' "Table 2, col. 1"
 
 . addm `M' "Growth excluding the first year (T2)" `KV_T2_own_b' `KV_T2_own_p' `KV_T2_own_N' "Table 2, col. 3"
 
@@ -484,6 +504,8 @@ tabela gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\E
 . addm `M' "Balanced panel" `KV_str_balanced_b' `KV_str_balanced_p' `KV_str_balanced_N' "Table S8"
 
 . addm `M' "Banking-crisis control" `KV_str_crisis_b' `KV_str_crisis_p' `KV_str_crisis_N' "Table S8"
+
+. addm `M' "Health and education share, IMF COFOG" `KV_str_healthcofog_b' `KV_str_healthcofog_p' `KV_str_healthcofog_N' "Table S8"
 
 . addm `M' "All structural changes together" `KV_str_all_b' `KV_str_all_p' `KV_str_all_N' "Table S8"
 
@@ -723,8 +745,7 @@ tabela gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\E
 
 . rv_out TabS16_countries, landscape ///
 >     title("Table S16. Countries in the preferred five-year estimation sample (T3), by 1996 income group") ///
->     notes("Countries with at least one country-period in the T3 estimation sample (after singletons are dropped). World Bank income group in 1996. The draft-7 table listed the 101 countries with a g
-> eneral government wage bill in any period rather than the estimation sample.")
+>     notes("Countries with at least one country-period in the T3 estimation sample (after singletons are dropped). World Bank income group in 1996.")
 successfully replaced "C:/Users/Usuario/Dropbox/Papers/Emprego Público e Crescimento/Estimações/output/revisao/tables/TabS16_countries.docx"
 tabela gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/tables/TabS16_countries.{tex,docx}
 
@@ -733,5 +754,5 @@ tabela gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\E
       name:  <unnamed>
        log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/logs/13_tabelas.log
   log type:  text
- closed on:  17 Oct 2026, 21:32:10
+ closed on:  13 Nov 2026, 19:19:32
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

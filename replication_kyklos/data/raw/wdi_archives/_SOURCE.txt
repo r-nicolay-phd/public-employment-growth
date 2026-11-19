@@ -1,0 +1,11 @@
+Data de acesso: 2026-11-17
+Fonte: World Bank, WDI Database Archives (API v2, source 57), gratuito.
+URL: https://api.worldbank.org/v2/sources/57/country/all/series/<serie>/version/<versao>/time/YR1994;...;YR2019?format=json&per_page=20000&page=1
+Versoes: 202212, 202312 (dez/2022 e dez/2023). Series: NY.GDP.MKTP.KD.ZG, NE.CON.GOVT.ZS, NE.GDI.TOTL.ZS, SP.POP.GROW.
+Usado no Bloco 5, item 2, do quarto adendo (code/kyklos4/05_inst.do): especificacao publicada de Mollick e Vianna (2024)
+com safras antigas do WDI. O artigo nao informa a data de acesso dos autores.
+202212: arquivo ja baixado
+202312 NY.GDP.MKTP.KD.ZG: ok
+202312 NE.CON.GOVT.ZS: ok
+202312 NE.GDI.TOTL.ZS: ok
+202312 SP.POP.GROW: ok

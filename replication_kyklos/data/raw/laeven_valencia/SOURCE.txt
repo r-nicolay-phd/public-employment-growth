@@ -1,0 +1,7 @@
+Source: Laeven and Valencia systemic banking crises database (2018)
+Citation: Laeven, L., & Valencia, F. (2018). Systemic banking crises revisited (IMF Working Paper No. 18/206). International Monetary Fund. https://www.imf.org/en/Publications/WP/Issues/2018/09/14/Systemic-Banking-Crises-Revisited-46232
+URL: https://www.imf.org/en/Publications/WP/Issues/2018/09/14/Systemic-Banking-Crises-Revisited-46232
+Licence or terms: IMF Copyright and Usage (statistical data may be downloaded, copied, adapted and redistributed for non-commercial use with attribution; https://www.imf.org/en/about/copyright-and-terms); file obtained from a public copy on Harvard Dataverse (file id 11677773) because the IMF server blocks automated download
+Access date: 2026-10-17
+Redistributed in this package: yes
+Files: data/raw/laeven_valencia/SYSTEMIC_BANKING_CRISES_DATABASE_2018.xlsx

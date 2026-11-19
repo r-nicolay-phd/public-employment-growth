@@ -25,7 +25,9 @@ Fontes pedidas pelo parecer. Todas as análises que dependem de fontes sem downl
 | Condicionalidades do FMI, MONA (2002–) | https://www.imf.org/external/np/pdr/mona/ | `data/raw/mona/` (exportar a tabela "Combined SPC PA SB" em formato tabulado) | **Não obtido**: download bloqueado (403); a exportação exige navegação manual. Bloco 4.9, item 2: não executado. |
 | OECD Economic Outlook em safras (previsões da remuneração de empregados) | https://data-explorer.oecd.org/ (safras anteriores) | `data/raw/oecd_eo_vintages/` | **Não obtido**: não há série pública de safras dessa variável acessível ao projeto. Bloco 4.9, item 3: não executado. |
 | ICRG Bureaucracy Quality | https://www.prsgroup.com/ | `data/raw/icrg/` | **Pago.** Substituído pelo índice ICRG de qualidade de governo da QoG e pelo WGI. |
-| Polity5 (restrições ao executivo) | https://www.systemicpeace.org/inscr/p5v2018.xls | `data/raw/polity/` | **Não obtido** (406). Usado só como robustez por Oto-Peralías e Romero-Ávila; a réplica não depende dele. |
-| Mollick e Vianna (2023), texto | https://doi.org/10.1007/s11127-023-01121-5 | `Consensus/` | **Não obtido** (acesso pago). Réplica aproximada. Com o PDF, a réplica fiel pode ser feita no bloco 4.5. |
+| Polity5 (restrições ao executivo) | https://www.systemicpeace.org/inscr/p5v2018.xls | `data/raw/polity/` | **Obtido à mão em 2026-11-13** (`p5v2018.xls`). Usado na Tabela S18 (exploratória). |
+| Mollick e Vianna (2023), texto | https://doi.org/10.1007/s11127-023-01121-5 | `Consensus/` | **Obtido em 2026-11-13** (PDF na pasta `Consensus/` do artigo). Réplica com a especificação publicada na Tabela S17 (exploratória). |
 | OCDE, Government at a Glance (emprego público) | https://data-explorer.oecd.org/ | `data/raw/oecd_gag/` | **Não obtido**; o emprego público do ILOSTAT foi usado como instrumento. |
-| IMF GFS COFOG (saúde e educação) | https://data.imf.org/ | `data/raw/imf_cofog/` | **Não obtido**; substituído pelo gasto em saúde e educação do WDI. |
+| IMF GFS COFOG (saúde e educação) | https://data.imf.org/ | `data/raw/imf_cofog/` | **Obtido à mão em 2026-11-13** (exportação completa do portal); reduzido por `code/revisao/conv_cofog.py`. Tabela S8, linha 4b. |
+
+Guia passo a passo para as fontes que continuam pendentes: `docs/Passo_a_passo_downloads_manuais.docx`.

@@ -1,0 +1,39 @@
+b,p,tab,lab,ptype,rk,p_holm
+-.444,0,A10,"PMG, annual, lagged wage bill",reported,1,0
+-.646092414855957,.0001000100019155,A15,"sample c, ws",wild bootstrap,2,.0037003700708738
+-5.226963043212891,.0007000699988566,A15,"sample c, lws",wild bootstrap,3,.0252025199588388
+.997,.001,A10,"CS-ARDL(1,1), annual, lagged wage bill",reported,4,.035
+-.4966944754123688,.0082008205354214,A15,"sample d, ws",wild bootstrap,5,.2788278982043266
+-3.944517850875854,.0095009496435523,A15,"sample d, lws",wild bootstrap,6,.313531338237226
+-.1662312746047974,.0188885945826769,A9,trans: Excl. transition < 1,clustered,7,.6044350266456604
+-.167,.024,A10,"Conventional timing (t\_p, period-mean controls)",reported,8,.744
+-.193,.029,A10,"Unitary countries, general government",reported,9,.87
+-.3344889581203461,.0302030202001333,A15,"sample c, wm",wild bootstrap,10,.8758875858038664
+-.152,.035,A10,Region $\times$ period fixed effects,reported,11,.9800000000000001
+-.3816999495029449,.0356035605072975,A15,"sample d, wm",wild bootstrap,12,.9800000000000001
+-.142439991235733,.0488974824547768,A9,base: T3,clustered,13,1
+-.138,.058,A10,"General government, common sample with central",reported,14,1
+-2.752986192703247,.0624062418937683,A15,"sample d, lwm",wild bootstrap,15,1
+-.174,.071,A10,"PMG, annual, lagged wage bill over trend GDP",reported,16,1
+-2.528547525405884,.0764076411724091,A15,"sample c, lwm",wild bootstrap,17,1
+-.134,.08,A10,Excluding euro area 2009--2013,reported,18,1
+-.1324731856584549,.0946412310004234,A9,gfs2000: GFS data by 2000,clustered,19,1
+-.1187146827578545,.1135170608758926,A9,covid: Excl. 2019-2023,clustered,20,1
+-.142439991235733,.1248124837875366,A15,"sample a, wm",wild bootstrap,21,1
+-.144,.128,A10,Country-specific linear trends,reported,22,1
+-.228,.138,A10,"Health and education share, IMF COFOG",reported,23,1
+-.111,.142,A10,Banking-crisis control,reported,24,1
+-.578,.149,A10,"CS-ARDL(1,1), annual, lagged wage bill over trend GDP",reported,25,1
+-.2179351300001144,.1557155698537827,A15,"sample b, wm",wild bootstrap,26,1
+-.099,.181,A10,Bias-corrected FE (T3 timing),reported,27,1
+-1.635491371154785,.2341234087944031,A15,"sample b, lwm",wild bootstrap,28,1
+-.102,.275,A10,Three-year averages (T3),reported,29,1
+-.081,.406,A10,Periods from 1994--1998,reported,30,1
+-.080942302942276,.4063912928104401,A9,early: Excl. 1979-1993,clustered,31,1
+.169,.416,A10,System GMM (T3 timing),reported,32,1
+-.066,.436,A10,"Federations, general government",reported,33,1
+-.058,.445,A10,Growth excluding the first year (T2),reported,34,1
+-.4027701020240784,.496549665927887,A15,"sample a, lwm",wild bootstrap,35,1
+-.19,.586,A10,All structural changes together,reported,36,1
+.031,.783,A10,"Central government, common sample",reported,37,1
+.006,.9429999999999999,A10,Balanced panel,reported,38,1

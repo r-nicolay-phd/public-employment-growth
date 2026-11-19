@@ -2,7 +2,7 @@
       name:  <unnamed>
        log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/logs/01_auditoria.log
   log type:  text
- opened on:  17 Oct 2026, 20:57:07
+ opened on:  13 Nov 2026, 18:41:28
 
 . capture erase "$RINT/kv.csv"
 
@@ -45,7 +45,6 @@ xij variables:
 . label var govcons_real "General government final consumption (constant 2015 USD), WDI"
 
 . save "$RINT/wdi_rev.dta", replace
-(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/wdi_rev.dta not found)
 file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/wdi_rev.dta saved
 
 . 
@@ -92,7 +91,7 @@ end: contains nonnumeric characters; replaced as int
 . tempfile LV
 
 . save `LV'
-file C:\Users\Usuario\AppData\Local\Temp\ST_7508_000001.tmp saved as .dta format
+file C:\Users\Usuario\AppData\Local\Temp\ST_8980_000001.tmp saved as .dta format
 
 . use "$FINAL/painel_anual.dta", clear
 
@@ -116,7 +115,7 @@ Duplicates in terms of all variables
 . tempfile WB
 
 . save `WB'
-file C:\Users\Usuario\AppData\Local\Temp\ST_7508_000002.tmp saved as .dta format
+file C:\Users\Usuario\AppData\Local\Temp\ST_8980_000002.tmp saved as .dta format
 
 . use `LV', clear
 
@@ -234,7 +233,6 @@ Laeven-Valencia: episodios sem pais casado:
 . label var crisis_bank "Systemic banking crisis (Laeven and Valencia 2018), start to end year"
 
 . save "$RINT/laeven_valencia.dta", replace
-(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/laeven_valencia.dta not found)
 file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/laeven_valencia.dta saved
 
 . 
@@ -314,7 +312,6 @@ afg_spend_a already numeric; no replace
   87
 
 . save "$RINT/afg.dta", replace
-(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/afg.dta not found)
 file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/afg.dta saved
 
 . 
@@ -336,7 +333,6 @@ union_density already numeric; no replace
 . label var union_density "Trade union density (% of employees), ILOSTAT"
 
 . save "$RINT/ilo_ud.dta", replace
-(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/ilo_ud.dta not found)
 file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/ilo_ud.dta saved
 
 . 
@@ -361,7 +357,6 @@ note: label truncated to 80 characters
 . keep iso3 year clientelism_prog v2x_regime
 
 . save "$RINT/vdem_rev.dta", replace
-(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/vdem_rev.dta not found)
 file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/vdem_rev.dta saved
 
 . 
@@ -414,7 +409,6 @@ Duplicates in terms of iso3 year
 (0 observations are duplicates)
 
 . save "$RINT/dpi_rev.dta", replace
-(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/dpi_rev.dta not found)
 file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/dpi_rev.dta saved
 
 . 
@@ -438,8 +432,183 @@ Duplicates in terms of iso3 year
 . label var icrg_qog "ICRG indicator of quality of government (0-1), via QoG"
 
 . save "$RINT/qog_rev.dta", replace
-(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/qog_rev.dta not found)
 file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/qog_rev.dta saved
+
+. 
+. * A8. Polity5 (download manual de 2026-11-13): restricoes ao executivo (xconst, 1-7); codigos especiais
+. * -66 (interrupcao), -77 (interregno) e -88 (transicao) viram missing. Chave: codigo COW -> ISO3 pela QoG
+. import delimited "$RAW/qog/qog_std_ts_jan26.csv", clear varnames(1) case(lower) encoding(utf8)
+(1,813 vars, 12,585 obs)
+
+. keep ccodealp ccodecow
+
+. drop if missing(ccodecow) | strlen(ccodealp) != 3
+(424 observations deleted)
+
+. duplicates drop ccodecow, force
+
+Duplicates in terms of ccodecow
+
+(11,965 observations deleted)
+
+. rename (ccodealp ccodecow) (iso3 ccode)
+
+. tempfile cow
+
+. save `cow'
+file C:\Users\Usuario\AppData\Local\Temp\ST_8980_000003.tmp saved as .dta format
+
+. import excel "$RAW/polity/p5v2018.xls", firstrow clear
+(37 vars, 17,574 obs)
+
+. keep ccode country year xconst
+
+. merge m:1 ccode using `cow', keep(master match)
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                         1,205
+        from master                     1,205  (_merge==1)
+        from using                          0  (_merge==2)
+
+    Matched                            16,369  (_merge==3)
+    -----------------------------------------
+
+. di "Polity5: paises sem codigo ISO3 pela QoG (ficam fora):"
+Polity5: paises sem codigo ISO3 pela QoG (ficam fora):
+
+. tab country if _merge == 1 & year >= 1980
+
+                 country |      Freq.     Percent        Cum.
+-------------------------+-----------------------------------
+                Ethiopia |         26       16.25       16.25
+            Germany West |         11        6.88       23.13
+              Montenegro |         13        8.13       31.25
+                  Serbia |         13        8.13       39.38
+   Serbia and Montenegro |          4        2.50       41.88
+             South Sudan |          8        5.00       46.88
+                    USSR |         12        7.50       54.38
+                 Vietnam |         39       24.38       78.75
+             Yemen North |         11        6.88       85.63
+             Yemen South |         11        6.88       92.50
+              Yugoslavia |         12        7.50      100.00
+-------------------------+-----------------------------------
+                   Total |        160      100.00
+
+. * codigos Polity que diferem do COW da QoG: correspondencia explicita pelo nome; Alemanha Ocidental e Iemen do
+. * Norte como predecessores; URSS e Iugoslavia (ate 1991) ficam fora
+. replace iso3 = "ETH" if country == "Ethiopia"
+(26 real changes made)
+
+. replace iso3 = "VNM" if country == "Vietnam"
+(43 real changes made)
+
+. replace iso3 = "SRB" if inlist(country, "Serbia", "Serbia and Montenegro")
+(108 real changes made)
+
+. replace iso3 = "MNE" if country == "Montenegro"
+(13 real changes made)
+
+. replace iso3 = "SSD" if country == "South Sudan"
+(8 real changes made)
+
+. replace iso3 = "DEU" if country == "Germany West"
+(46 real changes made)
+
+. replace iso3 = "YEM" if country == "Yemen North"
+(73 real changes made)
+
+. keep if !missing(iso3) & iso3 != ""
+(888 observations deleted)
+
+. drop _merge
+
+. replace xconst = . if xconst < 1
+(788 real changes made, 788 to missing)
+
+. * um registro por pais-ano (mudancas de codigo no mesmo ano: fica o ultimo registro)
+. bysort iso3 year: keep if _n == _N
+(25 observations deleted)
+
+. keep iso3 year xconst
+
+. label var xconst "Executive constraints (Polity5, 1-7)"
+
+. save "$RINT/polity_rev.dta", replace
+file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/polity_rev.dta saved
+
+. 
+. * A9. IMF GFS COFOG (download manual de 2026-11-13, convertido por code/revisao/conv_cofog.py): saude (GF07) e
+. * educacao (GF09) do governo geral (S13), em % do PIB e em % do desembolso total
+. import delimited "$RAW/imf_cofog/gfs_cofog_saude_educ.csv", clear varnames(1) case(lower) stringcols(1 3 4 5)
+(encoding automatically selected: ISO-8859-1)
+(6 vars, 15,933 obs)
+
+. keep if sector == "S13"
+(6,956 observations deleted)
+
+. gen str14 k = cofog + "_" + unit
+
+. keep iso3 year k value
+
+. reshape wide value, i(iso3 year) j(k) string
+(j = GF07_POGDP GF07_POTO GF09_POGDP GF09_POTO TOTOUT_POGDP)
+
+Data                               Long   ->   Wide
+-----------------------------------------------------------------------------
+Number of observations            8,977   ->   1,979       
+Number of variables                   4   ->   7           
+j variable (5 values)                 k   ->   (dropped)
+xij variables:
+                                  value   ->   valueGF07_POGDP valueGF07_POTO ... valueTOTOUT_POGDP
+-----------------------------------------------------------------------------
+
+. rename (valueGF07_POGDP valueGF09_POGDP valueGF07_POTO valueGF09_POTO valueTOTOUT_POGDP) ///
+>        (cofog_health_gdp cofog_educ_gdp cofog_health_sh cofog_educ_sh cofog_total_gdp)
+
+. gen health_edu_cofog = cofog_health_sh + cofog_educ_sh
+(223 missing values generated)
+
+. label var health_edu_cofog "Health and education spending (% of total outlays), general government, IMF GFS COFOG"
+note: label truncated to 80 characters
+
+. save "$RINT/cofog_rev.dta", replace
+file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/cofog_rev.dta saved
+
+. 
+. * A10. WDI, series da replica fiel de Mollick e Vianna (2023) (code/revisao/dl_wdi_mv.py, 2026-11-13)
+. import delimited "$RAW/wdi_rev/wdi_rev_mv.csv", clear varnames(1) case(lower) stringcols(1 3)
+(encoding automatically selected: UTF-8)
+(4 vars, 22,158 obs)
+
+. drop if missing(iso3) | iso3 == ""
+(0 observations deleted)
+
+. replace indicator = subinstr(indicator, ".", "_", .)
+(22,158 real changes made)
+
+. reshape wide value, i(iso3 year) j(indicator) string
+(j = NE_CON_GOVT_ZS NE_GDI_TOTL_ZS NY_GDP_MKTP_KD_ZG)
+
+Data                               Long   ->   Wide
+-----------------------------------------------------------------------------
+Number of observations           22,158   ->   8,449       
+Number of variables                   4   ->   5           
+j variable (3 values)         indicator   ->   (dropped)
+xij variables:
+                                  value   ->   valueNE_CON_GOVT_ZS valueNE_GDI_TOTL_ZS valueNY_GDP_MKTP_KD_ZG
+-----------------------------------------------------------------------------
+
+. rename (valueNY_GDP_MKTP_KD_ZG valueNE_GDI_TOTL_ZS valueNE_CON_GOVT_ZS) (gdp_growth_mv gcf_gdp_mv govcons_gdp_mv)
+
+. label var gdp_growth_mv "Real GDP growth (%), WDI NY.GDP.MKTP.KD.ZG (2026-11-13)"
+
+. label var gcf_gdp_mv "Gross capital formation (% of GDP), WDI NE.GDI.TOTL.ZS (2026-11-13)"
+
+. label var govcons_gdp_mv "General government final consumption (% of GDP), WDI NE.CON.GOVT.ZS (2026-11-13)"
+
+. save "$RINT/wdi_mv.dta", replace
+file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/wdi_mv.dta saved
 
 . 
 . * =====================================================================================
@@ -447,7 +616,7 @@ file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações
 . * =====================================================================================
 . use "$FINAL/painel_anual.dta", clear
 
-. foreach f in wdi_rev laeven_valencia afg ilo_ud vdem_rev dpi_rev qog_rev {
+. foreach f in wdi_rev laeven_valencia afg ilo_ud vdem_rev dpi_rev qog_rev polity_rev cofog_rev wdi_mv {
   2.     merge 1:1 iso3 year using "$RINT/`f'.dta", keep(master match) nogen
   3. }
 
@@ -512,6 +681,33 @@ file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações
     Matched                             9,518  
     -----------------------------------------
 
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                         3,256
+        from master                     3,256  
+        from using                          0  
+
+    Matched                             7,382  
+    -----------------------------------------
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                         8,730
+        from master                     8,730  
+        from using                          0  
+
+    Matched                             1,908  
+    -----------------------------------------
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                         4,120
+        from master                     4,120  
+        from using                          0  
+
+    Matched                             6,518  
+    -----------------------------------------
+
 . replace crisis_bank = 0 if missing(crisis_bank) & year <= 2017
 (8,995 real changes made)
 
@@ -543,7 +739,6 @@ Panel variable: id (strongly balanced)
 . tempname R
 
 . file open `R' using "$RINT/limpeza_revisao.csv", write replace text
-(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/limpeza_revisao.csv not found)
 
 . file write `R' "regra,obs_pais_ano" _n
 
@@ -796,7 +991,6 @@ Panel variable: id (strongly balanced)
   (127,656 bytes saved)
 
 . save "$RINT/anual_rv.dta", replace
-(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/anual_rv.dta not found)
 file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/anual_rv.dta saved
 
 . 
@@ -822,7 +1016,7 @@ file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações
  11.     local pre wb wb_ham wb_hp1 wb_hp2 wb_placebo wagebill_cg_wdi wagebill_comb cov_central wagebill_share exp_gdp ///
 >         rev_gdp balance_gdp sh_goods sh_int sh_transf sh_inv sh_other inv open infl popg ctot_g hc lny merit wgi_ge ///
 >         debt oldage_dep health_edu_share icrg_qog exec_left maj frac union_density clientelism_prog impartial ///
->         dem demage dem_new v2x_polyarchy govcons_gdp lwb_trend lgap_ham
+>         dem demage dem_new v2x_polyarchy govcons_gdp lwb_trend lgap_ham health_edu_cofog xconst
  12.     foreach v of local pre {
  13.         gen `v'_m1 = L.`v'
  14.         gen `v'_tp = `v'
@@ -978,6 +1172,10 @@ file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações
 (6,585 missing values generated)
 (1,008 missing values generated)
 (818 missing values generated)
+(7,442 missing values generated)
+(7,376 missing values generated)
+(2,996 missing values generated)
+(2,996 missing values generated)
 (1,945 real changes made, 1,945 to missing)
 (2,029 real changes made, 2,029 to missing)
 (1,936 real changes made, 1,936 to missing)
@@ -1064,6 +1262,10 @@ file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações
 (2,020 real changes made, 2,020 to missing)
 (6,455 real changes made, 6,455 to missing)
 (6,642 real changes made, 6,642 to missing)
+(1,328 real changes made, 1,328 to missing)
+(1,391 real changes made, 1,391 to missing)
+(4,734 real changes made, 4,734 to missing)
+(4,894 real changes made, 4,894 to missing)
 (9,062 missing values generated)
 (9,062 missing values generated)
 (9,062 missing values generated)
@@ -1153,18 +1355,19 @@ Panel variable: id (strongly balanced)
   variable dem_m1 was float now byte
   variable demage_m1 was float now byte
   variable dem_new_m1 was float now byte
+  variable xconst_m1 was float now byte
   variable cov_central_tp was float now byte
   variable exec_left_tp was float now byte
   variable dem_tp was float now byte
   variable demage_tp was float now byte
   variable dem_new_tp was float now byte
+  variable xconst_tp was float now byte
   variable yd was int now byte
   variable ydp was int now byte
   variable year0 was float now int
   variable ng was double now byte
   variable ng_x1 was double now byte
-  (90,423 bytes saved)
-(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/p5_rv.dta not found)
+  (101,061 bytes saved)
 file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/p5_rv.dta saved
 
 . rv_painel 3
@@ -1257,6 +1460,10 @@ file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações
 (6,585 missing values generated)
 (1,008 missing values generated)
 (818 missing values generated)
+(7,442 missing values generated)
+(7,376 missing values generated)
+(2,996 missing values generated)
+(2,996 missing values generated)
 (1,620 real changes made, 1,620 to missing)
 (1,690 real changes made, 1,690 to missing)
 (1,612 real changes made, 1,612 to missing)
@@ -1343,6 +1550,10 @@ file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações
 (1,682 real changes made, 1,682 to missing)
 (5,381 real changes made, 5,381 to missing)
 (5,562 real changes made, 5,562 to missing)
+(1,096 real changes made, 1,096 to missing)
+(1,153 real changes made, 1,153 to missing)
+(3,999 real changes made, 3,999 to missing)
+(3,987 real changes made, 3,987 to missing)
 (9,062 missing values generated)
 (9,062 missing values generated)
 (9,062 missing values generated)
@@ -1432,18 +1643,19 @@ Panel variable: id (strongly balanced)
   variable dem_m1 was float now byte
   variable demage_m1 was float now byte
   variable dem_new_m1 was float now byte
+  variable xconst_m1 was float now byte
   variable cov_central_tp was float now byte
   variable exec_left_tp was float now byte
   variable dem_tp was float now byte
   variable demage_tp was float now byte
   variable dem_new_tp was float now byte
+  variable xconst_tp was float now byte
   variable yd was int now byte
   variable ydp was int now byte
   variable year0 was float now int
   variable ng was double now byte
   variable ng_x1 was double now byte
-  (150,705 bytes saved)
-(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/p3_rv.dta not found)
+  (168,435 bytes saved)
 file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/p3_rv.dta saved
 
 . 
@@ -1515,7 +1727,6 @@ Absorbed degrees of freedom:
 . keep id period S5_base S5_bond S5_common_GC
 
 . save "$RINT/amostras5.dta", replace
-(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/amostras5.dta not found)
 file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/amostras5.dta saved
 
 . 
@@ -1540,7 +1751,6 @@ Panel variable: id (strongly balanced)
 . keep id year S1_base
 
 . save "$RINT/amostras1.dta", replace
-(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/amostras1.dta not found)
 file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/amostras1.dta saved
 
 . 
@@ -2045,7 +2255,6 @@ Absorbed degrees of freedom:
 . tempname F
 
 . file open `F' using "$RINT/reproducao.csv", write replace text
-(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/reproducao.csv not found)
 
 . file write `F' "tabela,numeros_draft7,numeros_reproduzidos,diferencas_maiores_0001,maior_diferenca" _n
 
@@ -2220,5 +2429,5 @@ maior_dife~a |         21           0           0          0          0
       name:  <unnamed>
        log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/logs/01_auditoria.log
   log type:  text
- closed on:  17 Oct 2026, 20:57:23
+ closed on:  13 Nov 2026, 18:43:53
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

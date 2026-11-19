@@ -2,7 +2,7 @@
       name:  <unnamed>
        log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/logs/12_inferencia.log
   log type:  text
- opened on:  17 Oct 2026, 21:08:38
+ opened on:  13 Nov 2026, 19:00:43
 
 . 
 . global XP "lny0 hc_m1 inv_m1 open_m1 infl_m1 popg_m1 ctot_g_m1"
@@ -577,14 +577,14 @@ added scalar:
 . estimates restore T3_gmm
 (results T3_gmm are active now)
 
-. rv_kv T3gmm_b `=string(_b[wb_m1], "%9.4f")'
+. rv_kv T3gmm_b `=string(_b[wb_m1], "%12.8f")'
 
 . rv_kv T3gmm_p `=string(2 * ttail(e(df_r), abs(_b[wb_m1] / _se[wb_m1])), "%9.4f")'
 
 . estimates restore T3_bc
 (results T3_bc are active now)
 
-. rv_kv T3bc_b `=string(_b[wb_m1], "%9.4f")'
+. rv_kv T3bc_b `=string(_b[wb_m1], "%12.8f")'
 
 . rv_kv T3bc_p `=string(2 * ttail(e(df_r), abs(_b[wb_m1] / _se[wb_m1])), "%9.4f")'
 
@@ -595,28 +595,20 @@ added scalar:
 (results T3 are active now)
 file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/est_T3.ster saved
 (results H1b_tr are active now)
-(note: file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/est_H1b_tr.ster not found)
 file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/est_H1b_tr.ster saved
 (results H1b_inv are active now)
-(note: file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/est_H1b_inv.ster not found)
 file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/est_H1b_inv.ster saved
 (results H1b_sh are active now)
-(note: file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/est_H1b_sh.ster not found)
 file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/est_H1b_sh.ster saved
 (results T3_gmm are active now)
-(note: file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/est_T3_gmm.ster not found)
 file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/est_T3_gmm.ster saved
 (results T3_bc are active now)
-(note: file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/est_T3_bc.ster not found)
 file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/est_T3_bc.ster saved
 (results H4_ipriv are active now)
-(note: file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/est_H4_ipriv.ster not found)
 file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/est_H4_ipriv.ster saved
 (results H4_tfp_g are active now)
-(note: file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/est_H4_tfp_g.ster not found)
 file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/est_H4_tfp_g.ster saved
 (results H4_privemp_g are active now)
-(note: file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/est_H4_privemp_g.ster not found)
 file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/est_H4_privemp_g.ster saved
 
 . 
@@ -644,7 +636,7 @@ Duplicates in terms of all variables
 . tempfile ids
 
 . save `ids'
-file C:\Users\Usuario\AppData\Local\Temp\ST_7508_000001.tmp saved as .dta format
+file C:\Users\Usuario\AppData\Local\Temp\ST_8980_000001.tmp saved as .dta format
 
 . set seed 20261017
 
@@ -669,7 +661,6 @@ file C:\Users\Usuario\AppData\Local\Temp\ST_7508_000001.tmp saved as .dta format
   3. }
 
 . save "$RINT/rw_draws.dta", replace
-(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/rw_draws.dta not found)
 file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/rw_draws.dta saved
 
 . 
@@ -712,14 +703,11 @@ file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações
 . tempname RWT0
 
 . postfile RWT str20 code double(b t) using "$RINT/rw_main.dta", replace
-(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/rw_main.dta not found)
 
 . rw_test H1 "$RINT/p5_rv.dta" "micro == 0" "reghdfe g wb_m1 $XP i.period, absorb(@) vce(cluster @)" wb_m1 period
-(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/rw_H1.dta not found)
 
 . rw_test H1b "$RINT/p5_rv.dta" "micro == 0" "reghdfe g wagebill_share_m1 sh_goods_m1 sh_int_m1 sh_other_m1 sh_inv_m1 exp_gdp_m1 rev_gdp_m1 $XP i.period, absorb(@) vce(cluster @)" wagebill_share_m1 pe
 > riod
-(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/rw_H1b.dta not found)
 
 . * H2: modelo em logs na amostra harmonizada (variaveis construidas como em 05_decomposicao.do)
 . use "$RINT/p5_rv.dta", clear
@@ -739,27 +727,21 @@ file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações
 . gen byte sH = !missing(g, lpe, lrw, prem01, lny0, hc_m1, inv_m1, open_m1, infl_m1, popg_m1, ctot_g_m1)
 
 . save "$RINT/p5_h2.dta", replace
-(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/p5_h2.dta not found)
 file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/p5_h2.dta saved
 
 . rw_test H2 "$RINT/p5_h2.dta" "micro == 0 & sH" "reghdfe g lpe lrw $XP i.period, absorb(@) vce(cluster @)" lrw period
-(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/rw_H2.dta not found)
 
 . * H3: interacao centrada (merito em t_p - 1 centrado na media da amostra de estimacao)
 . use "$RINT/h3_dados.dta", clear
 
 . save "$RINT/p5_h3.dta", replace
-(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/p5_h3.dta not found)
 file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/p5_h3.dta saved
 
 . rw_test H3 "$RINT/p5_h3.dta" "sM" "reghdfe g wb_m1 meritc wbxm $XP i.period, absorb(@) vce(cluster @)" wbxm period
-(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/rw_H3.dta not found)
 
 . rw_test H4inv "$RINT/p5_rv.dta" "micro == 0" "reghdfe ipriv wb_m1 $XPN i.period, absorb(@) vce(cluster @)" wb_m1 period
-(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/rw_H4inv.dta not found)
 
 . rw_test H4tfp "$RINT/p5_rv.dta" "micro == 0" "reghdfe tfp_g wb_m1 $XPN i.period, absorb(@) vce(cluster @)" wb_m1 period
-(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/rw_H4tfp.dta not found)
 
 . * H5: primeiro estagio em democracias (painel anual)
 . use "$RINT/anual_rv.dta", clear
@@ -780,11 +762,9 @@ Panel variable: id (strongly balanced)
 (3,623 observations deleted)
 
 . save "$RINT/anual_h5.dta", replace
-(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/anual_h5.dta not found)
 file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/anual_h5.dta saved
 
 . rw_test H5 "$RINT/anual_h5.dta" "1" "reghdfe d_wagebill_real election_fixed L_g i.year, absorb(@) vce(cluster @)" election_fixed year
-(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/rw_H5.dta not found)
 
 . postclose RWT
 
@@ -851,38 +831,21 @@ Panel variable: id (strongly balanced)
 (4,054 missing values generated)
 
 . save "$RINT/anual_lp_rw.dta", replace
-(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/anual_lp_rw.dta not found)
 file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/anual_lp_rw.dta saved
 
 . postfile RWT str20 code double(b t) using "$RINT/rw_lpmerit.dta", replace
-(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/rw_lpmerit.dta not found)
 
 . forvalues hh = 0/6 {
   2.     rw_test M`hh' "$RINT/anual_lp_rw.dta" "inrange(year, 1996, 2023)" "reghdfe dy`hh' shi stot i.mhi dw_l1 dw_l2 g_l1 g_l2 i.year, absorb(@) vce(cluster @)" shi year
   3. }
-(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/rw_M0.dta not found)
-(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/rw_M1.dta not found)
-(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/rw_M2.dta not found)
-(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/rw_M3.dta not found)
-(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/rw_M4.dta not found)
-(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/rw_M5.dta not found)
-(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/rw_M6.dta not found)
 
 . postclose RWT
 
 . postfile RWT str20 code double(b t) using "$RINT/rw_lpelec.dta", replace
-(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/rw_lpelec.dta not found)
 
 . forvalues hh = 0/6 {
   2.     rw_test E`hh' "$RINT/anual_lp_rw.dta" "inrange(year, 1996, 2020) & dem == 1" "reghdfe dy`hh' sel stotE i.election_fixed dw_l1 dw_l2 g_l1 g_l2 i.year, absorb(@) vce(cluster @)" sel year
   3. }
-(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/rw_E0.dta not found)
-(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/rw_E1.dta not found)
-(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/rw_E2.dta not found)
-(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/rw_E3.dta not found)
-(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/rw_E4.dta not found)
-(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/rw_E5.dta not found)
-(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/rw_E6.dta not found)
 
 . postclose RWT
 
@@ -981,7 +944,6 @@ file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações
   | H4tfp   -.03319529   -.54598447    .673   .673 |
   |    H5    .05415462    1.5273067    .145   .541 |
   +------------------------------------------------+
-(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/rw_main_adj.dta not found)
 file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/rw_main_adj.dta saved
 
 . foreach k in H1 H1b H2 H3 H4inv H4tfp H5 {
@@ -1021,7 +983,6 @@ file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações
   |   M5   -3.9068729   -1.8515522    .159   .334 |
   |   M6   -4.5784658   -1.9150345    .148   .323 |
   +-----------------------------------------------+
-(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/rw_lpmerit_adj.dta not found)
 file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/rw_lpmerit_adj.dta saved
 
 . rw_adjust lpelec
@@ -1054,7 +1015,6 @@ file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações
   |   E5   1.5194216   1.2777575    .192   .523 |
   |   E6   .89263823   .74069619    .439   .826 |
   +---------------------------------------------+
-(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/rw_lpelec_adj.dta not found)
 file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/rw_lpelec_adj.dta saved
 
 . 
@@ -1064,7 +1024,6 @@ file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações
 . tempname S
 
 . postfile `S' byte(meas ctrl freq smp fe) double(b se) long(N) using "$RINT/specurve.dta", replace
-(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/specurve.dta not found)
 
 . foreach L in 5 3 {
   2.     use "$RINT/p`L'_rv.dta", clear
@@ -1176,9 +1135,9 @@ Panel variable: id (strongly balanced)
 
 . rv_fig Fig9_specification_curve, width(190) height(150)
 file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/figures/Fig9_specification_curve.pdf saved as PDF format
-(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/figures/Fig9_specification_curve.png not found)
 file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/figures/Fig9_specification_curve.png saved as PNG format
-figura gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/figures/Fig9_specification_curve.{pdf,png} (190 x 150 mm)
+file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/figures/Fig9_specification_curve.eps saved as EPS format
+figura gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/figures/Fig9_specification_curve.{pdf,png,eps} (190 x 150 mm)
 
 . 
 . * =====================================================================================
@@ -1201,7 +1160,6 @@ Panel variable: id (strongly balanced)
 . tempname Q
 
 . postfile `Q' str8 m int h double(b_dk se_dk b_la se_la b_jk) using "$RINT/lp_inferencia.dta", replace
-(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/lp_inferencia.dta not found)
 
 . forvalues hh = 0/6 {
   2.     * choque total (D1 do draft 7)
@@ -1451,7 +1409,6 @@ Number of observations (_N) was 0, now 10.
 (1 real change made)
 
 . save "$RINT/bma_rev.dta", replace
-(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/bma_rev.dta not found)
 file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/bma_rev.dta saved
 
 . 
@@ -1459,5 +1416,5 @@ file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações
       name:  <unnamed>
        log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/logs/12_inferencia.log
   log type:  text
- closed on:  17 Oct 2026, 21:25:02
+ closed on:  13 Nov 2026, 19:19:30
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

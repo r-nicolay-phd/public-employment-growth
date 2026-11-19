@@ -12,3 +12,16 @@ inputs/*.wf1
 ~$*
 *.smcl
 !output/revisao/logs/*.log
+
+# pacote de replicacao: dados refeitos pelo pipeline; versionamos so a documentacao das fontes
+replication_kyklos/data/**
+!replication_kyklos/data/**/
+!replication_kyklos/data/**/_SOURCE.txt
+!replication_kyklos/data/**/SOURCE.txt
+!replication_kyklos/data/**/README.md
+# caches, copias de seguranca e drivers temporarios
+__pycache__/
+backup_kyklos/
+/_*.do
+# os bundles do deposito OSF duplicam a propria historia do repositorio
+registration_osf/*.bundle

@@ -1,0 +1,13 @@
+Source: UCDP/PRIO Armed Conflict Dataset v26.1
+Citation: Uppsala Conflict Data Program. (2026). UCDP/PRIO Armed Conflict Dataset (Version 26.1) [Data set]. Uppsala University. https://ucdp.uu.se/downloads/. Original reference: Gleditsch, N. P., Wallensteen, P., Eriksson, M., Sollenberg, M., & Strand, H. (2002). Armed conflict 1946-2001: A new dataset. Journal of Peace Research, 39(5), 615-637.
+URL: https://ucdp.uu.se/downloads/ucdpprio/ucdp-prio-acd-261-csv.zip
+Licence or terms: No explicit licence found on the provider's pages; treated as uncertain
+Access date: 2026-10-07
+Redistributed in this package: no
+Files: data/raw/ucdp/UcdpPrioConflict_v26_1.csv (download instructions in README)
+
+This file is NOT included because the provider does not allow redistribution or its terms are
+uncertain. Download it from the URL above and save it in this folder with exactly this name:
+    data/raw/ucdp/UcdpPrioConflict_v26_1.csv
+
+Unzip ucdp-prio-acd-261-csv.zip and keep UcdpPrioConflict_v26_1.csv.

@@ -1,0 +1,7 @@
+Source: Eurostat, government finance statistics (gov_10a_main)
+Citation: Eurostat. (n.d.). Government revenue, expenditure and main aggregates (gov_10a_main) [Data set]. Retrieved October 7, 2026, from https://ec.europa.eu/eurostat/databrowser/view/gov_10a_main
+URL: https://ec.europa.eu/eurostat/databrowser/view/gov_10a_main
+Licence or terms: Creative Commons Attribution 4.0 (CC BY 4.0), Eurostat copyright notice; Eurostat is not responsible for this reuse
+Access date: 2026-10-07
+Redistributed in this package: yes
+Files: data/raw/eurostat/gov_10a_main.csv

@@ -7,7 +7,7 @@
 | Table 2 (baseline) / S1 | Table 3 | Preferred specification now T3; budget-constraint shares in t_p − 1 |
 | — | Table 4 (coverage, common sample) | New (P9) |
 | Table 3 (decomposition) / S3 | Table 5 and Table S6 | Same-year pairs, logs, IV, premium on the same sample |
-| S17a, S17b; Figure 7 | Table 6, Table S7; Figure 4 | Replications of Oto-Peralías and Romero-Ávila and (approximate) Mollick and Vianna; cyclicality |
+| S17a, S17b; Figure 7 | Table 6, Table S7; Figure 4 | Replications of Oto-Peralías and Romero-Ávila and Mollick and Vianna (approximate and, exploratory, with the published specification); cyclicality |
 | S6 (political economy) | Table 7 | Democracies, effective F, Anderson-Rubin, extensions |
 | Table 4 (robustness) / S8a–S8c | Table 8 (robustness map) and Table S8 | Stars, N and source of each row |
 | S13 (definitions) | Table S1 | With extended cleaning counts |
@@ -22,6 +22,8 @@
 | — | Table S14 (local projections by horizon) | New (P24, P30) |
 | S9 (BMA) | Table S15 | Effective T3 sample |
 | S14 (countries) | Table S16 | Effective estimation sample |
+| — | Table S17 (Mollick and Vianna, published specification) | New, exploratory (text obtained after the plan) |
+| — | Table S18 (Oto-Peralías and Romero-Ávila with executive constraints) | New, exploratory (Polity5 obtained after the plan) |
 | S15 (correlations) | — | Dropped |
 | S16 (fiscal rules) | — | Not redone in the revision; draft-7 table remains in `output/tables/TableA10_fiscal_rules` |
 | Figure 1 | Figure 1 | N of countries per group |

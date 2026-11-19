@@ -1,0 +1,42 @@
+Replication package for "Accounting, Not Averaging Out: Public Wage Bills and Economic Growth"
+Copyright (c) 2026 Rodolfo Tomás da Fonseca Nicolay, [AUTHOR 2], [AUTHOR 3]
+
+This package contains material under two licences.
+
+1. Data constructed by the authors and documentation
+   (data/analysis/, docs/, README.md, output/tables/, output/figures/)
+
+   Licensed under the Creative Commons Attribution 4.0 International License (CC BY 4.0).
+   https://creativecommons.org/licenses/by/4.0/legalcode
+
+   This licence covers only the authors' own contribution. Third-party data in data/raw/ keep the
+   licences of their providers, listed in docs/data_sources.csv; data that the providers do not allow
+   to be redistributed are not included.
+
+2. Code (code/)
+
+   Modified BSD License (BSD 3-Clause)
+
+   Redistribution and use in source and binary forms, with or without modification, are permitted
+   provided that the following conditions are met:
+
+   1. Redistributions of source code must retain the above copyright notice, this list of conditions
+      and the following disclaimer.
+   2. Redistributions in binary form must reproduce the above copyright notice, this list of
+      conditions and the following disclaimer in the documentation and/or other materials provided
+      with the distribution.
+   3. Neither the name of the copyright holder nor the names of its contributors may be used to
+      endorse or promote products derived from this software without specific prior written
+      permission.
+
+   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR
+   IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+   FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+   CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+   DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+   DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
+   IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
+   OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+   The community-contributed Stata packages in code/ado/ are distributed under the terms of their
+   authors and are included only so that the package runs without internet access.

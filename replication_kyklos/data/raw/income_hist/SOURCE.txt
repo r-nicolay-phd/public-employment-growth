@@ -1,0 +1,7 @@
+Source: World Bank historical income classification
+Citation: World Bank. (2025). World Bank country classifications by income level: Historical classification (OGHIST) [Data set]. https://databankfiles.worldbank.org/public/ddpext_download/site-content/OGHIST.xlsx
+URL: https://databankfiles.worldbank.org/public/ddpext_download/site-content/OGHIST.xlsx
+Licence or terms: Creative Commons Attribution 4.0 (CC BY 4.0), World Bank open data terms (https://www.worldbank.org/en/about/legal/terms-of-use-for-datasets)
+Access date: 2026-10-07
+Redistributed in this package: yes
+Files: data/raw/income_hist/OGHIST.xlsx; data/raw/income_hist/OGHIST_country_analytical_history.csv

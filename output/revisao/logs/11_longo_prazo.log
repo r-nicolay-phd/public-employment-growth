@@ -2,7 +2,7 @@
       name:  <unnamed>
        log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/logs/11_longo_prazo.log
   log type:  text
- opened on:  17 Oct 2026, 21:06:14
+ opened on:  13 Nov 2026, 18:57:44
 
 . 
 . global XD "lny0 hc_tp inv open infl popg ctot_g"
@@ -31,7 +31,6 @@ Panel variable: id (strongly balanced)
 . tempname P
 
 . postfile `P' str6 tim str6 est double(rho serho b se) long(N nc) using "$RINT/bond.dta", replace
-(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/bond.dta not found)
 
 . foreach tim in draft T3 {
   2.     local w = cond("`tim'" == "draft", "wb_tp", "wb_m1")
@@ -463,7 +462,6 @@ Fixed-effects model                          Obs per group:    min =         3
 . keep id period S5_bond_draft S5_bond_T3
 
 . save "$RINT/amostra_bond.dta", replace
-(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/amostra_bond.dta not found)
 file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/amostra_bond.dta saved
 
 . restore
@@ -505,7 +503,6 @@ Panel variable: id (strongly balanced)
 . tempname L
 
 . postfile `L' str4 w str10 m double(b se) long(N ng) double(hp) using "$RINT/longo.dta", replace
-(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/longo.dta not found)
 
 . foreach W in wbL wbH {
   2.     capture drop X
@@ -1628,8 +1625,9 @@ Heterogenous constant partialled out.
   5.     graph display, xsize(`win') ysize(`hin')
   6.     graph export "$RFIG/`fname'.pdf", replace
   7.     graph export "$RFIG/`fname'.png", replace width(`=round(`win' * 600)')
-  8.     di as text "figura gravada: $RFIG/`fname'.{pdf,png} (`width' x `height' mm)"
-  9. end
+  8.     graph export "$RFIG/`fname'.eps", replace as(eps)
+  9.     di as text "figura gravada: $RFIG/`fname'.{pdf,png,eps} (`width' x `height' mm)"
+ 10. end
 
 . 
 . * ---------------------------------------------------------------- wild cluster bootstrap padronizado
@@ -1656,7 +1654,7 @@ end of do-file
       name:  <unnamed>
        log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/logs/11_longo_prazo.log
   log type:  text
- opened on:  17 Oct 2026, 21:08:35
+ opened on:  13 Nov 2026, 19:00:40
 
 . 
 . * =====================================================================================
@@ -1688,7 +1686,6 @@ Panel variable: id (strongly balanced)
 . tempname C
 
 . postfile `C' str10 m double(cd p) long(N) using "$RINT/cdtest.dta", replace
-(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/cdtest.dta not found)
 
 . foreach v in wb wb_ham wb_l1 {
   2.     quietly reghdfe g `v' g_l1 lny_l1 hc inv open infl popg ctot_g, absorb(id year) resid(r_`v')
@@ -1784,7 +1781,7 @@ References
   |    T3    bc    .53072528    .1140154   -.09883827   .07295964   306   57 |
   +--------------------------------------------------------------------------+
 
-. rv_new, ncol(8) head1("Draft-7 timing (t_p)" "" "" "" "T3 timing (t_p − 1)" "" "" "") ///
+. rv_new, ncol(8) head1("Conventional timing (t_p)" "" "" "" "T3 timing (t_p − 1)" "" "" "") ///
 >     head2("Pooled OLS" "Fixed effects" "System GMM" "BC-FE" "Pooled OLS" "Fixed effects" "System GMM" "BC-FE")
 
 . foreach row in rho b {
@@ -1891,7 +1888,7 @@ References
 
 . import delimited "$RINT/kv.csv", clear varnames(1) stringcols(_all)
 (encoding automatically selected: ISO-8859-1)
-(2 vars, 579 obs)
+(2 vars, 700 obs)
 
 . foreach k in lr_wbL_hausman lr_wbH_hausman cd_wb cd_wb_p cd_wb_l1 cd_wb_l1_p bond_draft_N bond_T3_N {
   2.     quietly levelsof value if key == "`k'", local(`k') clean
@@ -1900,17 +1897,16 @@ References
 
 . rv_out TabS_bond_longrun, landscape ///
 >     title("Table S11. Bond check on a common sample and long-run estimators") ///
->     notes("Upper panel: five-year averages; the four estimators use the same country-periods (intersection of their own samples: `bond_draft_N' observations with the draft-7 timing and `bond_T3_N' w
-> ith T3). The difference in countries between system GMM and fixed effects in the draft came from 15 countries with a single observation (singletons), which fixed effects drop and pooled OLS and syst
-> em GMM keep. Pooled OLS (clustered SE), fixed effects with country and period effects (clustered SE), two-step system GMM with collapsed instruments and Windmeijer-corrected SE, and the bias-correct
-> ed fixed-effects estimator of Breitung, Kripfganz and Hayakawa (2022) with robust SE, which assumes the regressors other than lagged growth are strictly exogenous. A consistent estimator of the coef
-> ficient of lagged growth should lie between the fixed-effects (downward-biased) and pooled OLS (upward-biased) estimates. Lower panel: annual panel 1996–2023, countries with at least 20 complete ann
-> ual observations; ARDL models of growth on the lagged wage bill, investment, openness, inflation and population growth. PMG (common long run), MG and DFE estimated with xtpmg; Hausman test of PMG ag
-> ainst MG: p = `lr_wbL_hausman' (% of GDP) and `lr_wbH_hausman' (% of trend GDP). CCE-MG (static), CS-ARDL(1,1) and CS-DL (xtdcce2) add cross-sectional averages (Pesaran, 2006; Chudik et al., 2016). 
-> Pesaran CD statistic on the residuals of the annual models of Table 1: `cd_wb' (p = `cd_wb_p') with the contemporaneous ratio and `cd_wb_l1' (p = `cd_wb_l1_p') with the lagged ratio. * p<0.10, ** p<
-> 0.05, *** p<0.01.")
-successfully created "C:/Users/Usuario/Dropbox/Papers/Emprego Público e Crescimento/Estimações/output/revisao/tables/TabS_bond_longrun.docx"
-(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/logs/captions/TabS_bond_longrun.txt not found)
+>     notes("Upper panel: five-year averages; the four estimators use the same country-periods (intersection of their own samples: `bond_draft_N' observations with the conventional timing and `bond_T3
+> _N' with T3). The difference in countries between system GMM and fixed effects in the conventional specification came from 15 countries with a single observation (singletons), which fixed effects dr
+> op and pooled OLS and system GMM keep. Pooled OLS (clustered SE), fixed effects with country and period effects (clustered SE), two-step system GMM with collapsed instruments and Windmeijer-correcte
+> d SE, and the bias-corrected fixed-effects estimator of Breitung, Kripfganz and Hayakawa (2022) with robust SE, which assumes the regressors other than lagged growth are strictly exogenous. A consis
+> tent estimator of the coefficient of lagged growth should lie between the fixed-effects (downward-biased) and pooled OLS (upward-biased) estimates. Lower panel: annual panel 1996–2023, countries wit
+> h at least 20 complete annual observations; ARDL models of growth on the lagged wage bill, investment, openness, inflation and population growth. PMG (common long run), MG and DFE estimated with xtp
+> mg; Hausman test of PMG against MG: p = `lr_wbL_hausman' (% of GDP) and `lr_wbH_hausman' (% of trend GDP). CCE-MG (static), CS-ARDL(1,1) and CS-DL (xtdcce2) add cross-sectional averages (Pesaran, 20
+> 06; Chudik et al., 2016). Pesaran CD statistic on the residuals of the annual models of Table 1: `cd_wb' (p = `cd_wb_p') with the contemporaneous ratio and `cd_wb_l1' (p = `cd_wb_l1_p') with the lag
+> ged ratio. * p<0.10, ** p<0.05, *** p<0.01.")
+successfully replaced "C:/Users/Usuario/Dropbox/Papers/Emprego Público e Crescimento/Estimações/output/revisao/tables/TabS_bond_longrun.docx"
 tabela gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/tables/TabS_bond_longrun.{tex,docx}
 
 . 
@@ -1918,5 +1914,5 @@ tabela gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\E
       name:  <unnamed>
        log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/logs/11_longo_prazo.log
   log type:  text
- closed on:  17 Oct 2026, 21:08:38
+ closed on:  13 Nov 2026, 19:00:43
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

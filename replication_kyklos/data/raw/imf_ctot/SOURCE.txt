@@ -1,0 +1,7 @@
+Source: IMF Commodity Terms of Trade (Gruss and Kebhaj)
+Citation: Gruss, B., & Kebhaj, S. (2019). Commodity terms of trade: A new database (IMF Working Paper No. 19/21). International Monetary Fund. Data retrieved October 7, 2026, from https://data.imf.org
+URL: https://data.imf.org
+Licence or terms: IMF Copyright and Usage (statistical data may be downloaded, copied, adapted and redistributed for non-commercial use with attribution; https://www.imf.org/en/about/copyright-and-terms)
+Access date: 2026-10-07
+Redistributed in this package: yes
+Files: data/raw/imf_ctot/ctot.csv

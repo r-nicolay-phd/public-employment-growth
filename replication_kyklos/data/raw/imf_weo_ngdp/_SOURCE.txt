@@ -1,0 +1,4 @@
+Data de acesso: 2026-11-16
+API (SDMX 3.0, SDMX-CSV): https://api.imf.org/external/sdmx/3.0/data/dataflow/IMF.RES/WEO/+/*.NGDP.A
+IMF World Economic Outlook (dataflow IMF.RES/WEO): NGDP (gross domestic product, current prices, national currency), annual.
+Arquivo: weo_ngdp.csv (9337 linhas). Gratuito. Usado no Bloco 7 do terceiro adendo (code/kyklos3/08_fontes.do).

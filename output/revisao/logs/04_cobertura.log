@@ -2,7 +2,7 @@
       name:  <unnamed>
        log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/logs/04_cobertura.log
   log type:  text
- opened on:  17 Oct 2026, 20:57:54
+ opened on:  13 Nov 2026, 18:44:21
 
 . 
 . global XP "lny0 hc_m1 inv_m1 open_m1 infl_m1 popg_m1 ctot_g_m1"
@@ -52,7 +52,6 @@
 . gsort -federal -ratio
 
 . save "$RINT/razao_gg_cg.dta", replace
-(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/razao_gg_cg.dta not found)
 file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/razao_gg_cg.dta saved
 
 . restore
@@ -103,7 +102,6 @@ Panel variable: id (strongly balanced)
 . tempname P
 
 . postfile `P' str8 grp str4 meas double(b se p) long(N nc nfed) using "$RINT/cobertura.dta", replace
-(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/cobertura.dta not found)
 
 . foreach grp in all fed uni {
   2.     local c = cond("`grp'" == "all", "1", cond("`grp'" == "fed", "federal == 1", "federal == 0"))
@@ -118,7 +116,7 @@ Panel variable: id (strongly balanced)
  11.         egen `tg' = tag(id) if e(sample) & federal == 1
  12.         quietly count if `tg' == 1
  13.         post `P' ("`grp'") ("`meas'") (`b') (`se') (`p') (e(N)) (e(N_clust)) (r(N))
- 14.         rv_kv cov_`grp'_`meas'_b `=string(`b', "%9.4f")'
+ 14.         rv_kv cov_`grp'_`meas'_b `=string(`b', "%12.8f")'
  15.         rv_kv cov_`grp'_`meas'_p `=string(`p', "%9.4f")'
  16.         rv_kv cov_`grp'_`meas'_N `e(N)'
  17.         rv_kv cov_`grp'_`meas'_nc `e(N_clust)'
@@ -473,7 +471,6 @@ Absorbed degrees of freedom:
 . tempname B
 
 . postfile `B' str8 grp double(d p lo hi) using "$RINT/cobertura_boot.dta", replace
-(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/cobertura_boot.dta not found)
 
 . foreach grp in all fed uni {
   2.     local c = cond("`grp'" == "all", "1", cond("`grp'" == "fed", "federal == 1", "federal == 0"))
@@ -507,14 +504,14 @@ Absorbed degrees of freedom:
  30.     restore
  31. }
 (1,161 observations deleted)
-file C:\Users\Usuario\AppData\Local\Temp\ST_7508_000003.tmp saved as .dta format
-(file C:\Users\Usuario\AppData\Local\Temp\ST_7508_000004.tmp not found)
+file C:\Users\Usuario\AppData\Local\Temp\ST_8980_000003.tmp saved as .dta format
+(file C:\Users\Usuario\AppData\Local\Temp\ST_8980_000004.tmp not found)
 (1,439 observations deleted)
-file C:\Users\Usuario\AppData\Local\Temp\ST_7508_000006.tmp saved as .dta format
-(file C:\Users\Usuario\AppData\Local\Temp\ST_7508_000007.tmp not found)
+file C:\Users\Usuario\AppData\Local\Temp\ST_8980_000006.tmp saved as .dta format
+(file C:\Users\Usuario\AppData\Local\Temp\ST_8980_000007.tmp not found)
 (1,234 observations deleted)
-file C:\Users\Usuario\AppData\Local\Temp\ST_7508_000009.tmp saved as .dta format
-(file C:\Users\Usuario\AppData\Local\Temp\ST_7508_00000a.tmp not found)
+file C:\Users\Usuario\AppData\Local\Temp\ST_8980_000009.tmp saved as .dta format
+(file C:\Users\Usuario\AppData\Local\Temp\ST_8980_00000a.tmp not found)
 
 . postclose `B'
 
@@ -592,7 +589,6 @@ Absorbed degrees of freedom:
 . tempname O
 
 . postfile `O' str3 iso3 double(b se) using "$RINT/cobertura_loo.dta", replace
-(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/data/interim/revisao/cobertura_loo.dta not found)
 
 . levelsof iso3 if sF, local(fl)
 `"AUS"' `"AUT"' `"BEL"' `"BRA"' `"CAN"' `"CHE"' `"DEU"' `"ESP"' `"MEX"' `"RUS"' `"USA"' `"ZAF"'
@@ -738,11 +734,11 @@ Absorbed degrees of freedom:
 >     notes("Dependent variable: growth of real GDP per capita (%, five-year average), 1979–2023. Columns 1–6 use the same country-periods for both measures (country-periods with the general governmen
 > t wage bill, IMF GFS, and the central government wage bill, WDI, both in t_p − 1, and the predetermined controls of Table 2); column 7 uses every country-period with the central government series. F
 > ederations follow a single definition, the Forum of Federations list (`fed_list' countries in the data); `fed_both_2010s' federations have both series in 2010–2019, when the median ratio of the gene
-> ral to the central government wage bill is `ratio_fed_med' in federations and `ratio_uni_med' in unitary countries (`uni_both_2010s' unitary countries); `fed_base' federations are in the draft-7 bas
-> eline sample. Country and period fixed effects; standard errors clustered by country. The difference between the general and the central government coefficients is estimated on 999 pairs-bootstrap s
-> amples drawn by country, with both equations re-estimated on each sample; percentile confidence interval and normal-approximation p-value. Microstates excluded. * p<0.10, ** p<0.05, *** p<0.01.")
-successfully created "C:/Users/Usuario/Dropbox/Papers/Emprego Público e Crescimento/Estimações/output/revisao/tables/Tab4_coverage.docx"
-(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/logs/captions/Tab4_coverage.txt not found)
+> ral to the central government wage bill is `ratio_fed_med' in federations and `ratio_uni_med' in unitary countries (`uni_both_2010s' unitary countries); `fed_base' federations are in the conventiona
+> l-specification sample. Country and period fixed effects; standard errors clustered by country. The difference between the general and the central government coefficients is estimated on 999 pairs-b
+> ootstrap samples drawn by country, with both equations re-estimated on each sample; percentile confidence interval and normal-approximation p-value. Microstates excluded. * p<0.10, ** p<0.05, *** p<
+> 0.01.")
+successfully replaced "C:/Users/Usuario/Dropbox/Papers/Emprego Público e Crescimento/Estimações/output/revisao/tables/Tab4_coverage.docx"
 tabela gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/tables/Tab4_coverage.{tex,docx}
 
 . 
@@ -769,8 +765,7 @@ tabela gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\E
 >     title("Table S5. General and central government wage bill by country, 2010–2019 averages") ///
 >     notes("Compensation of employees of the general government (IMF GFS) and of the central government (WDI, compensation of employees as a share of expense times expense as a share of GDP, divided 
 > by 100), averages over 2010–2019 for countries with both series; microstates excluded. Federal: Forum of Federations list. Federations first, then unitary countries, each sorted by the ratio.")
-successfully created "C:/Users/Usuario/Dropbox/Papers/Emprego Público e Crescimento/Estimações/output/revisao/tables/TabS_gg_cg_ratio.docx"
-(file C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/logs/captions/TabS_gg_cg_ratio.txt not found)
+successfully replaced "C:/Users/Usuario/Dropbox/Papers/Emprego Público e Crescimento/Estimações/output/revisao/tables/TabS_gg_cg_ratio.docx"
 tabela gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/tables/TabS_gg_cg_ratio.{tex,docx}
 
 . 
@@ -778,5 +773,5 @@ tabela gravada: C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\E
       name:  <unnamed>
        log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/logs/04_cobertura.log
   log type:  text
- closed on:  17 Oct 2026, 21:01:01
+ closed on:  13 Nov 2026, 18:48:01
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

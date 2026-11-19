@@ -72,10 +72,10 @@ foreach m in H1b_tr H1b_inv H1b_sh {
     rv_kv `m'_N `e(N)'
 }
 estimates restore T3_gmm
-rv_kv T3gmm_b `=string(_b[wb_m1], "%9.4f")'
+rv_kv T3gmm_b `=string(_b[wb_m1], "%12.8f")'
 rv_kv T3gmm_p `=string(2 * ttail(e(df_r), abs(_b[wb_m1] / _se[wb_m1])), "%9.4f")'
 estimates restore T3_bc
-rv_kv T3bc_b `=string(_b[wb_m1], "%9.4f")'
+rv_kv T3bc_b `=string(_b[wb_m1], "%12.8f")'
 rv_kv T3bc_p `=string(2 * ttail(e(df_r), abs(_b[wb_m1] / _se[wb_m1])), "%9.4f")'
 foreach m in T3 H1b_tr H1b_inv H1b_sh T3_gmm T3_bc H4_ipriv H4_tfp_g H4_privemp_g {
     estimates restore `m'

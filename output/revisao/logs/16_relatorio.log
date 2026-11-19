@@ -2,7 +2,7 @@
       name:  <unnamed>
        log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/logs/16_relatorio.log
   log type:  text
- opened on:  17 Oct 2026, 21:32:15
+ opened on:  13 Nov 2026, 19:19:40
 
 . 
 . * numero em portugues: casas decimais, virgula, sinal de menos U+2212 e ponto de milhar
@@ -41,12 +41,12 @@
 
 . import delimited "$RINT/kv.csv", clear varnames(1) stringcols(_all)
 (encoding automatically selected: ISO-8859-1)
-(2 vars, 712 obs)
+(2 vars, 773 obs)
 
 . gen long n = _n
 
 . bysort key (n): keep if _n == _N
-(59 observations deleted)
+(3 observations deleted)
 
 . forvalues i = 1/`=_N' {
   2.     local k = key[`i']
@@ -67,7 +67,9 @@
 . * valores lidos das bases de resultados
 . use "$RINT/replicas.dta", clear
 
-. foreach k in "opra_icrg gc_mean sgmm" "opra_icrg gc_mean fe" "opra_icrg gc_m1 fe" "opra_icrg gc_m1 sgmm" "opra_wgi gc_mean fe" "opra_wgi gc_m1 fe" "mv gc fe_dk" "mv gc_ham fe_dk" "mv gc_l1 fe_dk" {
+. foreach k in "opra_icrg gc_mean sgmm" "opra_icrg gc_mean fe" "opra_icrg gc_m1 fe" "opra_icrg gc_m1 sgmm" "opra_wgi gc_mean fe" "opra_wgi gc_m1 fe" "mv gc fe_dk" "mv gc_ham fe_dk" "mv gc_l1 fe_dk" //
+> /
+>     "opra_xc gc_mean sgmm" "opra_xc gc_m1 sgmm" "opra_xc gc_mean fe" "opra_xc gc_m1 fe" {
   2.     tokenize `k'
   3.     quietly summ bi if rep == "`1'" & meas == "`2'" & est == "`3'"
   4.     mata: st_local("R_`1'_`2'_`3'_b", _pt(`r(mean)', 3))
@@ -135,7 +137,7 @@
 . tempfile VER
 
 . save `VER'
-file C:\Users\Usuario\AppData\Local\Temp\ST_7600_000002.tmp saved as .dta format
+file C:\Users\Usuario\AppData\Local\Temp\ST_8980_000002.tmp saved as .dta format
 
 . * coeficiente de base do draft 7 com as variaveis originais (sem a limpeza ampliada)
 . use "$FINAL/painel_5anos.dta", clear
@@ -276,6 +278,9 @@ file C:\Users\Usuario\AppData\Local\Temp\ST_7600_000002.tmp saved as .dta format
 . file write `F' "| B: réplica (aproximada) de Mollick e Vianna nítida | contemporânea `R_mv_gc_fe_dk_b' (p `R_mv_gc_fe_dk_p'); defasada `R_mv_gc_l1_fe_dk_b' (p `R_mv_gc_l1_fe_dk_p') | `=cond(`K_nit_m
 > v', "sim", "não")' |" _n
 
+. file write `F' "| Sensibilidade, fora da regra (exploratória): réplica de Mollick e Vianna com a especificação publicada nítida (GE) | contemporânea `P_mvf_ge_full_common_c_bX' (p `Q_mvf_ge_full_com
+> mon_c_pX'); defasada `P_mvf_ge_full_common_l_bX' (p `Q_mvf_ge_full_common_l_pX') | `=cond(`K_nit_mvf', "sim", "não")' |" _n
+
 . file write `F' "| C: primeiro estágio narrativo com F efetivo ≥ 10 | F = `D_afg_fs_Feff' | `=cond(`K_afg_fs_Feff' >= 10, "sim", "não")' |" _n
 
 . file write `F' "| C: resposta do PIB ao corte narrativo de folha em h = 4 significativa | `P_afg_y100_h4_b' (p `Q_afg_y100_h4_p') | `=cond(`K_afg_y100_h4_p' < 0.05, "sim", "não")' |" _n _n
@@ -286,7 +291,10 @@ file C:\Users\Usuario\AppData\Local\Temp\ST_7600_000002.tmp saved as .dta format
 
 . file write `F' "- A decomposição do viés atende ao critério registrado de nitidez." _n
 
-. file write `F' "- Das réplicas, só a aproximada de Mollick e Vianna é nítida. A de Oto-Peralías e Romero-Ávila não depende do timing, de modo que o viés não explica a mitigação." _n _n
+. file write `F' "- Das réplicas, só a aproximada de Mollick e Vianna é nítida. A de Oto-Peralías e Romero-Ávila não depende do timing, de modo que o viés não explica a mitigação." _n
+
+. file write `F' "- Com o texto de Mollick e Vianna obtido depois do plano, a réplica com a especificação publicada `=cond(`K_nit_mvf', "também é nítida pela mesma regra", "não é nítida pela mesma reg
+> ra")'. Ela não entra na regra registrada e é reportada como sensibilidade exploratória." _n _n
 
 . file write `F' "O artigo passa a ser uma nota metodológica sobre o viés de razões fiscais contemporâneas e seus efeitos em resultados publicados. O coeficiente de médio prazo sai do resumo." _n _n
 
@@ -312,6 +320,9 @@ file C:\Users\Usuario\AppData\Local\Temp\ST_7600_000002.tmp saved as .dta format
 . file write `F' "- Tendências por país: p `Q_str_trend_p'." _n
 
 . file write `F' "- Controle de crises: p `Q_str_crisis_p'." _n
+
+. file write `F' "- Participação de saúde e educação: com o substituto do WDI, `P_str_healthedu_b' (p `Q_str_healthedu_p', N = `N_str_healthedu_N'); com o COFOG do FMI, a medida prevista no plano, `P_
+> str_healthcofog_b' (p `Q_str_healthcofog_p', N = `N_str_healthcofog_N')." _n
 
 . file write `F' "- Todas as alterações juntas: `P_str_all_b' (p `Q_str_all_p')." _n
 
@@ -341,6 +352,20 @@ file C:\Users\Usuario\AppData\Local\Temp\ST_7600_000002.tmp saved as .dta format
 > 1_fe_b', p `R_opra_icrg_gc_m1_fe_p')." _n
 
 . file write `F' "- A amplificação anual (réplica aproximada) some com o consumo defasado, mas sobrevive à tendência de Hamilton (`R_mv_gc_ham_fe_dk_b', p `R_mv_gc_ham_fe_dk_p')." _n
+
+. file write `F' "- Réplica com a especificação publicada de Mollick e Vianna (exploratória, Tabela S17): com GE, a interação é `P_mvf_ge_full_common_c_bX' (p `Q_mvf_ge_full_common_c_pX') com o consum
+> o do mesmo ano, `P_mvf_ge_full_common_h_bX' (p `Q_mvf_ge_full_common_h_pX') sobre a tendência de Hamilton e `P_mvf_ge_full_common_l_bX' (p `Q_mvf_ge_full_common_l_pX') com o consumo defasado. O mesm
+> o padrão aparece com CC e RL. Aqui a amplificação some também com a correção do denominador." _n
+
+. file write `F' "   - A amostra fica perto da publicada (`N_mvf_ge_full_own_c_N' contra `N_mvf_pub_ge_full_N' observações), com o mesmo sinal e significância no período inteiro, mas as interações são
+>  de `D_mvf_ratio_min' a `D_mvf_ratio_max' vezes as publicadas (com GE, `P_mvf_ge_full_own_c_bX' contra `P_mvf_pub_ge_full_bX'). Sem o código dos autores, a diferença não pode ser rastreada." _n
+
+. file write `F' "   - Antes de 2008, a interação contemporânea não é significativa (`P_mvf_ge_pre_own_c_bX', p `Q_mvf_ge_pre_own_c_pX'); o artigo publicado reporta `P_mvf_pub_ge_pre_bX' (p `Q_mvf_pub
+> _ge_pre_pX')." _n
+
+. file write `F' "- Oto-Peralías e Romero-Ávila com restrições ao executivo da Polity5 (exploratória, Tabela S18): a interação é nula em todos os timings (S-GMM: `R_opra_xc_gc_mean_sgmm_b', p `R_opra_
+> xc_gc_mean_sgmm_p', com o consumo médio; `R_opra_xc_gc_m1_sgmm_b', p `R_opra_xc_gc_m1_sgmm_p', em t_p − 1). A mitigação, que o artigo original diz valer também com essa medida, não aparece nesses da
+> dos." _n
 
 . file write `F' "- A ciclicidade pré-1996 absorve só parte da interação (de `C_base_cyc_pre' para `C_with_cyc_pre')." _n
 
@@ -384,8 +409,8 @@ file C:\Users\Usuario\AppData\Local\Temp\ST_7600_000002.tmp saved as .dta format
 . file write `F' "| “uma ordem de grandeza” | Retirada | “o coeficiente contemporâneo é `R_hp' vezes o obtido com o HP unilateral e `R_t3' vezes o de médio prazo com o timing corrigido” | Tabelas 1 e 
 > 2 |" _n
 
-. file write `F' "| “o mesmo viés explica” (instituições) | Retirada | “a amplificação encontrada com o consumo anual contemporâneo desaparece com o consumo defasado, mas sobrevive à correção do denom
-> inador; a mitigação de Oto-Peralías e Romero-Ávila não depende do timing” | Tabela 6; Figura 4 |" _n
+. file write `F' "| “o mesmo viés explica” (instituições) | Retirada | “a amplificação encontrada com o consumo anual contemporâneo desaparece com o consumo defasado; na réplica com a especificação pu
+> blicada, desaparece também com o consumo sobre o PIB tendencial; a mitigação de Oto-Peralías e Romero-Ávila não depende do timing” | Tabela 6; Tabela S17; Figura 4 |" _n
 
 . file write `F' "| “concentrado no salário relativo” | Rebaixada | “no modelo em logs, o salário relativo (`P_d_log_lrw_b') e o emprego público (`P_d_log_lpe_b') estão associados a menor crescimento;
 >  o componente de preço é mais negativo (diferença `D_prq'), e o prêmio ajustado não confirma” | Tabela 5 |" _n
@@ -417,8 +442,11 @@ file C:\Users\Usuario\AppData\Local\Temp\ST_7600_000002.tmp saved as .dta format
 . file write `F' "- **Identificação:** não há identificação causal. O primeiro estágio narrativo (16 países da OCDE) tem F efetivo `D_afg_fs_Feff', e o eleitoral `D_ep_dem_Feff' em democracias. MONA e
 >  safras de previsão não foram obtidas." _n
 
-. file write `F' "- **Réplica de Mollick e Vianna:** é aproximada, porque o texto não foi obtido. A réplica de Oto-Peralías e Romero-Ávila usa substitutos públicos do ICRG e não tem a origem legal com
-> o instrumento." _n
+. file write `F' "- **Réplica de Mollick e Vianna:** a registrada no plano é aproximada. A feita com a especificação publicada (exploratória) chega perto da amostra, mas não dos coeficientes publicado
+> s: as interações replicadas são de `D_mvf_ratio_min' a `D_mvf_ratio_max' vezes as publicadas." _n
+
+. file write `F' "- **Réplica de Oto-Peralías e Romero-Ávila:** usa substitutos públicos do ICRG Bureaucracy Quality, que é pago, e não tem a origem legal como instrumento. Com as restrições ao execut
+> ivo da Polity5, a mitigação não aparece." _n
 
 . file write `F' "- **Viés com o HP:** o viés medido depende do filtro. Com Hamilton, a correção é quase completa; com o HP unilateral, resta `SH_hp'% do coeficiente contemporâneo." _n
 
@@ -430,7 +458,8 @@ file C:\Users\Usuario\AppData\Local\Temp\ST_7600_000002.tmp saved as .dta format
 
 . file write `F' "- **Projeções locais:** com bootstrap por país, as de mérito alto não são significativas após o ajuste para testes múltiplos." _n
 
-. file write `F' "- **Exploratórios:** as análises fora do plano (média das defasagens; ciclicidade 1996–2023) são exploratórias." _n _n
+. file write `F' "- **Exploratórios:** as análises fora do plano são exploratórias: média das defasagens; ciclicidade 1996–2023; réplica de Mollick e Vianna com a especificação publicada (Tabela S17);
+>  Oto-Peralías e Romero-Ávila com a Polity5 (Tabela S18)." _n _n
 
 . file write `F' "## Pendências" _n _n
 
@@ -442,11 +471,13 @@ file C:\Users\Usuario\AppData\Local\Temp\ST_7600_000002.tmp saved as .dta format
 
 . file write `F' "   - Devries et al. (2011), hoje substituída por Alesina, Favero e Giavazzi;" _n
 
-. file write `F' "   - texto de Mollick e Vianna (2023), para a réplica fiel;" _n
-
 . file write `F' "   - ICRG Bureaucracy Quality (pago);" _n
 
-. file write `F' "   - atualização de Laeven e Valencia até 2025." _n
+. file write `F' "   - atualização de Laeven e Valencia até 2025;" _n
+
+. file write `F' "   - OCDE, Government at a Glance." _n
+
+. file write `F' "- **Obtidos em 13/11/2026:** texto de Mollick e Vianna (Tabela S17), Polity5 (Tabela S18) e COFOG do FMI (Tabela S8, linha 4b)." _n
 
 . file write `F' "- **Texto:** reescrever o artigo no cenário `cen', com as sugestões de \`docs/TEXTO_SUGERIDO.md\`, e fazer as correções de redação do parecer (itens 15 e 32–42 de \`docs/RESPOSTA_PAR
 > ECER.md\`)." _n
@@ -472,9 +503,9 @@ file C:\Users\Usuario\AppData\Local\Temp\ST_7600_000002.tmp saved as .dta format
 > amento do governo geral em painel de países. No painel anual, a razão folha/PIB contemporânea tem coeficiente de `P_vies_wb_b' ponto de crescimento por ponto do PIB. Um numerador placebo, que só var
 > ia pelo denominador, reproduz `P_vies_wb_placebo_b'. Com a folha dividida pela tendência do PIB de Hamilton, ou medida no ano anterior, o coeficiente fica próximo de zero. Nas médias de cinco anos, 
 > medir a folha antes do período e usar controles predeterminados leva o coeficiente a `P_T3_own_b', que não é significativo pelo wild cluster bootstrap. O mesmo timing altera a leitura de resultados 
-> publicados sobre instituições e tamanho do governo: numa réplica aproximada, a amplificação encontrada com dados anuais depende da medida contemporânea, enquanto a mitigação em médias de cinco anos 
-> não depende. A única associação robusta é a do salário relativo do setor público, mais forte que a do emprego. Recomendamos reportar medidas contemporâneas e predeterminadas em estudos com razões de
->  gasto." _n _n
+> publicados sobre instituições e tamanho do governo: a amplificação encontrada com dados anuais desaparece com a medida predeterminada, enquanto a mitigação em médias de cinco anos não depende do tim
+> ing. A única associação robusta é a do salário relativo do setor público, mais forte que a do emprego. Recomendamos reportar medidas contemporâneas e predeterminadas em estudos com razões de gasto."
+>  _n _n
 
 . file write `F' "## Parágrafo de resultados da introdução" _n _n
 
@@ -482,10 +513,11 @@ file C:\Users\Usuario\AppData\Local\Temp\ST_7600_000002.tmp saved as .dta format
 > es_wb_hp1_b' com a folha sobre a tendência do filtro HP unilateral e `P_vies_wb_ham_b' com a tendência de Hamilton; a diferença entre a primeira e a última é `P_dif_12_d' (p `Q_dif_12_p'). Um numera
 > dor placebo que varia só pelo denominador reproduz quase todo o coeficiente (`P_vies_wb_placebo_b'). O segundo é que, medida a folha no último ano do período anterior e com controles predeterminados
 > , a associação de médio prazo cai a `P_T3_own_b' e não é significativa pelo wild cluster bootstrap (p = `Q_T3_own_pboot'); ela é frágil à amostra, à janela e aos estimadores dinâmicos. O terceiro é 
-> que o timing muda a leitura da literatura sobre instituições e tamanho do governo. Na réplica aproximada de Mollick e Vianna (2023), a amplificação obtida com o consumo anual do mesmo ano desaparece
->  com o consumo defasado (`R_mv_gc_l1_fe_dk_b'), enquanto a mitigação de Oto-Peralías e Romero-Ávila (2013), replicada com um índice público do ICRG, não depende do timing (`R_opra_icrg_gc_m1_fe_b' c
-> om o consumo predeterminado). O quarto é que, decomposta a folha em logs, o salário relativo está associado a menor crescimento (`P_d_log_lrw_b'; p ajustado por Romano-Wolf `Q_rw_H2'), com magnitude
->  maior que a do emprego público. As hipóteses sobre recrutamento meritocrático e ciclo eleitoral não são sustentadas, e o teste de mérito não tem poder para detectar uma moderação relevante." _n _n
+> que o timing muda a leitura da literatura sobre instituições e tamanho do governo. Na réplica de Mollick e Vianna (2024) com a especificação publicada, a interação negativa entre consumo e efetivida
+> de do governo obtida com o consumo do mesmo ano (`P_mvf_ge_full_common_c_bX') desaparece com o consumo defasado (`P_mvf_ge_full_common_l_bX'; p = `Q_mvf_ge_full_common_l_pX') e com o consumo sobre o
+>  PIB tendencial (`P_mvf_ge_full_common_h_bX'), enquanto a mitigação de Oto-Peralías e Romero-Ávila (2013), replicada com um índice público do ICRG, não depende do timing (`R_opra_icrg_gc_m1_fe_b' co
+> m o consumo predeterminado). O quarto é que, decomposta a folha em logs, o salário relativo está associado a menor crescimento (`P_d_log_lrw_b'; p ajustado por Romano-Wolf `Q_rw_H2'), com magnitude 
+> maior que a do emprego público. As hipóteses sobre recrutamento meritocrático e ciclo eleitoral não são sustentadas, e o teste de mérito não tem poder para detectar uma moderação relevante." _n _n
 
 . file write `F' "## Abertura da discussão" _n _n
 
@@ -518,14 +550,15 @@ file C:\Users\Usuario\AppData\Local\Temp\ST_7600_000002.tmp saved as .dta format
 
 . local TX "A fazer no texto pelos autores"
 
-. post `R' (1) ("Enquadramento escolhido pela regra registrada; réplica de Oto-Peralías e Romero-Ávila; réplica aproximada de Mollick e Vianna; variação exógena narrativa") ("Cenário `cen' (nota metod
-> ológica); Tabela 6, Tabela S10. Sem derivação formal nem simulação de Monte Carlo do viés") ("`PR'")
+. post `R' (1) ("Enquadramento escolhido pela regra registrada; réplica de Oto-Peralías e Romero-Ávila; réplica aproximada de Mollick e Vianna e, depois de obtido o texto, réplica com a especificação 
+> publicada (exploratória); variação exógena narrativa") ("Cenário `cen' (nota metodológica); Tabela 6, Tabelas S10, S17 e S18. Sem derivação formal nem simulação de Monte Carlo do viés") ("`PR'")
 
 . post `R' (2) ("H2 reestimada: mesmo ano, logs, DP dentro do país, IV, prêmio na mesma amostra") ("log salário relativo `P_d_log_lrw_b' (Romano-Wolf `Q_rw_H2'); log emprego `P_d_log_lpe_b'; prêmio `P
 > _d_prem_prem01_b' (n.s.); Tabela 5, Tabela S6; redação rebaixada no ledger") ("`RS'")
 
-. post `R' (3) ("Réplicas e ciclicidade fiscal; consumo e despesa na mesma amostra") ("Mitigação de Oto-Peralías e Romero-Ávila não depende do timing; amplificação anual some com a defasagem; Tabela 6
-> , Tabela S7, Figura 4") ("`RS'")
+. post `R' (3) ("Réplicas e ciclicidade fiscal; consumo e despesa na mesma amostra") ("Mitigação de Oto-Peralías e Romero-Ávila não depende do timing (e não aparece com a Polity5, Tabela S18); amplifi
+> cação anual some com a defasagem; com a especificação publicada de Mollick e Vianna, `P_mvf_ge_full_common_c_bX' no mesmo ano contra `P_mvf_ge_full_common_l_bX' defasada e `P_mvf_ge_full_common_h_bX
+> ' sobre a tendência (Tabela S17); Tabela 6, Tabela S7, Figura 4") ("`RS'")
 
 . post `R' (4) ("Numerador placebo e decomposição multiplicativa") ("Placebo `P_vies_wb_placebo_b' contra `P_vies_wb_b' contemporâneo; Tabela S3") ("`RS'")
 
@@ -547,8 +580,9 @@ file C:\Users\Usuario\AppData\Local\Temp\ST_7600_000002.tmp saved as .dta format
 . post `R' (10) ("Defasagens distribuídas 1–5 e projeção local com a folha em nível") ("Soma instável (`P_dl_wbL_sum' / `P_dl_whL_sum') por colinearidade; nível sem resposta significativa; Tabela S4, 
 > Figura 7. As frequências não se reconciliam") ("`PR'")
 
-. post `R' (11) ("Tendências, região × período, envelhecimento, saúde e educação, euro, pós-1994, painel balanceado, crises") ("T3 frágil (pós-1994 `P_str_post94_b'; balanceado `P_str_balanced_b'); Ta
-> bela S8. Transições do GFSM e programas do FMI não executados (dado indisponível)") ("`PR'")
+. post `R' (11) ("Tendências, região × período, envelhecimento, saúde e educação, euro, pós-1994, painel balanceado, crises") ("T3 frágil (pós-1994 `P_str_post94_b'; balanceado `P_str_balanced_b'); sa
+> úde e educação pelo COFOG `P_str_healthcofog_b' (p `Q_str_healthcofog_p'), contra `P_str_healthedu_b' com o substituto do WDI; Tabela S8. Transições do GFSM e programas do FMI não executados (dado i
+> ndisponível)") ("`PR'")
 
 . post `R' (12) ("Números disponíveis para corrigir o resumo") ("Hamilton `P_vies_wb_ham_b'; HP unilateral `P_vies_wb_hp1_b'; ver TEXTO_SUGERIDO") ("`TX'")
 
@@ -616,7 +650,8 @@ file C:\Users\Usuario\AppData\Local\Temp\ST_7600_000002.tmp saved as .dta format
 . post `R' (39) ("Contagens a reconciliar") ("Federações: `N_fed_list' na lista (sem microestados), `N_fed_both_2010s' com as duas séries em 2010–2019, `N_fed_base' na amostra de base (Tabela 4); grup
 > os de renda na Figura 1 e na Tabela S16") ("`RS'")
 
-. post `R' (40) ("Referências") ("Formato Elsevier/Harvard, títulos completos, Alesina e Perotti publicado, grafia de Prüfer") ("`TX'")
+. post `R' (40) ("Referências") ("Formato Elsevier/Harvard, títulos completos, Alesina e Perotti publicado, grafia de Prüfer; Mollick e Vianna com a referência publicada (Public Choice, 2024, v. 198, 
+> p. 189–207)") ("`TX'")
 
 . post `R' (41) ("Redação") ("Aplicar os ajustes pontuais do agente 1") ("`TX'")
 
@@ -705,5 +740,5 @@ Palavras no resumo sugerido: 184
       name:  <unnamed>
        log:  C:\Users\Usuario\Dropbox\Papers\Emprego Público e Crescimento\Estimações/output/revisao/logs/16_relatorio.log
   log type:  text
- closed on:  17 Oct 2026, 21:32:16
+ closed on:  13 Nov 2026, 19:19:41
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

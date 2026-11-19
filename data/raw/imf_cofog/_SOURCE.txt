@@ -1,0 +1,4 @@
+Data de acesso: 2026-11-13 (download manual pelo autor)
+URL: https://data.imf.org/Datasets/GFS_COFOG (IMF.STA:GFS_COFOG versao 11.0.0, exportacao completa em CSV)
+Arquivo original: dataset_2026-11-13T04_49_52.291016235Z_DEFAULT_INTEGRATION_IMF.STA_GFS_COFOG_11.0.0.csv
+Reduzido por code/revisao/conv_cofog.py a gfs_cofog_saude_educ.csv (S13 e S1321; GF07, GF09, TOTOUT; % do PIB e % do desembolso).

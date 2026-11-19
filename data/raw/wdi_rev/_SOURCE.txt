@@ -1,2 +1,4 @@
 Data de acesso: 2026-10-17
 API do Banco Mundial v2 (https://api.worldbank.org/v2/country/all/indicator/<codigo>?format=json): SP.POP.DPND.OL, SH.XPD.GHED.GD.ZS, SE.XPD.TOTL.GD.ZS, NE.CON.GOVT.KD, NY.GDP.MKTP.KD.
+Data de acesso: 2026-11-13
+API do Banco Mundial v2, por code/revisao/dl_wdi_mv.py: NY.GDP.MKTP.KD.ZG, NE.GDI.TOTL.ZS, NE.CON.GOVT.ZS (1990-2023) -> wdi_rev_mv.csv (replica de Mollick e Vianna).

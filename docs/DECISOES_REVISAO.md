@@ -92,3 +92,23 @@ A origem legal, um dos instrumentos excluídos deles, não está disponível e s
 - **Anos de transição do GFSM** por país.
 - **Eleições subnacionais escalonadas.**
 - **Programas do FMI como controle.**
+
+## Dados obtidos depois da rodada inicial (13/11/2026)
+
+O autor baixou à mão três fontes que estavam pendentes: o texto de Mollick e Vianna, a Polity5 e o COFOG do FMI.
+
+**D10. COFOG.** A linha 4 da Tabela S8 era a análise prevista no plano com o COFOG, e o WDI era o substituto declarado.
+- A exportação completa do portal do FMI (cerca de 530 MB) é reduzida por `code/revisao/conv_cofog.py`, só conversão de formato, ao governo geral (S13): saúde (GF07), educação (GF09) e desembolso total.
+- A medida é a soma de saúde e educação em % do desembolso total.
+- Entra como linha 4b, ao lado do substituto (4a). A linha "todas juntas" mantém o substituto, como estava registrada.
+
+**D11. Polity5.** As restrições ao executivo (xconst, de 1 a 7) foram usadas na robustez de Oto-Peralías e Romero-Ávila.
+- Os códigos −66, −77 e −88 viram missing.
+- A chave é o código COW da QoG, com correspondência explícita para Etiópia, Vietnã, Sérvia, Montenegro, Sudão do Sul, Alemanha Ocidental e Iêmen do Norte. URSS e Iugoslavia (até 1991) ficam fora.
+- **Exploratória** (Tabela S18): o plano não previa essa medida.
+
+**D12. Mollick e Vianna com a especificação publicada.** O plano previa só a réplica aproximada, porque o texto não tinha sido obtido. Essa réplica continua sendo a que entra na regra do cenário.
+- Com o texto, a especificação publicada foi estimada como **exploratória** (Tabela S17 e painel D da Tabela 6): equação (1) e Tabela 2 do artigo, os 138 países da nota da Tabela 1, séries do WDI baixadas pela API (`code/revisao/dl_wdi_mv.py`).
+- O WGI não tem 1997, 1999 e 2001. Esses anos foram interpolados linearmente, porque o N publicado (3.141) implica que estão na amostra.
+- Os efeitos de ano entram como regressores, para que o R² within seja comparável ao publicado.
+- A mesma regra de nitidez do cenário é aplicada a ela como sensibilidade (`nit_mvf`), sem mudar o cenário.

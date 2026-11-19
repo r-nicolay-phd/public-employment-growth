@@ -1,6 +1,6 @@
-# Stata packages used in the revision
+# Stata packages used
 
-Stata 17 (StataMP). Community-contributed packages installed in `ado/plus` by `code/revisao/00_instala.do`; list read from `ado/plus/stata.trk` by `code/revisao/15_documentos.do`. Packages that could not be installed from the author's source were copied from the draft-7 package folder (`code/ado/plus`): xthenreg, xthreg, bma and wals.
+Stata 17 (StataMP). Community-contributed packages installed in `ado/plus` by `code/revisao/00_instala.do`; list read from `ado/plus/stata.trk` by `code/revisao/15_documentos.do`. Packages that could not be installed from the author's source were copied from the package folder of the earlier pipeline (`code/ado/plus`): xthenreg, xthreg, bma and wals.
 
 | Package | Source | Distribution date | Installed |
 |---|---|---|---|
