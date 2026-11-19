@@ -286,6 +286,10 @@ def build():
                         for t in row.cells[-2]._tc.iter(W + "t"):
                             if t.text.strip() == "0.064":
                                 t.text = "0.063"
+                # IC do mesmo modelo: o da coluna principal da Tabela A15 (mesmo sorteio do p)
+                for t in d.element.body.iter(W + "t"):
+                    if t.text and "[−3.741; 0.129]" in t.text:
+                        t.text = t.text.replace("[−3.741; 0.129]", "[−3.737; 0.111]")
             if num == "A2" and i == 0:
                 nf3.drop_panel_b(d)
             if num == "A10":
@@ -315,6 +319,7 @@ def build():
                 t = t.replace(f"$-$0.142 [$-$0.284; $-$0.001] & {OLD_T3P}", f"$-$0.142 [$-$0.284; $-$0.001] & {T3P}")
             if num == "A15" and fn == "Table_A17_new_columns":
                 t = t.replace("0.022 & 0.064 & 0.070", "0.022 & 0.063 & 0.070")
+                t = t.replace("[$-$3.741; 0.129]", "[$-$3.737; 0.111]")
             if num == "A2" and i == 0:
                 t = re.sub(r"\nB\. Annual panel.*?(?=\\bottomrule)", "\n", t, flags=re.S)
             if num == "A10":
