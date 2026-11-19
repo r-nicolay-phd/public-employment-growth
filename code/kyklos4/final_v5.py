@@ -179,6 +179,8 @@ SPEC = {  # tabela final -> trocas especificas (docx; o .tex recebe a mesma troc
     "A3": [(OLD_A3, CANON_CI)],
     "A5": [(OLD_A5, CANON_CI)],
     "A15": [(f"−0.142 [−0.284; −0.001]\t{OLD_T3P}", None)],
+    # reversao a media na amostra comum: um so valor na Tabela A8, o do quarto adendo (parte nova)
+    "A8": [("−0.109 [−0.337; 0.097]", "−0.113 [−0.381; 0.081]")],
 }
 
 
