@@ -126,6 +126,13 @@ POST = [  # depois da renumeracao e da limpeza
     ("the strict-sample family replaces only the H2 test", "the strict-sample family differs only in the H2 test"),
     ("its own lag replaces lagged WDI growth among the controls", "its own lag is used instead of lagged WDI growth among the controls"),
     ("Price term: effect of 1 within-country SD", "Effect of 1 within-country SD (price term in cols. 2–5; premium in col. 6; wage bill in col. 7)"),
+    ("Bias: same year − lagged (bootstrap 95% CI)", "Same-year − lagged contrast (bootstrap 95% CI)"),
+    ("Predicted sign of the bias (from the nominal elasticity)", "Predicted sign of the contrast (from the nominal elasticity)"),
+    ("Bias: same-year minus lagged coefficient", "Same-year − lagged contrast: same-year minus lagged coefficient"),
+    ("the condition is confirmed if the bias CI agrees", "the condition is confirmed if the contrast CI agrees"),
+    ("139 exactly in t_p − 1 (column 4)", "139 exactly in t_p − 1 (column 4; 116 in the estimation, after dropping 8 with missing controls and 15 singleton countries)"),
+    ("transition economies: former Soviet Union, Central and Eastern Europe and the Balkans, periods starting before 1999",
+     "transition economies: former Soviet Union, Central and Eastern Europe and the Balkans, periods starting before 1999 (3 country-periods: BGR, HUN and SVN 1994)"),
     ("second plan addendum", "second addendum"), ("third plan addendum", "third addendum"), ("fourth plan addendum", "fourth addendum"),
 ]
 
@@ -138,6 +145,10 @@ def fix_text(t, scheme):
         t = t.replace("pre-registered in the plan addendum", f"pre-registered in the {ADD[scheme]}")
     for a, b in POST:
         t = t.replace(a, b)
+        # no .tex o mesmo texto aparece com $-$ e \_
+        ea, eb = (x.replace("−", "$-$").replace("_", r"\_").replace("%", r"\%").replace("×", r"$\times$") for x in (a, b))
+        if ea != a:
+            t = t.replace(ea, eb)
     return t
 
 
@@ -221,6 +232,31 @@ def notes_add(num):
     return n.get(num, "")
 
 
+A1_SHOCK = ("Dated wage bill shock (a)",
+            "100 × (W_(t−1)/P_(t−2) − W_(t−2)/P_(t−2)) / y_(t−2), dated in t − 1, P = GDP deflator, y = real GDP",
+            "Local projections (Figure 4; Tables A9 and A16)")
+
+
+def a1_shock(d):
+    """Tabela A1: linha do choque (a), datado em t - 1, logo depois do choque convencional."""
+    for r in d.tables[0].rows:
+        if r.cells[0].text.strip() == "Real wage bill shock":
+            new = copy.deepcopy(r._tr)
+            r._tr.addnext(new)
+            for tc, txt in zip(new.iter(W + "tc"), A1_SHOCK):
+                ts = list(tc.iter(W + "t"))
+                for i, t in enumerate(ts):
+                    t.text = txt if i == 0 else ""
+            return
+
+
+def a6_onestep(d):
+    """Tabela A6, partes herdadas: o System GMM e de uma etapa."""
+    for t in d.element.body.iter(W + "t"):
+        if t.text and t.text.strip() == "System GMM":
+            t.text = "System GMM, one-step"
+
+
 def a10_groups(d):
     """Tabela A10: insere linhas de grupo (alternativas e resumos)."""
     tb = d.tables[0]
@@ -292,6 +328,10 @@ def build():
                 for t in d.element.body.iter(W + "t"):
                     if t.text and "[−3.741; 0.129]" in t.text:
                         t.text = t.text.replace("[−3.741; 0.129]", "[−3.737; 0.111]")
+            if num == "A1" and i == 0:
+                a1_shock(d)
+            if num == "A6" and i == 0:
+                a6_onestep(d)
             if num == "A2" and i == 0:
                 nf3.drop_panel_b(d)
             if num == "A10":
@@ -322,6 +362,12 @@ def build():
             if num == "A15" and fn == "Table_A17_new_columns":
                 t = t.replace("0.022 & 0.064 & 0.070", "0.022 & 0.063 & 0.070")
                 t = t.replace("[$-$3.741; 0.129]", "[$-$3.737; 0.111]")
+            if num == "A1" and i == 0:
+                row = " & ".join(x.replace("−", "$-$").replace("_", r"\_").replace("×", r"$\times$") for x in A1_SHOCK) + " \\\\"
+                t = re.sub(r"(\nReal wage bill shock &[^\n]*\n)", lambda m: m.group(1) + row + "\n", t, count=1)
+            if num == "A6" and i == 0:
+                t = t.replace(" & Fixed effects & System GMM & Fixed effects & System GMM \\\\",
+                              " & Fixed effects & System GMM, one-step & Fixed effects & System GMM, one-step \\\\", 1)
             if num == "A2" and i == 0:
                 t = re.sub(r"\nB\. Annual panel.*?(?=\\bottomrule)", "\n", t, flags=re.S)
             if num == "A10":

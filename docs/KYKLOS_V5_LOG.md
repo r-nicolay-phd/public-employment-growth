@@ -122,3 +122,27 @@ Nenhuma estimativa mudou. Commit `4874e52` (07_tabelas_k4.do), 16:29:16. O está
 - linha das safras do WDI em `docs/data_sources.csv`.
 
 A numeração das linhas das listas do README, citada nas notas das tabelas, foi conferida e não mudou.
+
+## Ajustes de rótulos e notas pedidos depois da v7 (18/11/2026)
+
+Feitos no código. Nenhuma estimativa mudou.
+
+**No `07_tabelas_k4.do`** (partes desta rodada):
+- **A4, painel K:** linha de referência ε = 0,48, k = 0 (63%; defasada −0,120; Hamilton 0,290).
+- **A6, continuação:** rótulo "System GMM, two-step" e nota sobre o GMM de uma etapa e a inferência dos efeitos fixos do painel B.
+- **A8, parte nova:** nota com a definição de transição (3 períodos; o bloco tem só SVN 1994).
+- **A9, parte nova:** nota de que os p das linhas quinquenais e do WWBI são agrupados, com os p de *wild bootstrap*.
+
+**No `final_v5.py`** (partes herdadas dos adendos 1–3, cujo código e saídas não foram alterados):
+- **A1:** linha do choque (a).
+- **A3:** "Same-year − lagged contrast" no lugar de "Bias".
+- **Tabela 2:** nota da coluna 4 (139 → 116: 8 sem controles e 15 *singletons*).
+- **A6, painel B:** "System GMM, one-step".
+- **A9, nota de base:** os 3 períodos de transição.
+
+`fix_text` passou a aplicar as trocas também à forma escapada do `.tex` (`$-$`, `\_`, `\%`, `$\times$`).
+
+**Verificação.**
+- Mudaram exatamente 7 tabelas (Tabela 2, A1, A3, A4, A6, A8, A9); as figuras ficaram idênticas.
+- 0 ocorrências proibidas.
+- Memorando: 120 itens, 0 divergências.
