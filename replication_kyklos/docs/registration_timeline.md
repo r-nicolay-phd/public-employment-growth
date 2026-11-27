@@ -1,5 +1,7 @@
 # Registration timeline of the analysis plan and its addenda
 
+The plan and the four addenda are deposited at the Open Science Framework: https://doi.org/10.17605/OSF.IO/EF7K3.
+
 This file reconstructs, from the git history of the project repository, when the analysis plan and its addenda were committed and when the analyses they govern were first run. The commit hashes, author dates and commit dates can be verified with the git bundle deposited with this file:
 - `git bundle verify repo_until_addendum4.bundle` (or `repo_until_addendum3.bundle` for the state at the third addendum);
 - `git log --format="%H %ad %cd %s" --date=iso`, after cloning the bundle.

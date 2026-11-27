@@ -10,6 +10,7 @@ The code in this package builds annual, three-year and five-year country panels 
 - `code/master.do` runs everything in a single pass. `code/kyklos_numbering.py` then copies the outputs to the numbering of the article.
 - A full run takes about 31 minutes on a desktop computer.
 - The analysis plan registered before the estimates were produced is in `docs/analysis_plan.pdf`, and the deviations from it are listed in `docs/deviations_from_plan.md`.
+- The analysis plan and its four addenda are deposited at the Open Science Framework: https://doi.org/10.17605/OSF.IO/EF7K3.
 
 ## Data Availability and Provenance Statements
 
